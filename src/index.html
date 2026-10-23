@@ -856,6 +856,71 @@
             </div>
 
           </div>
+
+          <!-- ==============================================================
+               PANEL LATERAL FLOTANTE DE PINCELES (A LA DERECHA, AL NIVEL DE LOS DIENTES)
+               ============================================================== -->
+          <aside class="hc-side-palette no-print" id="hc-side-palette">
+            <div class="hc-palette-header">
+              <span style="font-size: 18px;">🖌️</span>
+              <div>
+                <strong style="font-size: 13px; color: var(--text-main); display: block;">Pincel Clínico</strong>
+                <small style="font-size: 10px; color: var(--text-muted);">Marca cada cuadro del diente</small>
+              </div>
+            </div>
+
+            <!-- Indicador de herramienta activa -->
+            <div id="hc-side-tool-badge" class="hc-active-tool-pill">
+              Activo: <strong id="hc-side-tool-name">🔴 Por Reparar</strong>
+            </div>
+
+            <!-- Lista vertical de herramientas de pincel -->
+            <div class="hc-side-tools-list">
+              <button type="button" class="btn btn-sm btn-hc-side-tool active" data-tool="caries" style="border: 2px solid var(--danger); background: var(--danger-bg); color: var(--danger); font-weight: 800; justify-content: flex-start; text-align: left; width: 100%;">
+                🔴 Por Reparar (Caries)
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-side-tool" data-tool="obturado" style="border: 1.5px solid var(--info); background: #ffffff; color: var(--info); font-weight: 800; justify-content: flex-start; text-align: left; width: 100%;">
+                🔵 Ya Reparado (Resina)
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-side-tool" data-tool="sano" style="border: 1.5px solid #cbd5e1; background: #ffffff; color: var(--text-main); font-weight: 800; justify-content: flex-start; text-align: left; width: 100%;">
+                🟢 Marcar Sano (Goma)
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-side-tool" data-tool="endodoncia" style="border: 1.5px solid var(--warning); background: #ffffff; color: #b45309; font-weight: 800; justify-content: flex-start; text-align: left; width: 100%;">
+                🟡 Endodoncia
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-side-tool" data-tool="corona" style="border: 1.5px solid var(--purple); background: #ffffff; color: var(--purple); font-weight: 800; justify-content: flex-start; text-align: left; width: 100%;">
+                🟣 Corona
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-side-tool" data-tool="cirugia" style="border: 1.5px solid #be123c; background: #ffffff; color: #be123c; font-weight: 800; justify-content: flex-start; text-align: left; width: 100%;">
+                🪚 Cirugía / Extracción
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-side-tool" data-tool="ausente" style="border: 1.5px solid #64748b; background: #ffffff; color: #475569; font-weight: 800; justify-content: flex-start; text-align: left; width: 100%;">
+                ⚫ Ya Ausente
+              </button>
+            </div>
+
+            <!-- Resumen de estadísticas en vivo -->
+            <div id="hc-side-stats-box" class="hc-side-stats-box">
+              <div id="hc-side-caries-stat" style="color: #dc2626; font-weight: 800; font-size: 11px;">🔴 0 Caras por Reparar</div>
+              <div id="hc-side-obturado-stat" style="color: #0284c7; font-weight: 800; font-size: 11px;">🔵 0 Caras Reparadas</div>
+            </div>
+
+            <!-- Atajo intuitivo -->
+            <div style="font-size: 10.5px; color: var(--text-muted); background: #f8fafc; padding: 6px 8px; border-radius: 6px; border: 1px dashed #cbd5e1; line-height: 1.35;">
+              💡 <strong>Atajo rápido:</strong><br>
+              Clic derecho sobre cualquier cara: <em>Sano ➔ Rojo ➔ Azul</em>.
+            </div>
+
+            <!-- Acciones rápidas para no tener que subir la pantalla -->
+            <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+              <button type="button" id="btn-hc-side-save" class="btn btn-sm btn-primary" style="width: 100%; font-weight: 800; padding: 7px 10px;">
+                💾 Guardar Ficha
+              </button>
+              <button type="button" id="btn-hc-side-print-filled" class="btn btn-sm btn-secondary" style="width: 100%; font-weight: 700; color: #0284c7; border-color: #0284c7; padding: 6px 10px;">
+                🖨️ Imprimir Ficha
+              </button>
+            </div>
+          </aside>
         </div>
       </section>
 

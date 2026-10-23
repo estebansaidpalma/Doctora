@@ -1194,6 +1194,7 @@ function renderClinicalHistoryView() {
   // Renderizar Odontograma oficial de 4 filas
   renderHistoryOdontogram();
   updateHistoryStats();
+  syncToolPaletteUI(appState.activeTool || 'caries');
 }
 
 function renderHistoryOdontogram() {
@@ -1278,8 +1279,7 @@ function renderHistoryQuadrant(containerId, toothNumbers, numbersOnTop, patient)
 
 function updateHistoryStats() {
   const patient = getCurrentPatient();
-  const summaryElem = document.getElementById('hc-stats-summary');
-  if (!patient || !summaryElem) return;
+  if (!patient) return;
 
   let cariesFacesCount = 0;
   let obturadoFacesCount = 0;
@@ -1296,11 +1296,107 @@ function updateHistoryStats() {
     });
   }
 
-  summaryElem.innerHTML = `
-    <span style="color: #dc2626; margin-right: 14px;">🔴 <strong>${cariesFacesCount}</strong> Caras por Reparar</span>
-    <span style="color: #0284c7; margin-right: 14px;">🔵 <strong>${obturadoFacesCount}</strong> Caras Reparadas</span>
-    <span style="color: #16a34a;">🟢 Sincronizado</span>
-  `;
+  const summaryElem = document.getElementById('hc-stats-summary');
+  if (summaryElem) {
+    summaryElem.innerHTML = `
+      <span style="color: #dc2626; margin-right: 14px;">🔴 <strong>${cariesFacesCount}</strong> Caras por Reparar</span>
+      <span style="color: #0284c7; margin-right: 14px;">🔵 <strong>${obturadoFacesCount}</strong> Caras Reparadas</span>
+      <span style="color: #16a34a;">🟢 Sincronizado</span>
+    `;
+  }
+
+  const sideCaries = document.getElementById('hc-side-caries-stat');
+  if (sideCaries) sideCaries.textContent = `🔴 ${cariesFacesCount} Caras por Reparar`;
+  const sideObturado = document.getElementById('hc-side-obturado-stat');
+  if (sideObturado) sideObturado.textContent = `🔵 ${obturadoFacesCount} Caras Reparadas`;
+}
+
+function syncToolPaletteUI(tool) {
+  appState.activeTool = tool;
+
+  // Actualizar botones de la barra superior
+  document.querySelectorAll('.btn-hc-tool').forEach(b => {
+    const isThis = b.getAttribute('data-tool') === tool;
+    b.classList.toggle('active', isThis);
+    b.style.backgroundColor = isThis ? getToolBg(tool) : '#ffffff';
+  });
+
+  // Actualizar botones del panel lateral derecho
+  document.querySelectorAll('.btn-hc-side-tool').forEach(b => {
+    const isThis = b.getAttribute('data-tool') === tool;
+    b.classList.toggle('active', isThis);
+    b.style.backgroundColor = isThis ? getToolBg(tool) : '#ffffff';
+    b.style.borderColor = isThis ? getToolBorder(tool) : '#cbd5e1';
+  });
+
+  // Actualizar botones de la vista Odontograma
+  document.querySelectorAll('.btn-clinical-tool').forEach(b => {
+    const isThis = b.getAttribute('data-tool') === tool;
+    b.classList.toggle('active', isThis);
+    b.style.backgroundColor = isThis ? getToolBg(tool) : '#ffffff';
+  });
+
+  // Actualizar badge del panel lateral
+  const sideBadge = document.getElementById('hc-side-tool-badge');
+  const sideToolName = document.getElementById('hc-side-tool-name');
+  if (sideBadge && sideToolName) {
+    sideToolName.textContent = getToolLabel(tool);
+    sideBadge.style.backgroundColor = getToolBg(tool);
+    sideBadge.style.borderColor = getToolBorder(tool);
+    sideBadge.style.color = getToolColor(tool);
+  }
+}
+
+function getToolLabel(tool) {
+  const map = {
+    caries: "🔴 Por Reparar (Caries)",
+    obturado: "🔵 Ya Reparado (Resina)",
+    sano: "🟢 Marcar Sano (Goma)",
+    endodoncia: "🟡 Endodoncia",
+    corona: "🟣 Corona",
+    cirugia: "🪚 Cirugía / Extracción",
+    ausente: "⚫ Ya Ausente"
+  };
+  return map[tool] || tool;
+}
+
+function getToolBg(tool) {
+  const map = {
+    caries: "#fef2f2",
+    obturado: "#eff6ff",
+    sano: "#f0fdf4",
+    endodoncia: "#fffbeb",
+    corona: "#f5f3ff",
+    cirugia: "#fff1f2",
+    ausente: "#f8fafc"
+  };
+  return map[tool] || "#ffffff";
+}
+
+function getToolBorder(tool) {
+  const map = {
+    caries: "#ef4444",
+    obturado: "#0284c7",
+    sano: "#22c55e",
+    endodoncia: "#f59e0b",
+    corona: "#8b5cf6",
+    cirugia: "#be123c",
+    ausente: "#64748b"
+  };
+  return map[tool] || "#cbd5e1";
+}
+
+function getToolColor(tool) {
+  const map = {
+    caries: "#dc2626",
+    obturado: "#0369a1",
+    sano: "#15803d",
+    endodoncia: "#b45309",
+    corona: "#7c3aed",
+    cirugia: "#9f1239",
+    ausente: "#334155"
+  };
+  return map[tool] || "#0f172a";
 }
 
 function saveCurrentClinicalHistoryForm(showNotification = false) {
@@ -3162,34 +3258,30 @@ function setupEventListeners() {
     });
   }
 
-  // Herramientas de pincel en Historia Clínica
-  document.querySelectorAll('.btn-hc-tool').forEach(btn => {
+  // Herramientas de pincel en Historia Clínica (Barra superior y Panel lateral derecho)
+  document.querySelectorAll('.btn-hc-tool, .btn-hc-side-tool').forEach(btn => {
     btn.addEventListener('click', () => {
       const tool = btn.getAttribute('data-tool');
-      appState.activeTool = tool;
-
-      document.querySelectorAll('.btn-hc-tool').forEach(b => {
-        b.classList.remove('active');
-        b.style.backgroundColor = '#ffffff';
-      });
-      btn.classList.add('active');
-
-      if (tool === 'caries') btn.style.backgroundColor = 'var(--danger-bg)';
-      else if (tool === 'obturado') btn.style.backgroundColor = 'var(--info-bg)';
-      else if (tool === 'endodoncia') btn.style.backgroundColor = '#fffbeb';
-      else if (tool === 'corona') btn.style.backgroundColor = '#f3e8ff';
-      else if (tool === 'cirugia') btn.style.backgroundColor = '#ffe4e6';
-      else if (tool === 'ausente') btn.style.backgroundColor = '#f1f5f9';
-      else if (tool === 'sano') btn.style.backgroundColor = '#f8fafc';
-
-      // Sincronizar botones de la otra paleta clínica
-      document.querySelectorAll('.btn-clinical-tool').forEach(b => {
-        if (b.getAttribute('data-tool') === tool) {
-          b.click();
-        }
-      });
+      syncToolPaletteUI(tool);
     });
   });
+
+  // Botón Guardar del panel lateral
+  const btnHcSideSave = document.getElementById('btn-hc-side-save');
+  if (btnHcSideSave) {
+    btnHcSideSave.addEventListener('click', () => {
+      saveCurrentClinicalHistoryForm(true);
+    });
+  }
+
+  // Botón Imprimir del panel lateral
+  const btnHcSidePrint = document.getElementById('btn-hc-side-print-filled');
+  if (btnHcSidePrint) {
+    btnHcSidePrint.addEventListener('click', () => {
+      const btnFilled = document.getElementById('btn-hc-print-filled');
+      if (btnFilled) btnFilled.click();
+    });
+  }
 
   // Auto-guardar al modificar campos de la Historia Clínica
   const paperElement = document.getElementById('history-paper-element');

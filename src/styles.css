@@ -1331,18 +1331,110 @@ body {
 .history-paper-container {
   display: flex;
   justify-content: center;
-  padding: 10px 0 40px;
-  background-color: transparent;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 10px 0 60px;
+  max-width: 1180px;
+  margin: 0 auto;
+  position: relative;
 }
 
 .history-paper {
   background: #ffffff;
   width: 100%;
-  max-width: 900px;
+  max-width: 890px;
   padding: 28px 36px;
   border-radius: 8px;
   border: 1.5px solid #cbd5e1;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+/* Panel Lateral Flotante y Adherente al hacer scroll */
+.hc-side-palette {
+  position: sticky;
+  top: 75px; /* Sigue la pantalla al bajar hacia el odontograma */
+  width: 220px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 1.8px solid #0284c7;
+  border-radius: 12px;
+  padding: 14px 12px;
+  box-shadow: 0 10px 25px rgba(2, 132, 199, 0.15), 0 2px 6px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 50;
+  box-sizing: border-box;
+}
+
+.hc-palette-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+
+.hc-active-tool-pill {
+  font-size: 11.5px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  text-align: center;
+  font-weight: 600;
+}
+
+.hc-side-tools-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.btn-hc-side-tool {
+  font-size: 11.5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+}
+
+.btn-hc-side-tool:hover {
+  transform: translateX(2px);
+  filter: brightness(0.97);
+}
+
+.hc-side-stats-box {
+  background: #f8fafc;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@media (max-width: 1140px) {
+  .history-paper-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  .hc-side-palette {
+    position: relative;
+    top: 0;
+    width: 100%;
+    max-width: 890px;
+  }
+}
   color: #0f172a;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   box-sizing: border-box;
