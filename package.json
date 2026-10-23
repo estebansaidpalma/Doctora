@@ -1,0 +1,39 @@
+{
+  "name": "sonrisa-perfecta",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión Odontológica, Citas y Odontograma Clínico - Sonrisa Perfecta",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win portable",
+    "build:installer": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.sonrisaperfecta.app",
+    "productName": "Sonrisa Perfecta",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "assets/icon.png"
+    },
+    "portable": {
+      "artifactName": "Sonrisa_Perfecta_${version}.exe"
+    }
+  },
+  "keywords": [
+    "odontologia",
+    "odontograma",
+    "citas",
+    "sonrisa-perfecta"
+  ],
+  "author": "Sonrisa Perfecta",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^44.7.1",
+    "electron-builder": "^26.15.3"
+  }
+}

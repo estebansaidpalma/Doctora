@@ -1,0 +1,1763 @@
+/* ==========================================================================
+   SONRISA PERFECTA - SISTEMA DE GESTIÓN ODONTOLÓGICA & ODONTOGRAMA CLÍNICO
+   Estilos de Diseño Moderno, Médico y Premium
+   ========================================================================== */
+
+:root {
+  --primary: #0284c7;
+  --primary-hover: #0369a1;
+  --primary-light: #e0f2fe;
+  --primary-dark: #075985;
+  
+  --teal: #0d9488;
+  --teal-light: #ccfbf1;
+  
+  --gold: #d97706;
+  --gold-light: #fef3c7;
+  --gold-border: #f59e0b;
+  
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-sidebar: #0f172a;
+  --bg-sidebar-hover: #1e293b;
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --text-white: #ffffff;
+  
+  --border-color: #e2e8f0;
+  --border-focus: #38bdf8;
+  
+  --success: #10b981;
+  --success-bg: #d1fae5;
+  --warning: #f59e0b;
+  --warning-bg: #fef3c7;
+  --danger: #ef4444;
+  --danger-bg: #fee2e2;
+  --info: #3b82f6;
+  --info-bg: #dbeafe;
+  --purple: #8b5cf6;
+  --purple-bg: #ede9fe;
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+/* ==========================================================================
+   LAYOUT PRINCIPAL
+   ========================================================================== */
+
+#app-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* SIDEBAR */
+#sidebar {
+  width: 260px;
+  background-color: var(--bg-sidebar);
+  color: var(--text-white);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  user-select: none;
+}
+
+.brand-header {
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+}
+
+.brand-icon-wrapper svg {
+  width: 26px;
+  height: 26px;
+  fill: #ffffff;
+}
+
+.brand-text h1 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #ffffff;
+}
+
+.brand-text span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.nav-item:hover {
+  background-color: var(--bg-sidebar-hover);
+  color: #f8fafc;
+}
+
+.nav-item.active {
+  background: linear-gradient(90deg, rgba(2, 132, 199, 0.25) 0%, rgba(13, 148, 136, 0.15) 100%);
+  color: #38bdf8;
+  font-weight: 600;
+  border-left: 3px solid #38bdf8;
+}
+
+.nav-item svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-footer .status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #38bdf8;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+}
+
+/* MAIN CONTENT AREA */
+#main-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--bg-main);
+}
+
+.topbar {
+  height: 64px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.topbar-title h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.topbar-title p {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.active-patient-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--primary-light);
+  border: 1px solid #bae6fd;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.active-patient-badge .pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(2, 132, 199, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+}
+
+/* CONTENT CONTAINER */
+.view-panel {
+  flex: 1;
+  padding: 24px 28px;
+  overflow-y: auto;
+  display: none;
+}
+
+.view-panel.active {
+  display: block;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   COMPONENTES GENÉRICOS (BOTONES, TARJETAS, FORMULARIOS)
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: var(--transition);
+  text-decoration: none;
+  user-select: none;
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+}
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-whatsapp {
+  background-color: #25d366;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(37, 211, 102, 0.25);
+}
+.btn-whatsapp:hover {
+  background-color: #20bd5a;
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+.btn-secondary:hover {
+  background-color: #f1f5f9;
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: #ffffff;
+}
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+}
+
+.card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* FORMULARIOS */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: #ffffff;
+  font-size: 14px;
+  color: var(--text-main);
+  outline: none;
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* BADGES */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.badge-success { background-color: var(--success-bg); color: var(--success); }
+.badge-warning { background-color: var(--warning-bg); color: var(--warning); }
+.badge-danger { background-color: var(--danger-bg); color: var(--danger); }
+.badge-info { background-color: var(--info-bg); color: var(--info); }
+.badge-purple { background-color: var(--purple-bg); color: var(--purple); }
+.badge-cordal {
+  background-color: var(--gold-light);
+  color: var(--gold);
+  border: 1px solid var(--gold-border);
+}
+
+/* ==========================================================================
+   1. MÓDULO DE ODONTOGRAMA (CORAZÓN DEL SISTEMA)
+   ========================================================================== */
+
+.odontogram-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  padding: 14px 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.legend-items {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.legend-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.color-caries { background-color: var(--danger); }
+.color-obturado { background-color: var(--info); }
+.color-endodoncia { background-color: var(--warning); }
+.color-corona { background-color: var(--purple); }
+.color-ausente { background-color: #64748b; }
+.color-cirugia { background-color: #be123c; border: 1px dashed #ffffff; }
+.color-sano { background-color: #e2e8f0; }
+
+.odontogram-board {
+  background-color: #ffffff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.arch-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #f8fafc;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid #e2e8f0;
+}
+
+.arch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+}
+
+.teeth-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 6px 0;
+}
+
+.quadrant-divider {
+  width: 2px;
+  height: 110px;
+  background-color: #cbd5e1;
+  margin: 0 8px;
+  position: relative;
+}
+
+.quadrant-divider::after {
+  content: 'LÍNEA MEDIA';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+/* TARJETA INDIVIDUAL DEL DIENTE */
+.tooth-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border-radius: var(--radius-md);
+  background-color: #ffffff;
+  border: 1.5px solid var(--border-color);
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 62px;
+  user-select: none;
+  position: relative;
+}
+
+.tooth-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--primary);
+  box-shadow: 0 6px 12px rgba(2, 132, 199, 0.15);
+}
+
+.tooth-card.selected {
+  border-color: var(--primary) !important;
+  background-color: var(--primary-light) !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.4), 0 8px 16px rgba(2, 132, 199, 0.2) !important;
+  transform: translateY(-4px) scale(1.05);
+  z-index: 10;
+}
+
+.btn-general-action:hover, .btn-quick-treatment:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+.tooth-card.is-cordal {
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+  border-color: #fcd34d;
+}
+
+.tooth-card.is-cordal .cordal-pill {
+  position: absolute;
+  top: -7px;
+  background-color: #d97706;
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.5px;
+}
+
+.tooth-num {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.tooth-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  position: relative;
+}
+
+/* DIBUJO GEOMÉTRICO FDI DE LAS CARAS DEL DIENTE (SVG) */
+.tooth-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tooth-surface {
+  fill: #f8fafc;
+  stroke: #94a3b8;
+  stroke-width: 1.2;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.15s ease;
+}
+
+.tooth-surface:hover {
+  stroke: #0284c7 !important;
+  stroke-width: 2.5 !important;
+  filter: drop-shadow(0 0 5px rgba(2, 132, 199, 0.7));
+}
+
+/* Colores anatómicos de caras individuales */
+.tooth-surface.sano { fill: #ffffff; stroke: #94a3b8; }
+.tooth-surface.caries { fill: var(--danger); stroke: #b91c1c; }
+.tooth-surface.obturado { fill: var(--info); stroke: #1d4ed8; }
+.tooth-surface.endodoncia { fill: var(--warning); stroke: #d97706; }
+.tooth-surface.corona { fill: var(--purple); stroke: #6d28d9; }
+.tooth-surface.sellante { fill: var(--teal); stroke: #0f766e; }
+.tooth-surface.ausente { fill: #94a3b8; stroke: #475569; }
+
+.tooth-status-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-align: center;
+  max-width: 65px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.2px;
+}
+
+/* Herramientas de pincel clínico activas */
+.btn-clinical-tool {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-clinical-tool.active {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 3px rgba(2, 132, 199, 0.35);
+}
+
+.btn-clinical-tool:hover {
+  transform: translateY(-1px);
+}
+
+/* Input editable de precios en tiempo real */
+.live-item-price-input {
+  font-weight: 800 !important;
+  color: var(--text-main) !important;
+  background-color: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 6px 10px !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.live-item-price-input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2) !important;
+  outline: none;
+}
+
+/* TARJETAS DE CARAS INDIVIDUALES CON SELECCIÓN DIRECTA */
+.angle-face-card {
+  transition: all 0.2s ease;
+  background: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+}
+
+.angle-face-card:hover {
+  border-color: var(--primary) !important;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08);
+}
+
+.btn-face-choice {
+  border: 1.5px solid #cbd5e1;
+  background-color: #ffffff;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn-face-choice:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.96);
+}
+
+.btn-face-choice.active[data-val="sano"] {
+  background-color: #ecfdf5 !important;
+  border-color: #10b981 !important;
+  color: #047857 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+.btn-face-choice.active[data-val="caries"] {
+  background-color: #fef2f2 !important;
+  border-color: #ef4444 !important;
+  color: #b91c1c !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+}
+
+.btn-face-choice.active[data-val="obturado"] {
+  background-color: #eff6ff !important;
+  border-color: #0284c7 !important;
+  color: #0369a1 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
+}
+
+/* ==========================================================================
+   2. MÓDULO DE CITAS (AGENDA)
+   ========================================================================== */
+
+.appointments-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background-color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-info h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.stat-info p {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.appointment-item {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.appointment-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--shadow-md);
+}
+
+.appointment-time-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-light);
+  color: var(--primary-dark);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  min-width: 80px;
+}
+
+.appointment-time-badge .time {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.appointment-time-badge .duration {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.appointment-details {
+  flex: 1;
+  margin: 0 20px;
+}
+
+.appointment-details h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.appointment-details p {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.appointment-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   CRONOGRAMA EN BLOQUES DE 30 MINUTOS (HORARIO 9:00 AM A 5:00 PM)
+   ========================================================================== */
+.timeblocks-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.timeblock-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+  min-height: 54px;
+}
+
+/* Bloque Libre */
+.timeblock-slot.slot-free {
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+}
+
+.timeblock-slot.slot-free:hover {
+  background: #f0fdf4;
+  border-color: #86efac;
+  transform: translateX(3px);
+}
+
+.timeblock-time-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 150px;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--text-main);
+}
+
+.timeblock-free-desc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Bloque Ocupado / Cita */
+.timeblock-slot.slot-busy {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-left: 6px solid var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.timeblock-slot.slot-busy.confirmed {
+  border-left-color: var(--success);
+}
+
+.timeblock-slot.slot-busy.waiting {
+  border-left-color: var(--warning);
+}
+
+.timeblock-slot.slot-busy.finished {
+  border-left-color: var(--teal);
+  opacity: 0.9;
+}
+
+.timeblock-slot.slot-busy.cancelled {
+  border-left-color: #94a3b8;
+  opacity: 0.6;
+}
+
+.timeblock-busy-info {
+  flex: 1;
+  margin: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.slot-block-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background-color: var(--primary-light);
+  color: var(--primary-dark);
+  letter-spacing: 0.3px;
+}
+
+/* ==========================================================================
+   3. MÓDULO DE PACIENTES
+   ========================================================================== */
+
+.patient-profile-header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.patient-avatar-info {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.patient-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.patient-critical-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.alert-banner {
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.patient-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.patient-tab-btn {
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: var(--transition);
+}
+
+.patient-tab-btn:hover {
+  color: var(--primary);
+}
+
+.patient-tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+/* ==========================================================================
+   4. MÓDULO DE PRESUPUESTOS Y PAGOS
+   ========================================================================== */
+
+.budget-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.budget-card {
+  background-color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.budget-card.total { border-top: 4px solid var(--primary); }
+.budget-card.paid { border-top: 4px solid var(--success); }
+.budget-card.balance { border-top: 4px solid var(--danger); }
+
+.budget-card h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.budget-card .amount {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-top: 6px;
+}
+
+.table-custom {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.table-custom th {
+  background-color: #f8fafc;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table-custom td {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--text-main);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.table-custom tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* ==========================================================================
+   5. GALERÍA DE FOTOS Y RAYOS X
+   ========================================================================== */
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.gallery-card {
+  background-color: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.gallery-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.gallery-thumb {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  background-color: #0f172a;
+  cursor: pointer;
+}
+
+.gallery-info {
+  padding: 12px 14px;
+}
+
+.gallery-info h5 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.gallery-info p {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   MODALES (VENTANAS EMERGENTES)
+   ========================================================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-container {
+  background-color: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  width: 90%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.96);
+  transition: transform 0.2s ease;
+}
+
+.modal-overlay.active .modal-container {
+  transform: scale(1);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close-btn:hover {
+  background-color: #f1f5f9;
+  color: var(--text-main);
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  background-color: #f8fafc;
+}
+
+/* PINTOR DE CARAS DENTALES EN MODAL */
+.tooth-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background-color: #f8fafc;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+
+.tooth-modal-diagram {
+  width: 90px;
+  height: 90px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.surfaces-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 12px 0 20px;
+}
+
+.surface-btn {
+  border: 1px solid var(--border-color);
+  background-color: #ffffff;
+  padding: 8px 4px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.surface-btn:hover {
+  border-color: var(--primary);
+}
+
+.surface-btn.active {
+  background-color: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+/* ==========================================================================
+   TOAST NOTIFICACIONES
+   ========================================================================== */
+
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 2000;
+}
+
+.toast {
+  background-color: #0f172a;
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ==========================================================================
+   FORMATO OFICIAL HISTORIA CLÍNICA ODONTOLÓGICA (DRA. CELENIA TOVAR)
+   ========================================================================== */
+
+.history-paper-container {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 40px;
+  background-color: transparent;
+}
+
+.history-paper {
+  background: #ffffff;
+  width: 100%;
+  max-width: 900px;
+  padding: 28px 36px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+/* Encabezado */
+.hc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #0284c7;
+}
+
+.hc-brand {
+  display: flex;
+  align-items: center;
+}
+
+.hc-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hc-logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hc-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.hc-clinic-name {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0369a1;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.hc-logo-wave {
+  margin-top: -3px;
+}
+
+.hc-doctor-info {
+  text-align: right;
+}
+
+.hc-doctor-name {
+  font-size: 21px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.hc-doctor-rif {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  margin-top: 2px;
+}
+
+.hc-document-title {
+  text-align: center;
+  margin: 10px 0 14px;
+}
+
+.hc-document-title h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0;
+}
+
+/* Secciones y Campos */
+.hc-section {
+  margin-bottom: 10px;
+}
+
+.hc-section-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.hc-bold-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.hc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.hc-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.flex-grow-1 { flex: 1; }
+.flex-grow-2 { flex: 2; }
+
+.hc-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.hc-line-input {
+  border: none;
+  border-bottom: 1.2px solid #64748b;
+  background: transparent;
+  padding: 2px 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+  flex: 1;
+  transition: all 0.2s ease;
+  min-width: 40px;
+}
+
+.hc-line-input:focus {
+  border-bottom: 2px solid #0284c7;
+  background-color: rgba(2, 132, 199, 0.05);
+}
+
+/* Checkboxes en 3 Columnas */
+.hc-checkboxes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 16px;
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.hc-checkbox-col {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hc-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.hc-cb {
+  display: none;
+}
+
+.hc-cb-box {
+  width: 14px;
+  height: 14px;
+  border: 1.6px solid #475569;
+  border-radius: 2px;
+  background-color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.hc-cb:checked + .hc-cb-box {
+  background-color: #0284c7;
+  border-color: #0284c7;
+}
+
+.hc-cb:checked + .hc-cb-box::after {
+  content: "✔";
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.hc-cb:hover + .hc-cb-box {
+  border-color: #0284c7;
+}
+
+/* Odontograma Oficial 4 Filas */
+.hc-odontogram-section {
+  margin: 16px 0 12px;
+  padding: 14px 10px;
+  background: #ffffff;
+  border: 1.5px solid #0284c7;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.hc-odonto-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.hc-quadrant {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.hc-middle-gap {
+  width: 18px;
+  height: 2px;
+  background: #cbd5e1;
+  margin: 0 4px;
+}
+
+.hc-tooth-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  user-select: none;
+}
+
+.hc-tooth-unit-num {
+  font-size: 10px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.hc-tooth-unit-svg-wrap {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.hc-tooth-unit-svg-wrap:hover {
+  transform: scale(1.12);
+  z-index: 5;
+}
+
+.hc-tooth-unit-svg-wrap .tooth-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Firma del Paciente */
+.hc-footer-signature {
+  margin-top: 24px;
+  padding-top: 10px;
+}
+
+.hc-signature-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 480px;
+}
+
+.hc-signature-line {
+  flex: 1;
+  border-bottom: 1.5px solid #334155;
+  height: 18px;
+}
+
+/* ==========================================================================
+   ESTILOS DE IMPRESIÓN OFICIAL (1 PÁGINA EXACTA TIPO HOJA CLÍNICA)
+   ========================================================================== */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 6mm 8mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Ocultar barra lateral, barra superior, botones y modales */
+  #sidebar, 
+  .topbar, 
+  .no-print, 
+  .tool-palette-buttons, 
+  .btn, 
+  .modal-overlay, 
+  #toast-container,
+  #quick-tooth-action-bar {
+    display: none !important;
+  }
+
+  #main-view {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .view-panel {
+    display: none !important;
+  }
+
+  /* Forzar que solo se imprima el panel activo (o Historia si se imprime historia) */
+  .view-panel.active, #view-historia {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .history-paper-container {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .history-paper {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4mm 6mm !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .hc-line-input {
+    border-bottom: 1px solid #000000 !important;
+    color: #000000 !important;
+    font-size: 11px !important;
+  }
+
+  .hc-checkboxes-grid {
+    background: transparent !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 10px !important;
+  }
+
+  .hc-cb-box {
+    border-color: #000000 !important;
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  .hc-cb:checked + .hc-cb-box {
+    background-color: #0284c7 !important;
+    border-color: #0284c7 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .hc-odontogram-section {
+    border: 1px solid #0284c7 !important;
+    padding: 8px 4px !important;
+    margin: 10px 0 !important;
+  }
+
+  .tooth-surface {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .tooth-surface.caries {
+    fill: #ef4444 !important;
+    stroke: #b91c1c !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .tooth-surface.obturado {
+    fill: #2563eb !important;
+    stroke: #1d4ed8 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .tooth-surface.sano {
+    fill: #ffffff !important;
+    stroke: #334155 !important;
+  }
+
+  /* Modo de impresión en blanco */
+  .blank-print-mode .hc-line-input {
+    color: transparent !important;
+  }
+  .blank-print-mode .hc-cb-box {
+    background-color: #ffffff !important;
+    border-color: #000000 !important;
+  }
+  .blank-print-mode .hc-cb:checked + .hc-cb-box::after {
+    display: none !important;
+  }
+  .blank-print-mode .tooth-surface {
+    fill: #ffffff !important;
+    stroke: #334155 !important;
+  }
+}

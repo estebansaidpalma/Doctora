@@ -1,0 +1,21 @@
+# Node dependencies
+node_modules/
+package-lock.json.bak
+
+# Large binary executable builds (Electron packaging - 900MB+)
+dist/
+*.exe
+Sonrisa_Perfecta.exe
+Sonrisa_Perfecta_Actualizada.exe
+
+# Temporary & backup files
+*.tmp
+*.bak
+*.log
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.system_generated/

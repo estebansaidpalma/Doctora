@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sonrisa Perfecta - Software Odontológico & Control de Citas</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div id="app-container">
+    <!-- BARRA LATERAL (SIDEBAR) -->
+    <aside id="sidebar">
+      <div class="brand-header">
+        <div class="brand-icon-wrapper" style="overflow: hidden; padding: 0; background: transparent; border-radius: 12px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+          <img src="../assets/logo.png" alt="Sonrisa Perfecta Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+        </div>
+        <div class="brand-text">
+          <h1>Sonrisa Perfecta</h1>
+          <span>Gestión Dental</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-item active" data-view="citas">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>Agenda & Citas</span>
+        </div>
+        <div class="nav-item" data-view="odontograma">
+          <svg viewBox="0 0 24 24"><path d="M12 2C8.5 2 6 4.5 6 8c0 3 1.5 6.5 3 9.5 1 2 1.5 3.5 2 4.5.2.4.6.6 1 .6s.8-.2 1-.6c.5-1 1-2.5 2-4.5 1.5-3 3-6.5 3-9.5 0-3.5-2.5-6-6-6z"></path></svg>
+          <span>Odontograma</span>
+        </div>
+        <div class="nav-item" data-view="historia">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <span>Historia Clínica</span>
+        </div>
+        <div class="nav-item" data-view="pacientes">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Pacientes</span>
+        </div>
+        <div class="nav-item" data-view="presupuestos">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <span>Presupuestos & Pagos</span>
+        </div>
+        <div class="nav-item" data-view="galeria">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          <span>Rayos X & Galería</span>
+        </div>
+        <div class="nav-item" data-view="configuracion">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Configuración</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          <span>Sistema Local Activo</span>
+        </div>
+        <div>v1.0 • Consultorio Sonrisa Perfecta</div>
+      </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main id="main-view">
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-title">
+          <h2 id="current-view-title">Agenda & Control de Citas</h2>
+          <p id="current-view-subtitle">Organización diaria, confirmaciones e historial</p>
+        </div>
+
+        <div class="topbar-actions">
+          <!-- Selector rápido de paciente activo -->
+          <div class="active-patient-badge">
+            <span class="pulse"></span>
+            <span>Paciente:</span>
+            <select id="global-patient-select" style="background:transparent; border:none; font-weight:700; color:inherit; outline:none; cursor:pointer;">
+              <!-- Llenado dinámicamente -->
+            </select>
+          </div>
+
+          <button id="btn-quick-open-history" class="btn btn-secondary btn-sm" title="Abrir Formato de Historia Clínica de la Dra. Celenia Tovar">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <span>Historia Clínica</span>
+          </button>
+
+          <button id="btn-quick-new-appointment" class="btn btn-primary btn-sm">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Nueva Cita</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- 1. VISTA: CITAS & AGENDA -->
+      <section id="view-citas" class="view-panel active">
+        <!-- Tarjetas de estadísticas del día -->
+        <div class="stats-bar">
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: var(--primary-light); color: var(--primary);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <div class="stat-info">
+              <h3 id="stat-total-today">0</h3>
+              <p>Citas de Hoy</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="stat-info">
+              <h3 id="stat-confirmed-today">0</h3>
+              <p>Confirmadas</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <div class="stat-info">
+              <h3 id="stat-pending-today">0</h3>
+              <p>Por Confirmar</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtros y controles de agenda -->
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="appointments-top" style="align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <!-- Navegación de fecha diaria -->
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <button type="button" id="btn-date-prev" class="btn btn-secondary btn-sm" title="Día Anterior">◀</button>
+              <input type="date" id="appointment-date-filter" class="form-control" style="width: 165px; font-weight: 700;">
+              <button type="button" id="btn-date-next" class="btn btn-secondary btn-sm" title="Día Siguiente">▶</button>
+              <button type="button" id="btn-filter-today" class="btn btn-secondary btn-sm">📅 Hoy</button>
+            </div>
+
+            <!-- Alternador de vista: Bloques 30 min vs Lista -->
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <div class="btn-group" style="display: flex; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden;">
+                <button type="button" id="btn-view-blocks" class="btn btn-sm btn-primary" style="border-radius: 0; padding: 6px 12px; font-weight: 700;">
+                  🗓️ Bloques (30 min / 9 a 5)
+                </button>
+                <button type="button" id="btn-view-list" class="btn btn-sm btn-secondary" style="border-radius: 0; padding: 6px 12px; font-weight: 700;">
+                  📋 Lista General
+                </button>
+              </div>
+
+              <select id="appointment-status-filter" class="form-control form-control-sm" style="width: 150px; font-size: 12px;">
+                <option value="all">Todos los estados</option>
+                <option value="programada">Programadas</option>
+                <option value="confirmada">Confirmadas</option>
+                <option value="en_espera">En Sala de Espera</option>
+                <option value="finalizada">Finalizadas</option>
+                <option value="cancelada">Canceladas</option>
+              </select>
+
+              <button type="button" id="btn-quick-new-apt-view" class="btn btn-primary btn-sm" style="font-weight: 700;">
+                + Agendar Cita
+              </button>
+            </div>
+          </div>
+
+          <!-- 1. VISTA: CRONOGRAMA EN BLOQUES DE 30 MINUTOS (HORARIO 9:00 AM - 5:00 PM) -->
+          <div id="appointments-timeblocks-wrapper">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+              <div>
+                <h4 id="timeblocks-date-title" style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-main);">
+                  Martes, 13 de Octubre de 2026
+                </h4>
+                <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--text-muted);">
+                  🕒 Horario de Trabajo: <strong>9:00 AM a 5:00 PM</strong> (16 Bloques de 30 minutos). Haz clic en cualquier bloque libre para agendar.
+                </p>
+              </div>
+              <div style="display: flex; gap: 8px; font-size: 11px; font-weight: 700;">
+                <span style="display: inline-flex; align-items: center; gap: 4px; color: #16a34a;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #16a34a;"></span> 1 Bloque = 30 min</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; color: #0284c7;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #0284c7;"></span> 2 Bloques = 1 hora</span>
+              </div>
+            </div>
+
+            <!-- Grilla dinámica de los 16 bloques del día -->
+            <div id="appointments-timeblocks-grid" class="timeblocks-grid">
+              <!-- Renderizado dinámico -->
+            </div>
+          </div>
+
+          <!-- 2. VISTA: LISTADO TRADICIONAL DE CITAS -->
+          <div id="appointments-list-container" class="appointments-list" style="display: none;">
+            <!-- Renderizado dinámico -->
+          </div>
+        </div>
+      </section>
+
+      
+
+      <!-- 2. VISTA: ODONTOGRAMA INTERACTIVO -->
+      <section id="view-odontograma" class="view-panel">
+        <!-- PALETA DE PINCEL CLÍNICO PARA PINTAR CUADRITOS INDIVIDUALES -->
+        <div class="card" style="margin-bottom: 14px; padding: 14px 18px; background: #ffffff; border: 1.5px solid var(--primary); box-shadow: var(--shadow-sm);">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                <span>🖌️ Pincel Clínico: Selecciona una condición y haz clic en cualquier ángulo/cuadrito del diente:</span>
+              </strong>
+              <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                Permite selección múltiple: pinta una cara con caries, otra con resina y deja las demás sanas.
+              </p>
+            </div>
+
+            <div class="tool-palette-buttons" id="tool-palette-wrapper" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-sm btn-clinical-tool active" data-tool="caries" style="border: 2px solid var(--danger); background: var(--danger-bg); color: var(--danger); font-weight: 800;">
+                🔴 Caries
+              </button>
+              <button type="button" class="btn btn-sm btn-clinical-tool" data-tool="obturado" style="border: 2px solid var(--info); background: #ffffff; color: var(--info); font-weight: 800;">
+                🔵 Resina / Obturación
+              </button>
+              <button type="button" class="btn btn-sm btn-clinical-tool" data-tool="endodoncia" style="border: 2px solid var(--warning); background: #ffffff; color: var(--warning); font-weight: 800;">
+                🟡 Endodoncia
+              </button>
+              <button type="button" class="btn btn-sm btn-clinical-tool" data-tool="corona" style="border: 2px solid var(--purple); background: #ffffff; color: var(--purple); font-weight: 800;">
+                🟣 Corona
+              </button>
+              <button type="button" class="btn btn-sm btn-clinical-tool" data-tool="cirugia" style="border: 2px solid #be123c; background: #ffffff; color: #be123c; font-weight: 800;">
+                🪚 Cirugía / Extracción
+              </button>
+              <button type="button" class="btn btn-sm btn-clinical-tool" data-tool="ausente" style="border: 2px solid #64748b; background: #ffffff; color: #64748b; font-weight: 800;">
+                ⚫ Ya Ausente
+              </button>
+              <button type="button" class="btn btn-sm btn-clinical-tool" data-tool="sano" style="border: 2px solid #cbd5e1; background: #ffffff; color: var(--text-main); font-weight: 800;">
+                🟢 Marcar Sano (Goma)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BARRA DE TRATAMIENTOS GENERALES (BOCA COMPLETA - SIN PRECIOS FIJOS) -->
+        <div class="card" style="margin-bottom: 16px; padding: 12px 18px; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border-left: 5px solid var(--success);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                <span>✨ Procedimientos Generales (Toda la Boca - No por Diente)</span>
+              </strong>
+              <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                La limpieza y el blanqueamiento aplican para toda la boca. El monto lo fijas abajo al sentarte con el paciente:
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="general-treatments-buttons">
+              <button type="button" class="btn btn-sm btn-secondary btn-general-action" data-name="Profilaxis & Limpieza Dental" style="border-color: #86efac; color: #15803d; font-weight: 700;">
+                🪥 Limpieza / Profilaxis (General)
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary btn-general-action" data-name="Blanqueamiento Dental LED" style="border-color: #93c5fd; color: #1d4ed8; font-weight: 700;">
+                💎 Blanqueamiento Dental (General)
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary btn-general-action" data-name="Control Mensual de Ortodoncia" style="border-color: #fcd34d; color: #b45309; font-weight: 700;">
+                🦷 Control Ortodoncia
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary btn-general-action" data-name="Aplicación de Sellantes y Flúor" style="border-color: #99f6e4; color: #0f766e; font-weight: 700;">
+                🛡️ Flúor General
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tablero del Odontograma con Arcada Superior e Inferior -->
+        <div class="odontogram-board">
+          <!-- ARCADA SUPERIOR (MAXILAR) -->
+          <div class="arch-container">
+            <div class="arch-header">
+              <span>Cuadrante 1 (Superior Derecho del Paciente)</span>
+              <strong style="color: var(--primary);">ARCADA SUPERIOR</strong>
+              <span>Cuadrante 2 (Superior Izquierdo del Paciente)</span>
+            </div>
+            
+            <div class="teeth-grid">
+              <!-- Cuadrante 1: 18 (Cordal) a 11 -->
+              <div id="teeth-quadrant-1" style="display: flex; gap: 8px;"></div>
+              <!-- Línea media -->
+              <div class="quadrant-divider"></div>
+              <!-- Cuadrante 2: 21 a 28 (Cordal) -->
+              <div id="teeth-quadrant-2" style="display: flex; gap: 8px;"></div>
+            </div>
+          </div>
+
+          <!-- DENTICIÓN TEMPORAL / INFANTIL (55-51 | 61-65 y 85-81 | 71-75) -->
+          <div class="arch-container" style="background: #f8fafc; border: 1.5px dashed #cbd5e1; margin: 12px 0;">
+            <div class="arch-header">
+              <span>Cuadrante 5 (55 a 51)</span>
+              <strong style="color: #0284c7;">DENTICIÓN TEMPORAL / INFANTIL SUPERIOR</strong>
+              <span>Cuadrante 6 (61 a 65)</span>
+            </div>
+            <div class="teeth-grid" style="justify-content: center;">
+              <div id="teeth-quadrant-5" style="display: flex; gap: 8px;"></div>
+              <div class="quadrant-divider"></div>
+              <div id="teeth-quadrant-6" style="display: flex; gap: 8px;"></div>
+            </div>
+            <div style="height: 12px;"></div>
+            <div class="arch-header">
+              <span>Cuadrante 8 (85 a 81)</span>
+              <strong style="color: #0f766e;">DENTICIÓN TEMPORAL / INFANTIL INFERIOR</strong>
+              <span>Cuadrante 7 (71 a 75)</span>
+            </div>
+            <div class="teeth-grid" style="justify-content: center;">
+              <div id="teeth-quadrant-8" style="display: flex; gap: 8px;"></div>
+              <div class="quadrant-divider"></div>
+              <div id="teeth-quadrant-7" style="display: flex; gap: 8px;"></div>
+            </div>
+          </div>
+
+          <!-- ARCADA INFERIOR (MANDÍBULA) -->
+          <div class="arch-container">
+            <div class="arch-header">
+              <span>Cuadrante 4 (Inferior Derecho del Paciente)</span>
+              <strong style="color: var(--teal);">ARCADA INFERIOR</strong>
+              <span>Cuadrante 3 (Inferior Izquierdo del Paciente)</span>
+            </div>
+
+            <div class="teeth-grid">
+              <!-- Cuadrante 4: 48 (Cordal) a 41 -->
+              <div id="teeth-quadrant-4" style="display: flex; gap: 8px;"></div>
+              <!-- Línea media -->
+              <div class="quadrant-divider"></div>
+              <!-- Cuadrante 3: 31 a 38 (Cordal) -->
+              <div id="teeth-quadrant-3" style="display: flex; gap: 8px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL DE DETALLE Y ÁNGULOS DEL DIENTE SELECCIONADO (SELECCIÓN MÚLTIPLE DE CARAS) -->
+        <div id="quick-tooth-action-bar" class="card" style="margin-top: 18px; padding: 16px 20px; background: #ffffff; border: 2px solid var(--primary); display: none; box-shadow: var(--shadow-md);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span id="quick-tooth-badge" class="badge badge-info" style="font-size: 13px; padding: 6px 12px;">Pieza #17</span>
+              <div>
+                <h4 id="quick-tooth-name" style="font-size: 15px; font-weight: 800; color: var(--text-main); margin: 0;">Segundo Molar Superior Derecho</h4>
+                <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Haz clic en cada ángulo/cara para asignar caries o resina de forma independiente a la misma pieza:</p>
+              </div>
+            </div>
+            <button type="button" id="btn-close-quick-tooth" class="btn btn-secondary btn-sm" style="padding: 4px 10px;">✕ Cerrar Detalle</button>
+          </div>
+
+          <!-- Selector directo de opciones para cada una de las 5 caras del diente -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px;" id="tooth-angles-buttons-grid">
+            <!-- 1. VESTIBULAR -->
+            <div class="angle-face-card card" data-face="vestibular" style="padding: 10px; margin: 0; text-align: center;">
+              <span style="font-size: 11px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 6px;">Vestibular (Frente)</span>
+              <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-face-choice active" data-face="vestibular" data-val="sano" style="padding: 5px 8px; font-size: 11px;">🟢 Sano</button>
+                <button type="button" class="btn btn-sm btn-face-choice" data-face="vestibular" data-val="caries" style="padding: 5px 8px; font-size: 11px;">🔴 Caries</button>
+                <button type="button" class="btn btn-sm btn-face-choice" data-face="vestibular" data-val="obturado" style="padding: 5px 8px; font-size: 11px;">🔵 Resina</button>
+              </div>
+            </div>
+
+            <!-- 2. MESIAL -->
+            <div class="angle-face-card card" data-face="mesial" style="padding: 10px; margin: 0; text-align: center;">
+              <span style="font-size: 11px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 6px;">Mesial (Lateral)</span>
+              <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-face-choice active" data-face="mesial" data-val="sano" style="padding: 5px 8px; font-size: 11px;">🟢 Sano</button>
+                <button type="button" class="btn btn-sm btn-face-choice" data-face="mesial" data-val="caries" style="padding: 5px 8px; font-size: 11px;">🔴 Caries</button>
+                <button type="button" class="btn btn-sm btn-face-choice" data-face="mesial" data-val="obturado" style="padding: 5px 8px; font-size: 11px;">🔵 Resina</button>
+              </div>
+            </div>
+
+            <!-- 3. OCLUSAL -->
+            <div class="angle-face-card card" data-face="oclusal" style="padding: 10px; margin: 0; text-align: center;">
+              <span style="font-size: 11px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 6px;">Oclusal (Centro)</span>
+              <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-face-choice active" data-face="oclusal" data-val="sano" style="padding: 5px 8px; font-size: 11px;">🟢 Sano</button>
+                <button type="button" class="btn btn-sm btn-face-choice" data-face="oclusal" data-val="caries" style="padding: 5px 8px; font-size: 11px;">🔴 Caries</button>
+                <button type="button" class="btn btn-sm btn-face-choice" data-face="oclusal" data-val="obturado" style="padding: 5px 8px; font-size: 11px;">🔵 Resina</button>
+              </div>
+            </div>
+
+            <!-- 4. DISTAL -->
+            <div class="angle-face-card card" data-face="distal" style="padding: 10px; margin: 0; text-align: center;">
+              <span style="font-size: 11px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 6px;">Distal (Lateral)</span>
+              <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-face-choice active" data-face="distal" data-val="sano" style="padding: 5px 8px; font-size: 11px;">🟢 Sano</button>
+                <button type="button" class="btn btn-sm btn-face-choice" data-face="distal" data-val="caries" style="padding: 5px 8px; font-size: 11px;">🔴 Caries</button>
+                <button type="button" class="btn btn-sm btn-face-choice" data-face="distal" data-val="obturado" style="padding: 5px 8px; font-size: 11px;">🔵 Resina</button>
+              </div>
+            </div>
+
+            <!-- 5. PALATINA / LINGUAL -->
+            <div class="angle-face-card card" data-face="lingual" style="padding: 10px; margin: 0; text-align: center;">
+              <span style="font-size: 11px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 6px;">Palatina / Lingual</span>
+              <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-face-choice active" data-face="lingual" data-val="sano" style="padding: 5px 8px; font-size: 11px;">🟢 Sano</button>
+                <button type="button" class="btn btn-sm btn-face-choice" data-face="lingual" data-val="caries" style="padding: 5px 8px; font-size: 11px;">🔴 Caries</button>
+                <button type="button" class="btn btn-sm btn-face-choice" data-face="lingual" data-val="obturado" style="padding: 5px 8px; font-size: 11px;">🔵 Resina</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opciones para diente completo -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--border-color); padding-top: 10px;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">Acciones para la pieza completa:</span>
+            <button type="button" class="btn btn-sm btn-secondary btn-apply-whole-tooth" data-tool="cirugia" style="color: #be123c; border-color: #fecdd3;">
+              🪚 Indicar Extracción / Cirugía de Cordal
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary btn-apply-whole-tooth" data-tool="endodoncia" style="color: #d97706; border-color: #fde68a;">
+              🟡 Indicar Endodoncia (Conducto)
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary btn-apply-whole-tooth" data-tool="corona" style="color: #7c3aed; border-color: #ddd6fe;">
+              🟣 Indicar Corona Completa
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary btn-apply-whole-tooth" data-tool="ausente" style="color: #64748b;">
+              ⚫ Marcar como Ausente / Ya Extraído
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary btn-apply-whole-tooth" data-tool="sano">
+              🟢 Dejar Todo el Diente Sano
+            </button>
+          </div>
+        </div>
+
+        <!-- TABLA EN VIVO: HISTORIAL DE LO QUE SE LE HARÁ Y MONTOS EDITABLES MANUALMENTE -->
+        <div class="card" style="margin-top: 20px;">
+          <div class="card-header" style="margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 class="card-title" style="margin-bottom: 2px;">
+                <span>📋 Plan de Tratamiento del Paciente & Montos a Cobrar</span>
+              </h3>
+              <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+                Los dientes analizados y tratamientos generales se van agregando aquí. <strong>Escribe el precio de cada uno en la casilla al sentarte con el paciente.</strong>
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button type="button" id="btn-odonto-print-direct" class="btn btn-primary btn-sm">🖨️ Imprimir Presupuesto</button>
+            </div>
+          </div>
+
+          <!-- Listado de partidas presupuestadas con precios editables -->
+          <table class="table-custom" style="margin-bottom: 16px;">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Pieza / Zona</th>
+                <th>Detalle del Tratamiento & Ángulos / Caras Dañadas</th>
+                <th style="width: 160px;">Monto a Cobrar ($)</th>
+                <th style="width: 70px; text-align: right;">Eliminar</th>
+              </tr>
+            </thead>
+            <tbody id="odonto-live-tbody">
+              <!-- Renderizado dinámico en tiempo real -->
+            </tbody>
+          </table>
+
+          <!-- Barra de Totales y Descuento Editable Directo -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; background: #f8fafc; padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color); align-items: center;">
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Subtotal Acordado:</div>
+              <div id="odonto-subtotal-val" style="font-size: 20px; font-weight: 800; color: var(--text-main);">$0.00</div>
+            </div>
+
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--gold); font-weight: 700;">Descuento Dra. ($):</div>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
+                <span style="font-weight: 800; color: var(--gold); font-size: 15px;">-$</span>
+                <input type="number" id="odonto-inline-discount-input" class="form-control" style="width: 95px; padding: 4px 8px; font-weight: 800; color: var(--gold); border: 1.5px solid var(--gold-border);" value="0" min="0" step="1" title="Modifica aquí el descuento especial de la doctora en dólares">
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--primary); font-weight: 700;">Total a Pagar:</div>
+              <div id="odonto-total-val" style="font-size: 22px; font-weight: 800; color: var(--primary);">$0.00</div>
+            </div>
+
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--success); font-weight: 700;">Total Abonado:</div>
+              <div id="odonto-paid-val" style="font-size: 20px; font-weight: 800; color: var(--success);">$0.00</div>
+            </div>
+
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--danger); font-weight: 700;">Saldo Pendiente:</div>
+              <div id="odonto-balance-val" style="font-size: 22px; font-weight: 800; color: var(--danger);">$0.00</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+
+      <!-- =========================================================================
+           VISTA: HISTORIA CLÍNICA ODONTOLÓGICA (FORMATO OFICIAL DRA. CELENIA TOVAR)
+           ========================================================================= -->
+      <section id="view-historia" class="view-panel">
+        <!-- BARRA SUPERIOR DE HERRAMIENTAS Y ACCIONES -->
+        <div class="card no-print" style="margin-bottom: 16px; padding: 14px 18px; background: #ffffff; border: 1.5px solid var(--primary); box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <strong style="font-size: 13px; color: var(--text-main);">👤 Paciente:</strong>
+              <select id="hc-patient-select" class="form-control" style="width: 240px; font-weight: 700;">
+                <!-- Dinámico -->
+              </select>
+              <button type="button" id="btn-hc-new-patient" class="btn btn-sm btn-secondary">+ Nuevo Paciente</button>
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+              <strong style="font-size: 12px; color: var(--text-muted); margin-right: 4px;">Pincel Cuadrante:</strong>
+              <button type="button" class="btn btn-sm btn-hc-tool active" data-tool="caries" style="border: 2px solid var(--danger); background: var(--danger-bg); color: var(--danger); font-weight: 800;">
+                🔴 Por Reparar (Caries)
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-tool" data-tool="obturado" style="border: 2px solid var(--info); background: #ffffff; color: var(--info); font-weight: 800;">
+                🔵 Ya Reparado (Resina)
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-tool" data-tool="sano" style="border: 2px solid #cbd5e1; background: #ffffff; color: var(--text-main); font-weight: 800;">
+                🟢 Marcar Sano (Goma)
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-tool" data-tool="endodoncia" style="border: 2px solid var(--warning); background: #ffffff; color: var(--warning); font-weight: 800;">
+                🟡 Endodoncia
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-tool" data-tool="corona" style="border: 2px solid var(--purple); background: #ffffff; color: var(--purple); font-weight: 800;">
+                🟣 Corona
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-tool" data-tool="cirugia" style="border: 2px solid #be123c; background: #ffffff; color: #be123c; font-weight: 800;">
+                🪚 Cirugía
+              </button>
+              <button type="button" class="btn btn-sm btn-hc-tool" data-tool="ausente" style="border: 2px solid #64748b; background: #ffffff; color: #64748b; font-weight: 800;">
+                ⚫ Ya Ausente
+              </button>
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" id="btn-hc-save" class="btn btn-sm btn-primary">💾 Guardar Historia</button>
+              <button type="button" id="btn-hc-print-filled" class="btn btn-sm btn-secondary" style="border-color: #0284c7; color: #0284c7; font-weight: 700;">🖨️ Imprimir Ficha Llena</button>
+              <button type="button" id="btn-hc-print-blank" class="btn btn-sm btn-secondary" title="Imprime una hoja en blanco para escribir a mano con bolígrafo">📄 Imprimir en Blanco</button>
+            </div>
+          </div>
+          <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <span>💡 <em>Haz clic en cualquier cuadro del diente para marcarlo. Clic derecho alterna rápido entre Sano, Por Reparar (Rojo) y Ya Reparado (Azul).</em></span>
+            <div id="hc-stats-summary" style="font-weight: 700; color: var(--text-main);">
+              <!-- Dinámico: caras por reparar vs reparadas -->
+            </div>
+          </div>
+        </div>
+
+        <!-- HOJA DE HISTORIA CLÍNICA ODONTOLÓGICA (FORMATO EXACTO DRA. CELENIA TOVAR) -->
+        <div class="history-paper-container">
+          <div class="history-paper" id="history-paper-element">
+            
+            <!-- ENCABEZADO OFICIAL -->
+            <div class="hc-header">
+              <div class="hc-brand">
+                <div class="hc-logo-group">
+                  <div class="hc-logo-icon">
+                    <svg viewBox="0 0 32 32" width="28" height="28" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 3 C12 3 9 5 8 9 C7 13 8 18 10 23 C11 25.5 12 28 13.5 28 C15 28 15.5 25 16 23 C16.5 25 17 28 18.5 28 C20 28 21 25.5 22 23 C24 18 25 13 24 9 C23 5 20 3 16 3 Z" fill="rgba(2, 132, 199, 0.08)"></path>
+                    </svg>
+                  </div>
+                  <div class="hc-brand-text">
+                    <h2 class="hc-clinic-name">Sonrisa Perfecta, C.A.</h2>
+                    <div class="hc-logo-wave">
+                      <svg viewBox="0 0 60 18" width="50" height="15">
+                        <path d="M4 14 C15 2 25 16 35 4 C42 16 52 4 56 12" fill="none" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hc-doctor-info">
+                <h1 class="hc-doctor-name">OD. Celenia Tovar</h1>
+                <div class="hc-doctor-rif">RIF.: J407632507</div>
+              </div>
+            </div>
+
+            <!-- TÍTULO DE LA FICHA -->
+            <div class="hc-document-title">
+              <h3>Historia Clínica Odontológica</h3>
+            </div>
+
+            <!-- 1. DATOS DEL PACIENTE -->
+            <div class="hc-section">
+              <div class="hc-section-title">1. Datos del Paciente:</div>
+              <div class="hc-fields-block">
+                <!-- Fila 1 -->
+                <div class="hc-row">
+                  <div class="hc-field flex-grow-2">
+                    <span class="hc-label">Nombre y Apellido:</span>
+                    <input type="text" id="hc-input-name" class="hc-line-input">
+                  </div>
+                  <div class="hc-field" style="min-width: 170px;">
+                    <span class="hc-label">Fecha:</span>
+                    <input type="date" id="hc-input-date" class="hc-line-input">
+                  </div>
+                </div>
+
+                <!-- Fila 2 -->
+                <div class="hc-row">
+                  <div class="hc-field" style="min-width: 140px;">
+                    <span class="hc-label">C.I.:</span>
+                    <input type="text" id="hc-input-ci" class="hc-line-input">
+                  </div>
+                  <div class="hc-field" style="max-width: 90px;">
+                    <span class="hc-label">Edad:</span>
+                    <input type="number" id="hc-input-age" class="hc-line-input">
+                  </div>
+                  <div class="hc-field" style="min-width: 120px;">
+                    <span class="hc-label">Sexo:</span>
+                    <input type="text" id="hc-input-gender" class="hc-line-input" placeholder="F / M">
+                  </div>
+                  <div class="hc-field flex-grow-1">
+                    <span class="hc-label">Profesión:</span>
+                    <input type="text" id="hc-input-occupation" class="hc-line-input">
+                  </div>
+                  <div class="hc-field" style="max-width: 110px;">
+                    <span class="hc-label">No.:</span>
+                    <input type="text" id="hc-input-history-no" class="hc-line-input">
+                  </div>
+                </div>
+
+                <!-- Fila 3 -->
+                <div class="hc-row">
+                  <div class="hc-field flex-grow-2">
+                    <span class="hc-label">Dirección de Habitación:</span>
+                    <input type="text" id="hc-input-address" class="hc-line-input">
+                  </div>
+                  <div class="hc-field" style="min-width: 200px;">
+                    <span class="hc-label">Teléfono:</span>
+                    <input type="text" id="hc-input-phone" class="hc-line-input">
+                  </div>
+                </div>
+
+                <!-- Fila 4 -->
+                <div class="hc-row">
+                  <div class="hc-field flex-grow-1">
+                    <span class="hc-label">Ciudad:</span>
+                    <input type="text" id="hc-input-city" class="hc-line-input">
+                  </div>
+                  <div class="hc-field flex-grow-1">
+                    <span class="hc-label">Estado:</span>
+                    <input type="text" id="hc-input-state" class="hc-line-input">
+                  </div>
+                  <div class="hc-field flex-grow-2">
+                    <span class="hc-label">Lugar de Trabajo:</span>
+                    <input type="text" id="hc-input-workplace" class="hc-line-input">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. MOTIVO DE CONSULTA -->
+            <div class="hc-section">
+              <div class="hc-row">
+                <span class="hc-label hc-bold-title">2. Motivo de Consulta:</span>
+                <input type="text" id="hc-input-reason" class="hc-line-input flex-grow-1">
+              </div>
+            </div>
+
+            <!-- 3. ENFERMEDAD ACTUAL -->
+            <div class="hc-section">
+              <div class="hc-row" style="align-items: flex-start;">
+                <span class="hc-label hc-bold-title" style="margin-top: 3px;">3. Enfermedad Actual:</span>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                  <input type="text" id="hc-input-illness-1" class="hc-line-input" style="width: 100%;">
+                  <input type="text" id="hc-input-illness-2" class="hc-line-input" style="width: 100%;">
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. ANTECEDENTES FAMILIARES -->
+            <div class="hc-section">
+              <div class="hc-row">
+                <span class="hc-label hc-bold-title">4. Antecedentes Familiares:</span>
+                <input type="text" id="hc-input-family-history" class="hc-line-input flex-grow-1">
+              </div>
+            </div>
+
+            <!-- 5. ANTECEDENTES PERSONALES -->
+            <div class="hc-section">
+              <div class="hc-section-title">5. Antecedentes Personales:</div>
+              <div class="hc-checkboxes-grid">
+                <!-- Columna 1 -->
+                <div class="hc-checkbox-col">
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-alergias" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Alergias.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-diabetes" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Diabetes.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-artritis" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Artritis.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-estres" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Estrés.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-depresion" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Depresión.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-anemia" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Anemia.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-cardiopatias" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Cardiopatías.</span>
+                  </label>
+                </div>
+
+                <!-- Columna 2 -->
+                <div class="hc-checkbox-col">
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-renales" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Enfermedades Renales.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-hipertension" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Hipertensión Arterial.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-hipotension" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Hipotensión Arterial.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-respiratorias" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Enfermedades Respiratorias.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-gastricas" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Enfermedades Gástricas.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-virales" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Enfermedades Virales.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-traumatismo" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Traumatismo.</span>
+                  </label>
+                </div>
+
+                <!-- Columna 3 -->
+                <div class="hc-checkbox-col">
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-cirugias" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Cirugías Realizadas.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-altoriesgo" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Enfermedades de Alto Riesgo.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-higado" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Enfermedades del Hígado.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-venereas" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Enfermedades Venéreas.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-dolorcabeza" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Dolor de Cabeza.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-sinusitis" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Sinusitis.</span>
+                  </label>
+                  <label class="hc-checkbox-item">
+                    <input type="checkbox" id="hc-cb-ulceras" class="hc-cb">
+                    <span class="hc-cb-box"></span>
+                    <span class="hc-cb-text">Ulceras Gástricas.</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- MEDICAMENTOS, PULSO, TENSIÓN, HÁBITOS -->
+            <div class="hc-section">
+              <div class="hc-row" style="margin-bottom: 6px;">
+                <span class="hc-label hc-bold-title">Medicamento de Consumo Actual:</span>
+                <input type="text" id="hc-input-meds" class="hc-line-input flex-grow-1">
+              </div>
+
+              <div class="hc-row" style="margin-bottom: 6px;">
+                <div class="hc-field" style="min-width: 170px;">
+                  <span class="hc-label hc-bold-title">Pulso:</span>
+                  <input type="text" id="hc-input-pulse" class="hc-line-input">
+                </div>
+                <div class="hc-field flex-grow-1">
+                  <span class="hc-label hc-bold-title">Tensión Arterial Alta:</span>
+                  <input type="text" id="hc-input-bp-high" class="hc-line-input" style="max-width: 140px;">
+                  <span class="hc-label hc-bold-title" style="margin-left: 8px;">Baja:</span>
+                  <input type="text" id="hc-input-bp-low" class="hc-line-input" style="max-width: 140px;">
+                </div>
+              </div>
+
+              <div class="hc-row">
+                <span class="hc-label hc-bold-title">Hábitos:</span>
+                <input type="text" id="hc-input-habits" class="hc-line-input flex-grow-1">
+              </div>
+            </div>
+
+            <!-- ==============================================================
+                 ODONTOGRAMA OFICIAL (4 FILAS DE DIENTES CUADRICULADOS FDI)
+                 ============================================================== -->
+            <div class="hc-odontogram-section">
+              <!-- FILA 1: ADULTOS SUPERIOR (18-11 | 21-28) - NÚMEROS ARRIBA -->
+              <div class="hc-odonto-row hc-odonto-row-adults">
+                <div class="hc-quadrant" id="hc-quadrant-1"></div>
+                <div class="hc-middle-gap"></div>
+                <div class="hc-quadrant" id="hc-quadrant-2"></div>
+              </div>
+
+              <!-- FILA 2: TEMPORAL SUPERIOR (55-51 | 61-65) - NÚMEROS ARRIBA -->
+              <div class="hc-odonto-row hc-odonto-row-temporal">
+                <div class="hc-quadrant" id="hc-quadrant-5"></div>
+                <div class="hc-middle-gap"></div>
+                <div class="hc-quadrant" id="hc-quadrant-6"></div>
+              </div>
+
+              <!-- FILA 3: TEMPORAL INFERIOR (85-81 | 71-75) - NÚMEROS ABAJO -->
+              <div class="hc-odonto-row hc-odonto-row-temporal">
+                <div class="hc-quadrant" id="hc-quadrant-8"></div>
+                <div class="hc-middle-gap"></div>
+                <div class="hc-quadrant" id="hc-quadrant-7"></div>
+              </div>
+
+              <!-- FILA 4: ADULTOS INFERIOR (48-41 | 31-38) - NÚMEROS ABAJO -->
+              <div class="hc-odonto-row hc-odonto-row-adults">
+                <div class="hc-quadrant" id="hc-quadrant-4"></div>
+                <div class="hc-middle-gap"></div>
+                <div class="hc-quadrant" id="hc-quadrant-3"></div>
+              </div>
+            </div>
+
+            <!-- FIRMA DEL PACIENTE -->
+            <div class="hc-footer-signature">
+              <div class="hc-signature-field">
+                <span class="hc-label hc-bold-title">Firma del Paciente:</span>
+                <div class="hc-signature-line"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. VISTA: PACIENTES & EXPEDIENTE -->
+      <section id="view-pacientes" class="view-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div style="display: flex; gap: 12px; align-items: center; flex: 1; max-width: 480px;">
+            <input type="text" id="patient-search-input" class="form-control" placeholder="Buscar por nombre, cédula o teléfono...">
+          </div>
+          <button id="btn-new-patient" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Nuevo Paciente</span>
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 320px 1fr; gap: 20px;">
+          <!-- Lista de pacientes -->
+          <div class="card" style="padding: 14px; max-height: calc(100vh - 220px); overflow-y: auto;">
+            <div id="patients-sidebar-list" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Renderizado dinámico de pacientes -->
+            </div>
+          </div>
+
+          <!-- Expediente del paciente seleccionado -->
+          <div id="patient-detail-card" class="card">
+            <!-- Renderizado dinámico de ficha médica -->
+          </div>
+        </div>
+      </section>
+
+      
+
+      <!-- 4. VISTA: PRESUPUESTOS & PAGOS (RESUMEN MENSUAL Y DESGLOSE POR CLIENTE) -->
+      <section id="view-presupuestos" class="view-panel">
+        <!-- BARRA DE CONTROL MENSUAL Y NAVEGACIÓN -->
+        <div class="card" style="margin-bottom: 18px; padding: 12px 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text-muted);">Mes a Consultar:</span>
+              <button type="button" id="btn-budget-month-prev" class="btn btn-secondary btn-sm" title="Mes Anterior">◀</button>
+              <input type="month" id="budget-month-filter" class="form-control" style="width: 170px; font-weight: 800;">
+              <button type="button" id="btn-budget-month-next" class="btn btn-secondary btn-sm" title="Mes Siguiente">▶</button>
+              <button type="button" id="btn-budget-month-current" class="btn btn-secondary btn-sm">📅 Mes Actual</button>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <div class="btn-group" style="display: flex; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden;">
+                <button type="button" id="btn-tab-monthly-overview" class="btn btn-sm btn-primary" style="border-radius: 0; padding: 6px 14px; font-weight: 700;">
+                  📊 Totales del Mes (Toda la Clínica)
+                </button>
+                <button type="button" id="btn-tab-patient-breakdown" class="btn btn-sm btn-secondary" style="border-radius: 0; padding: 6px 14px; font-weight: 700;">
+                  👤 Desglose por Paciente
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================================
+             PANEL A: RESUMEN MENSUAL DE TODA LA CLÍNICA (TOTALES DEL MES)
+             ========================================================================= -->
+        <div id="budget-monthly-overview-panel">
+          <!-- Tarjetas con los 5 totales generales del mes seleccionado -->
+          <div class="budget-summary-cards" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 18px;">
+            <div class="budget-card subtotal" style="border-top: 4px solid var(--info);">
+              <h4>Subtotal Facturado en el Mes</h4>
+              <div id="monthly-subtotal-amount" class="amount">$0.00</div>
+              <small style="font-size: 11px; color: var(--text-muted);">Suma total presupuestada</small>
+            </div>
+            <div class="budget-card discount" style="border-top: 4px solid var(--gold); background: #fffdf5;">
+              <h4>Descuentos Dra. del Mes</h4>
+              <div id="monthly-discount-amount" class="amount" style="color: var(--gold);">$0.00</div>
+              <small style="font-size: 11px; color: var(--text-muted);">Rebajas especiales otorgadas</small>
+            </div>
+            <div class="budget-card total" style="border-top: 4px solid var(--primary);">
+              <h4>Total Neto a Cobrar del Mes</h4>
+              <div id="monthly-net-amount" class="amount">$0.00</div>
+              <small style="font-size: 11px; color: var(--text-muted);">Monto final con descuentos</small>
+            </div>
+            <div class="budget-card paid" style="border-top: 4px solid var(--success);">
+              <h4>Total Abonado en el Mes</h4>
+              <div id="monthly-paid-amount" class="amount">$0.00</div>
+              <small style="font-size: 11px; color: var(--text-muted);">Ingresado efectivamente a caja</small>
+            </div>
+            <div class="budget-card balance" style="border-top: 4px solid var(--danger);">
+              <h4>Saldo Pendiente por Cobrar</h4>
+              <div id="monthly-balance-amount" class="amount" style="color: var(--danger);">$0.00</div>
+              <small style="font-size: 11px; color: var(--text-muted);">Cuentas por cobrar del mes</small>
+            </div>
+          </div>
+
+          <!-- Tabla general de pacientes que tienen tratamientos presupuestados en este mes -->
+          <div class="card">
+            <div class="card-header" style="justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h3 class="card-title" style="margin-bottom: 2px;">
+                  <span>📋 Pacientes con Presupuesto & Abonos en este Mes</span>
+                </h3>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+                  Haz clic en <strong>"Ver Desglose"</strong> en cualquier paciente para revisar diente por diente, fijar precios o registrar pagos.
+                </p>
+              </div>
+              <div style="max-width: 320px; width: 100%;">
+                <input type="text" id="monthly-patients-search" class="form-control form-control-sm" placeholder="🔍 Buscar paciente en este mes...">
+              </div>
+            </div>
+
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>Paciente</th>
+                  <th>Contacto</th>
+                  <th>Fecha Presupuesto</th>
+                  <th>Tratamientos</th>
+                  <th>Presupuesto Total</th>
+                  <th>Desc. Dra.</th>
+                  <th>Total Neto</th>
+                  <th>Abonado</th>
+                  <th>Saldo Pendiente</th>
+                  <th>Estado</th>
+                  <th style="text-align: right;">Desglose</th>
+                </tr>
+              </thead>
+              <tbody id="monthly-patients-tbody">
+                <!-- Renderizado dinámico -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- =========================================================================
+             PANEL B: DESGLOSE DETALLADO DE UN PACIENTE ESPECÍFICO
+             ========================================================================= -->
+        <div id="budget-patient-breakdown-panel" style="display: none;">
+          <!-- Barra superior para volver al resumen general -->
+          <div class="card" style="margin-bottom: 16px; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border-left: 5px solid var(--primary); padding: 12px 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <button type="button" id="btn-back-to-monthly-summary" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+                  ◀ Volver a Totales del Mes (Toda la Clínica)
+                </button>
+                <div>
+                  <h4 id="breakdown-patient-name" style="font-size: 16px; font-weight: 800; color: var(--text-main); margin: 0;">Mariana Valentina Gómez</h4>
+                  <p id="breakdown-patient-meta" style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Cédula: V-24.890.123 • Teléfono: +58 414 9876543</p>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <button type="button" id="btn-print-budget" class="btn btn-primary btn-sm">🖨️ Imprimir Presupuesto de este Paciente</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tarjetas de totales individuales de este paciente -->
+          <div class="budget-summary-cards" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 18px;">
+            <div class="budget-card subtotal" style="border-top: 4px solid var(--info);">
+              <h4>Subtotal Tratamientos</h4>
+              <div id="budget-subtotal-amount" class="amount">$0.00</div>
+            </div>
+            <div class="budget-card discount" style="border-top: 4px solid var(--gold); background: #fffdf5;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4>Descuento Dra. ($)</h4>
+                <button id="btn-edit-discount" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;">✏️ Cambiar</button>
+              </div>
+              <div id="budget-discount-amount" class="amount" style="color: var(--gold);">$0.00</div>
+            </div>
+            <div class="budget-card total" style="border-top: 4px solid var(--primary);">
+              <h4>Total Neto a Pagar</h4>
+              <div id="budget-total-amount" class="amount">$0.00</div>
+            </div>
+            <div class="budget-card paid" style="border-top: 4px solid var(--success);">
+              <h4>Total Abonado</h4>
+              <div id="budget-paid-amount" class="amount">$0.00</div>
+            </div>
+            <div class="budget-card balance" style="border-top: 4px solid var(--danger);">
+              <h4>Saldo Pendiente</h4>
+              <div id="budget-balance-amount" class="amount" style="color: var(--danger);">$0.00</div>
+            </div>
+          </div>
+
+          <!-- Barra de Descuento directo en $ del paciente -->
+          <div style="margin-bottom: 20px; display: flex; gap: 12px; align-items: center; justify-content: space-between; background: #ffffff; padding: 12px 18px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">🏷️ Descuento especial otorgado por la doctora:</span>
+              <span id="budget-discount-badge" class="badge badge-warning" style="font-size: 13px; padding: 4px 12px;">$0.00 Descuento</span>
+            </div>
+            <button id="btn-quick-discount-modal" class="btn btn-secondary btn-sm" style="border-color: var(--gold-border); color: var(--gold); font-weight: 700;">
+              ✏️ Asignar / Modificar Descuento en $
+            </button>
+          </div>
+
+          <!-- Tabla de Partidas del Paciente con Precios Editables -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h3 class="card-title">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>Plan de Tratamiento & Presupuesto del Paciente</span>
+              </h3>
+              <div style="display: flex; gap: 10px;">
+                <button id="btn-add-budget-item" class="btn btn-secondary btn-sm">+ Agregar Procedimiento</button>
+              </div>
+            </div>
+
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>Pieza / Diente</th>
+                  <th>Tratamiento Odontológico</th>
+                  <th>Precio Acordado ($)</th>
+                  <th style="text-align: right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="budget-items-tbody">
+                <!-- Renderizado de items -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Historial de Abonos / Pagos del Paciente -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                <span>Historial de Abonos & Pagos Realizados por este Paciente</span>
+              </h3>
+              <button id="btn-add-payment" class="btn btn-whatsapp btn-sm">+ Registrar Nuevo Abono</button>
+            </div>
+
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Método de Pago</th>
+                  <th>Referencia / Comprobante</th>
+                  <th>Nota</th>
+                  <th>Monto Abonado</th>
+                </tr>
+              </thead>
+              <tbody id="payments-items-tbody">
+                <!-- Renderizado de pagos -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      
+
+      <!-- 5. VISTA: RAYOS X & GALERÍA -->
+      <section id="view-galeria" class="view-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div>
+            <h3 style="font-size: 16px; font-weight: 700;">Galería Clínica & Rayos X</h3>
+            <p style="font-size: 12px; color: var(--text-muted);">Imágenes diagnósticas, radiografías panorámicas, periapicales y fotos clínicas</p>
+          </div>
+          <button id="btn-upload-photo" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>Agregar Imagen o Rayos X</span>
+          </button>
+        </div>
+
+        <div id="gallery-container" class="gallery-grid">
+          <!-- Renderizado dinámico -->
+        </div>
+      </section>
+
+      
+
+      <!-- 6. VISTA: CONFIGURACIÓN & CLÍNICA -->
+      <section id="view-configuracion" class="view-panel">
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h3 class="card-title">Datos del Consultorio Odontológico</h3>
+            <button id="btn-save-clinic-config" class="btn btn-primary btn-sm">Guardar Datos</button>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nombre del Negocio / Clínica:</label>
+              <input type="text" id="config-clinic-name" class="form-control" value="Sonrisa Perfecta">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Odontóloga Responsable:</label>
+              <input type="text" id="config-doctor-name" class="form-control">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Teléfono de Contacto (WhatsApp):</label>
+              <input type="text" id="config-phone" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Correo Electrónico:</label>
+              <input type="email" id="config-email" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dirección Física del Consultorio:</label>
+            <input type="text" id="config-address" class="form-control">
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h3 class="card-title">Copias de Seguridad (Backup de Pacientes e Historial)</h3>
+          </div>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Todos los datos se guardan de forma local y privada en tu computadora. Puedes crear una copia de respaldo para transferirla o proteger tu información.
+          </p>
+          <div style="display: flex; gap: 14px;">
+            <button id="btn-export-backup" class="btn btn-secondary">
+              📥 Exportar Copia de Seguridad (.json)
+            </button>
+            <button id="btn-import-backup" class="btn btn-secondary">
+              📤 Restaurar Datos desde Copia (.json)
+            </button>
+          </div>
+        </div>
+      </section>
+
+      
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: FICHA CLÍNICA DETALLADA DEL DIENTE / CORDAL
+       ========================================================================== -->
+  <div id="tooth-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="tooth-modal-title" class="modal-title">Detalle del Diente #18</h3>
+        <button class="modal-close-btn" data-close="tooth-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="tooth-modal-header">
+          <div id="tooth-modal-svg-preview" class="tooth-modal-diagram">
+            <!-- Dibujo del diente ampliado -->
+          </div>
+          <div>
+            <div id="tooth-modal-badge" class="badge badge-cordal">CORDAL (MUELA DEL JUICIO)</div>
+            <h4 id="tooth-modal-name" style="font-size: 16px; font-weight: 700; margin: 6px 0 2px;">Tercer Molar Superior Derecho</h4>
+            <p id="tooth-modal-desc" style="font-size: 12px; color: var(--text-muted);">Arcada Superior • Cuadrante 1</p>
+          </div>
+        </div>
+
+        <!-- Selector de Estado General -->
+        <div class="form-group">
+          <label class="form-label">Condición / Diagnóstico General:</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sm btn-secondary condition-btn" data-cond="sano">🟢 Sano</button>
+            <button type="button" class="btn btn-sm btn-secondary condition-btn" data-cond="caries">🔴 Caries</button>
+            <button type="button" class="btn btn-sm btn-secondary condition-btn" data-cond="obturado">🔵 Obturado/Resina</button>
+            <button type="button" class="btn btn-sm btn-secondary condition-btn" data-cond="endodoncia">🟡 Endodoncia</button>
+            <button type="button" class="btn btn-sm btn-secondary condition-btn" data-cond="cirugia">🪚 Cirugía/Extracción</button>
+            <button type="button" class="btn btn-sm btn-secondary condition-btn" data-cond="corona">🟣 Corona</button>
+            <button type="button" class="btn btn-sm btn-secondary condition-btn" data-cond="ausente">⚫ Ausente</button>
+          </div>
+        </div>
+
+        <!-- Caras Dentales -->
+        <div class="form-group">
+          <label class="form-label">Afectación por Superficie / Cara Dental:</label>
+          <div class="surfaces-selector-grid">
+            <button type="button" class="surface-btn" data-surface="oclusal">Oclusal (Centro)</button>
+            <button type="button" class="surface-btn" data-surface="vestibular">Vestibular (Frente)</button>
+            <button type="button" class="surface-btn" data-surface="lingual">Palatina / Lingual</button>
+            <button type="button" class="surface-btn" data-surface="mesial">Mesial (Interna)</button>
+            <button type="button" class="surface-btn" data-surface="distal">Distal (Externa)</button>
+          </div>
+        </div>
+
+        <!-- Plan de Tratamiento y Costo -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tratamiento a Realizar:</label>
+            <select id="tooth-treatment-select" class="form-control">
+              <!-- Tratamientos del catálogo -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Costo Estimado ($):</label>
+            <input type="number" id="tooth-cost-input" class="form-control" value="0">
+          </div>
+        </div>
+
+        <!-- Notas Clínicas de la Pieza -->
+        <div class="form-group">
+          <label class="form-label">Notas Clínicas & Observaciones de este Diente:</label>
+          <textarea id="tooth-notes-input" class="form-control" rows="3" placeholder="Ej: Cordal semi-retenido con dolor punzante. Requiere toma de radiografía y posterior exodoncia quirúrgica..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btn-add-tooth-to-budget" class="btn btn-whatsapp">
+          + Agregar al Presupuesto ($)
+        </button>
+        <button type="button" class="btn btn-secondary" data-close="tooth-modal">Cancelar</button>
+        <button type="button" id="btn-save-tooth-modal" class="btn btn-primary">Guardar Cambios del Diente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: NUEVA / EDITAR CITA
+       ========================================================================== -->
+  <div id="appointment-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 id="appointment-modal-title" class="modal-title">Agendar Nueva Cita Odontológica</h3>
+        <button class="modal-close-btn" data-close="appointment-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="appointment-id-input">
+        <div class="form-group">
+          <label class="form-label">Paciente:</label>
+          <select id="appointment-patient-select" class="form-control"></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Fecha de la Cita:</label>
+            <input type="date" id="appointment-date-input" class="form-control" style="font-weight: 700;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hora de Inicio (Bloques de 30 min):</label>
+            <select id="appointment-time-input" class="form-control" style="font-weight: 700;">
+              <option value="09:00">09:00 AM</option>
+              <option value="09:30">09:30 AM</option>
+              <option value="10:00">10:00 AM</option>
+              <option value="10:30">10:30 AM</option>
+              <option value="11:00">11:00 AM</option>
+              <option value="11:30">11:30 AM</option>
+              <option value="12:00">12:00 PM (Mediodía)</option>
+              <option value="12:30">12:30 PM</option>
+              <option value="13:00">01:00 PM</option>
+              <option value="13:30">01:30 PM</option>
+              <option value="14:00">02:00 PM</option>
+              <option value="14:30">02:30 PM</option>
+              <option value="15:00">03:00 PM</option>
+              <option value="15:30">03:30 PM</option>
+              <option value="16:00">04:00 PM</option>
+              <option value="16:30">04:30 PM</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Duración de la Consulta:</label>
+            <select id="appointment-duration-input" class="form-control" style="font-weight: 700;">
+              <option value="30">1 Bloque (30 minutos / Media hora)</option>
+              <option value="60" selected>2 Bloques (1 hora / 60 minutos)</option>
+              <option value="90">3 Bloques (1h 30m / 90 minutos)</option>
+              <option value="120">4 Bloques (2 horas / 120 minutos)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estado:</label>
+            <select id="appointment-status-input" class="form-control">
+              <option value="programada">Programada</option>
+              <option value="confirmada">Confirmada</option>
+              <option value="en_espera">En Sala de Espera</option>
+              <option value="finalizada">Finalizada</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Previsualización en vivo del horario y bloques ocupados -->
+        <div id="appointment-time-preview-box" style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: var(--radius-md); padding: 8px 12px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+          <span id="appointment-time-preview-text" style="font-size: 12px; font-weight: 800; color: #166534;">
+            ⏱️ Horario: 09:00 AM a 10:00 AM (2 bloques de 30 min)
+          </span>
+          <span class="badge badge-success" style="font-size: 11px;">Jornada 9am - 5pm</span>
+        </div>
+
+        <div id="appointment-collision-alert" style="display: none; background: #fef2f2; border: 1.5px solid #fca5a5; color: #991b1b; padding: 8px 12px; border-radius: var(--radius-md); font-size: 12px; font-weight: 700; margin-bottom: 14px;">
+          ⚠️ Atención: Ya existe otra cita registrada en ese horario. Se sugiere cambiar de bloque.
+        </div>
+        <div class="form-group">
+          <label class="form-label">Motivo de Consulta / Procedimiento:</label>
+          <input type="text" id="appointment-reason-input" class="form-control" placeholder="Ej: Cirugía de Cordales, Limpieza Dental, Control Ortodoncia...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instrucciones o Notas Especiales:</label>
+          <textarea id="appointment-notes-input" class="form-control" rows="2" placeholder="Ej: Indicar analgésico previo, paciente con fobia dental..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close="appointment-modal">Cancelar</button>
+        <button type="button" id="btn-save-appointment" class="btn btn-primary">Guardar Cita</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: NUEVO / EDITAR PACIENTE
+       ========================================================================== -->
+  <div id="patient-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 id="patient-modal-title" class="modal-title">Registrar Nuevo Paciente</h3>
+        <button class="modal-close-btn" data-close="patient-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="patient-id-input">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nombre Completo:*</label>
+            <input type="text" id="patient-name-input" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cédula / Documento de Identidad:*</label>
+            <input type="text" id="patient-document-input" class="form-control" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Teléfono Móvil (WhatsApp):*</label>
+            <input type="text" id="patient-phone-input" class="form-control" placeholder="+584140000000" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Correo Electrónico:</label>
+            <input type="email" id="patient-email-input" class="form-control">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Fecha de Nacimiento:</label>
+            <input type="date" id="patient-birthdate-input" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ocupación:</label>
+            <input type="text" id="patient-occupation-input" class="form-control">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dirección de Residencia:</label>
+          <input type="text" id="patient-address-input" class="form-control">
+        </div>
+
+        <h4 style="font-size: 13px; font-weight: 800; color: var(--danger); text-transform: uppercase; margin: 16px 0 8px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+          ⚠️ Alertas Médicas Críticas
+        </h4>
+        <div class="form-group">
+          <label class="form-label">Alergias Conocidas (Penicilina, Anestesia, AINEs, etc.):</label>
+          <input type="text" id="patient-allergies-input" class="form-control" placeholder="Ej: ALERGIA SEVERA A LA PENICILINA">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Enfermedades Sistémicas (Diabetes, Hipertensión, etc.):</label>
+            <input type="text" id="patient-systemic-input" class="form-control" placeholder="Ej: Hipertensión controlada">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Medicamentos Actuales:</label>
+            <input type="text" id="patient-meds-input" class="form-control">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close="patient-modal">Cancelar</button>
+        <button type="button" id="btn-save-patient" class="btn btn-primary">Guardar Paciente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: REGISTRAR ABONO / PAGO
+       ========================================================================== -->
+  <div id="payment-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Registrar Abono del Paciente</h3>
+        <button class="modal-close-btn" data-close="payment-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Monto Abonado ($):</label>
+          <input type="number" id="payment-amount-input" class="form-control" step="0.5" placeholder="50.00" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Método de Pago:</label>
+          <select id="payment-method-select" class="form-control">
+            <option value="Efectivo (Divisas)">Efectivo (Divisas)</option>
+            <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+            <option value="Pago Móvil">Pago Móvil</option>
+            <option value="Zelle">Zelle</option>
+            <option value="Punto de Venta / Tarjeta">Punto de Venta / Tarjeta</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número de Referencia / Comprobante:</label>
+          <input type="text" id="payment-ref-input" class="form-control" placeholder="Ej: REF-78192">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nota u Observación:</label>
+          <input type="text" id="payment-note-input" class="form-control" placeholder="Ej: Abono de cirugía de cordales">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close="payment-modal">Cancelar</button>
+        <button type="button" id="btn-save-payment-confirm" class="btn btn-primary">Registrar Pago</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: AGREGAR ITEM A PRESUPUESTO
+       ========================================================================== -->
+  <div id="budget-item-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Agregar Tratamiento al Presupuesto</h3>
+        <button class="modal-close-btn" data-close="budget-item-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Pieza Dental / Zona:</label>
+          <input type="text" id="budget-tooth-input" class="form-control" placeholder="Ej: Cordal #48, Pieza #26, o General">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Seleccionar Procedimiento:</label>
+          <select id="budget-catalog-select" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre del Procedimiento Personalizado:</label>
+          <input type="text" id="budget-custom-name" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Precio ($):</label>
+          <input type="number" id="budget-custom-price" class="form-control" value="0">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close="budget-item-modal">Cancelar</button>
+        <button type="button" id="btn-confirm-add-budget-item" class="btn btn-primary">Agregar Partida</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: ASIGNAR DESCUENTO EN $ AL PRESUPUESTO (DRA.)
+       ========================================================================== -->
+  <div id="discount-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 450px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🏷️ Asignar Descuento de la Doctora ($)</h3>
+        <button class="modal-close-btn" data-close="discount-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+          Asigna o modifica un descuento en dólares ($) directamente sobre el presupuesto ya creado del paciente (por ejemplo en consulta de control o cortesía de la clínica).
+        </p>
+        <div class="form-group">
+          <label class="form-label">Monto del Descuento en Dólares ($):</label>
+          <input type="number" id="budget-discount-input" class="form-control" min="0" step="1" placeholder="Ej: 20.00" style="font-size: 18px; font-weight: bold; color: var(--gold);" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close="discount-modal">Cancelar</button>
+        <button type="button" id="btn-save-discount-confirm" class="btn btn-primary">Guardar Descuento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR DE TOASTS -->
+  <div id="toast-container"></div>
+
+  <!-- SCRIPTS -->
+  <script src="data/defaultData.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
