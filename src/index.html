@@ -8,6 +8,76 @@
 </head>
 <body>
 
+  <!-- ==========================================================================
+       PANTALLA DE CONTROL DE ACCESO & INICIO DE SESIÓN
+       ========================================================================== -->
+  <div id="login-screen" class="login-overlay">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-logo-box">
+          <img src="../assets/logo.png" alt="Sonrisa Perfecta Logo">
+        </div>
+        <h2>Sonrisa Perfecta</h2>
+        <span class="login-tagline">Consultorio Odontológico • Od. Celenia Tovar</span>
+        <div class="login-badge-pill">Control de Acceso & Privilegios</div>
+      </div>
+
+      <form id="login-form" class="login-form" autocomplete="off">
+        <div id="login-error-alert" class="login-error" style="display: none;">
+          ⚠️ Usuario o contraseña incorrectos.
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="login-username" style="font-weight: 700; color: #0f172a;">Usuario:</label>
+          <div class="login-input-wrap">
+            <span class="login-input-icon">👤</span>
+            <input type="text" id="login-username" class="form-control" placeholder="Ej: asistente, doctora, admin" required autofocus>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" for="login-password" style="font-weight: 700; color: #0f172a;">Contraseña:</label>
+          <div class="login-input-wrap">
+            <span class="login-input-icon">🔒</span>
+            <input type="password" id="login-password" class="form-control" placeholder="Contraseña de acceso" required>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="btn btn-primary login-submit-btn">
+          Iniciar Sesión
+        </button>
+      </form>
+
+      <!-- Accesos Rápidos de Prueba (Clave genérica: prueba) -->
+      <div class="login-demo-accounts">
+        <p class="login-demo-title">Accesos Rápidos (Clave genérica: prueba):</p>
+        <div class="demo-pills-row">
+          <button type="button" class="btn-demo-login" data-user="asistente" data-pass="prueba">
+            <div>
+              <span class="demo-role">📋 Asistente</span>
+              <small style="display:block;">Agendar, confirmar, WhatsApp y pagos por paciente</small>
+            </div>
+            <span class="demo-arrow">➔</span>
+          </button>
+          <button type="button" class="btn-demo-login" data-user="doctora" data-pass="prueba">
+            <div>
+              <span class="demo-role">👩‍⚕️ Doctora (Od. Celenia Tovar)</span>
+              <small style="display:block;">Full Privilegios Clínicos y Totales</small>
+            </div>
+            <span class="demo-arrow">➔</span>
+          </button>
+          <button type="button" class="btn-demo-login" data-user="admin" data-pass="prueba">
+            <div>
+              <span class="demo-role">⚙️ Administrador</span>
+              <small style="display:block;">Full Privilegios Totales del Sistema</small>
+            </div>
+            <span class="demo-arrow">➔</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="app-container">
     <!-- BARRA LATERAL (SIDEBAR) -->
     <aside id="sidebar">
@@ -60,9 +130,12 @@
       <div class="sidebar-footer">
         <div class="status-indicator">
           <div class="status-dot"></div>
-          <span>Sistema Local Activo</span>
+          <span id="sidebar-user-role-text">Sesión: Od. Celenia Tovar</span>
         </div>
-        <div>v1.0 • Consultorio Sonrisa Perfecta</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+          <span>Sonrisa Perfecta</span>
+          <button type="button" id="btn-sidebar-logout" class="btn-sidebar-logout" title="Cerrar sesión">Cerrar Sesión</button>
+        </div>
       </div>
     </aside>
 
@@ -84,14 +157,26 @@
         </div>
 
         <div class="topbar-actions">
-          <button id="btn-quick-open-history" class="btn btn-secondary btn-sm" title="Abrir Formato de Historia Clínica de la Dra. Celenia Tovar">
+          <!-- Indicador de Usuario Activo y Rol -->
+          <div class="current-user-badge" id="current-user-badge" title="Usuario actualmente autenticado">
+            <span id="current-user-avatar">👩‍⚕️</span>
+            <span id="current-user-name" class="btn-text-responsive">Od. Celenia Tovar</span>
+            <span id="current-user-role-tag" class="current-user-role-tag role-tag-doctora">Doctora</span>
+          </div>
+
+          <button id="btn-quick-open-history" class="btn btn-secondary btn-sm only-doctor" title="Abrir Formato de Historia Clínica de la Dra. Celenia Tovar">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-            <span class="btn-text-responsive">Historia Clínica</span>
+            <span class="btn-text-responsive">Historia</span>
           </button>
 
           <button id="btn-quick-new-appointment" class="btn btn-primary btn-sm">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             <span class="btn-text-responsive">Nueva Cita</span>
+          </button>
+
+          <button type="button" id="btn-logout" class="btn-logout" title="Cerrar sesión">
+            <span>🚪</span>
+            <span class="btn-text-responsive">Salir</span>
           </button>
         </div>
       </header>

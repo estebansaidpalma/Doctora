@@ -76,6 +76,7 @@ const TEETH_MAP = {
 
 // ESTADO GLOBAL
 let appState = {
+  currentUser: null,
   clinic: {},
   treatments: [],
   patients: [],
@@ -104,6 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderBudgetsView();
   renderGalleryView();
   populateClinicConfig();
+  initAuth(); // Control de acceso y privilegios (Asistente, Doctora, Admin)
 });
 
 // CARGA Y PERSISTENCIA
@@ -228,6 +230,15 @@ function closeMobileSidebar() {
 }
 
 function switchView(viewName) {
+  // Protección de acceso por rol Asistente
+  if (appState.currentUser && appState.currentUser.role === 'asistente') {
+    const restricted = ['odontograma', 'historia', 'galeria', 'configuracion'];
+    if (restricted.includes(viewName)) {
+      showToast('⚠️ Acceso Restringido: Sección exclusiva de la Doctora y Administrador.', 'warning');
+      return;
+    }
+  }
+
   const targetNav = document.querySelector(`.nav-item[data-view="${viewName}"]`);
   if (targetNav) targetNav.click();
 }
@@ -1781,9 +1792,11 @@ function renderWeeklyScheduleView(refDate) {
                   🔄 Reasignar
                 </button>
 
-                <button type="button" class="weekly-btn-history" data-patient="${apt.patientId}" title="Ver Formato de Historia Clínica" style="font-size:11px; padding:2px 4px; border:1px solid #bae6fd; background:#f0f9ff; color:#0284c7; border-radius:4px; cursor:pointer;">
-                  📋
-                </button>
+                ${(appState.currentUser && appState.currentUser.role === 'asistente') ? '' : `
+                  <button type="button" class="weekly-btn-history" data-patient="${apt.patientId}" title="Ver Formato de Historia Clínica" style="font-size:11px; padding:2px 4px; border:1px solid #bae6fd; background:#f0f9ff; color:#0284c7; border-radius:4px; cursor:pointer;">
+                    📋
+                  </button>
+                `}
               </div>
             </div>
           `;
@@ -1799,8 +1812,12 @@ function renderWeeklyScheduleView(refDate) {
             openReassignModal(apt.id);
           });
 
-          td.querySelector('.weekly-btn-history').addEventListener('click', (e) => {
+          td.querySelector('.weekly-btn-history')?.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (appState.currentUser && appState.currentUser.role === 'asistente') {
+              showToast('⚠️ Acceso Restringido: Sección exclusiva de la Doctora.', 'warning');
+              return;
+            }
             appState.currentPatientId = apt.patientId;
             const gs = document.getElementById('global-patient-select');
             if (gs) gs.value = apt.patientId;
@@ -2115,6 +2132,7 @@ function getStatusBadge(status) {
 }
 
 function renderDailyTimeBlocks(dateStr) {
+  const isAsistente = appState.currentUser && appState.currentUser.role === 'asistente';
   const titleElem = document.getElementById('timeblocks-date-title');
   if (titleElem) {
     titleElem.textContent = formatDateLongSpanish(dateStr);
@@ -2204,6 +2222,7 @@ function renderDailyTimeBlocks(dateStr) {
             <option value="cancelada" ${startingApt.status === 'cancelada' ? 'selected' : ''}>Cancelada</option>
           </select>
 
+          ${isAsistente ? '' : `
           <button type="button" class="btn btn-secondary btn-sm btn-open-apt-history" title="Abrir Formato de Historia Clínica de este Paciente" data-patient="${startingApt.patientId}" style="padding: 4px 8px; font-size: 11px; font-weight: 700; color: #0284c7; border-color: #bae6fd;">
             📋 Historia
           </button>
@@ -2211,6 +2230,7 @@ function renderDailyTimeBlocks(dateStr) {
           <button type="button" class="btn btn-secondary btn-sm btn-open-patient-odonto" title="Ver Odontograma" data-patient="${startingApt.patientId}" style="padding: 4px 8px; font-size: 12px;">
             🦷
           </button>
+          `}
 
           <button type="button" class="btn btn-secondary btn-sm btn-delete-apt" title="Eliminar / Cancelar Cita" data-id="${startingApt.id}" style="padding: 4px 8px; font-size: 12px; color: var(--danger);">
             🗑️
@@ -2275,6 +2295,7 @@ function renderDailyTimeBlocks(dateStr) {
 }
 
 function renderAppointmentsList(dateFilter) {
+  const isAsistente = appState.currentUser && appState.currentUser.role === 'asistente';
   const container = document.getElementById('appointments-list-container');
   if (!container) return;
 
@@ -2345,6 +2366,7 @@ function renderAppointmentsList(dateFilter) {
           <option value="cancelada" ${apt.status === 'cancelada' ? 'selected' : ''}>Cancelada</option>
         </select>
 
+        ${isAsistente ? '' : `
         <button type="button" class="btn btn-secondary btn-sm btn-open-apt-history" title="Ver Historia Clínica" data-patient="${apt.patientId}" style="font-weight: 700; color: #0284c7; border-color: #bae6fd;">
           📋 Historia
         </button>
@@ -2352,6 +2374,7 @@ function renderAppointmentsList(dateFilter) {
         <button type="button" class="btn btn-secondary btn-sm btn-open-patient-odonto" title="Ver Odontograma del paciente" data-patient="${apt.patientId}">
           🦷 Odontograma
         </button>
+        `}
 
         <button type="button" class="btn btn-secondary btn-sm btn-delete-apt" title="Eliminar cita" data-id="${apt.id}" style="color: var(--danger);">
           🗑️
@@ -2589,6 +2612,7 @@ function renderPatientsList() {
 }
 
 function renderPatientDetail() {
+  const isAsistente = appState.currentUser && appState.currentUser.role === 'asistente';
   const container = document.getElementById('patient-detail-card');
   const patient = getCurrentPatient();
   if (!patient) {
@@ -2632,12 +2656,14 @@ function renderPatientDetail() {
 
     <!-- Botones de Acción Directa -->
     <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+      ${isAsistente ? '' : `
       <button id="btn-go-to-history" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 700;">
         📋 Abrir Historia Clínica Oficial (Dra. Celenia Tovar)
       </button>
       <button id="btn-go-to-odontogram" class="btn btn-secondary btn-sm">
         🦷 Odontograma
       </button>
+      `}
       <button id="btn-create-apt-for-patient" class="btn btn-secondary btn-sm">
         📅 Agendar Cita
       </button>
@@ -2660,7 +2686,9 @@ function renderPatientDetail() {
     <div>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h4 style="font-size: 15px; font-weight: 700;">Historial Clínico & Evolución</h4>
+        ${isAsistente ? '' : `
         <button id="btn-add-clinical-note" class="btn btn-secondary btn-sm">+ Agregar Nota de Evolución</button>
+        `}
       </div>
 
       <div id="patient-notes-timeline" style="display: flex; flex-direction: column; gap: 10px;">
@@ -2684,19 +2712,19 @@ function renderPatientDetail() {
     });
   }
 
-  document.getElementById('btn-go-to-odontogram').addEventListener('click', () => {
+  document.getElementById('btn-go-to-odontogram')?.addEventListener('click', () => {
     switchView('odontograma');
   });
 
-  document.getElementById('btn-create-apt-for-patient').addEventListener('click', () => {
+  document.getElementById('btn-create-apt-for-patient')?.addEventListener('click', () => {
     openNewAppointmentModal(patient.id);
   });
 
-  document.getElementById('btn-edit-patient-info').addEventListener('click', () => {
+  document.getElementById('btn-edit-patient-info')?.addEventListener('click', () => {
     openEditPatientModal(patient);
   });
 
-  document.getElementById('btn-add-clinical-note').addEventListener('click', () => {
+  document.getElementById('btn-add-clinical-note')?.addEventListener('click', () => {
     const text = prompt('Escriba la nota de evolución clínica de hoy:');
     if (text && text.trim()) {
       if (!patient.clinicalNotes) patient.clinicalNotes = [];
@@ -2786,12 +2814,17 @@ async function savePatientModal() {
 // ==========================================================================
 
 function renderBudgetsView() {
+  const isAssistant = appState.currentUser && appState.currentUser.role === 'asistente';
+  if (isAssistant) {
+    appState.budgetViewMode = 'patient';
+  }
+
   const monthInput = document.getElementById('budget-month-filter');
   if (monthInput && appState.selectedBudgetMonth) {
     monthInput.value = appState.selectedBudgetMonth;
   }
 
-  if (appState.budgetViewMode === 'monthly') {
+  if (appState.budgetViewMode === 'monthly' && !isAssistant) {
     renderMonthlyBudgetOverview();
   } else {
     renderPatientBudgetBreakdown();
@@ -2800,6 +2833,11 @@ function renderBudgetsView() {
 
 // 1. RESUMEN MENSUAL DE TODA LA CLÍNICA (TOTALES DEL MES)
 function renderMonthlyBudgetOverview() {
+  if (appState.currentUser && appState.currentUser.role === 'asistente') {
+    renderPatientBudgetBreakdown();
+    return;
+  }
+
   const monthlyPanel = document.getElementById('budget-monthly-overview-panel');
   const patientPanel = document.getElementById('budget-patient-breakdown-panel');
   const btnMonthly = document.getElementById('btn-tab-monthly-overview');
@@ -3557,6 +3595,10 @@ function setupEventListeners() {
   const btnTabMonthly = document.getElementById('btn-tab-monthly-overview');
   if (btnTabMonthly) {
     btnTabMonthly.addEventListener('click', () => {
+      if (appState.currentUser && appState.currentUser.role === 'asistente') {
+        showToast('⚠️ Acceso Restringido: Los totales globales de la clínica son exclusivos para la Doctora y Administrador.', 'warning');
+        return;
+      }
       appState.budgetViewMode = 'monthly';
       renderBudgetsView();
     });
@@ -3905,6 +3947,226 @@ function setupEventListeners() {
       }
     });
   }
+
+  // ==========================================
+  // Control de Inicio de Sesión & Autenticación
+  // ==========================================
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const uInp = document.getElementById('login-username').value.trim();
+      const pInp = document.getElementById('login-password').value;
+
+      const found = SYSTEM_USERS.find(u =>
+        u.username.toLowerCase() === uInp.toLowerCase() && u.password === pInp
+      );
+
+      if (found) {
+        loginUser(found, true);
+      } else {
+        const errAlert = document.getElementById('login-error-alert');
+        if (errAlert) {
+          errAlert.style.display = 'block';
+          errAlert.textContent = '⚠️ Usuario o contraseña incorrectos. Verifica tus credenciales.';
+        }
+      }
+    });
+  }
+
+  // Botones de Acceso Rápido de Prueba (asistente, doctora, admin)
+  document.querySelectorAll('.btn-demo-login').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const u = btn.getAttribute('data-user');
+      const p = btn.getAttribute('data-pass');
+      const userObj = SYSTEM_USERS.find(usr => usr.username === u && usr.password === p);
+      if (userObj) {
+        loginUser(userObj, true);
+      }
+    });
+  });
+
+  // Botones de Cerrar Sesión (Topbar y Sidebar)
+  const btnLogout = document.getElementById('btn-logout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', logoutUser);
+  }
+
+  const btnSidebarLogout = document.getElementById('btn-sidebar-logout');
+  if (btnSidebarLogout) {
+    btnSidebarLogout.addEventListener('click', logoutUser);
+  }
+}
+
+// ==========================================================================
+// CONTROL DE ACCESO, ROLES Y AUTENTICACIÓN (RBAC)
+// 3 USUARIOS: DOCTORA (FULL), ADMIN (FULL), ASISTENTE (CITAS, WA, ABONOS)
+// ==========================================================================
+
+const SYSTEM_USERS = [
+  {
+    id: "usr_doctora",
+    username: "doctora",
+    name: "Od. Celenia Tovar",
+    role: "doctora",
+    roleLabel: "Doctora",
+    password: "prueba",
+    avatar: "👩‍⚕️"
+  },
+  {
+    id: "usr_admin",
+    username: "admin",
+    name: "Administrador del Sistema",
+    role: "admin",
+    roleLabel: "Admin",
+    password: "prueba",
+    avatar: "⚙️"
+  },
+  {
+    id: "usr_asistente",
+    username: "asistente",
+    name: "Asistente Dental / Recepción",
+    role: "asistente",
+    roleLabel: "Asistente",
+    password: "prueba",
+    avatar: "📋"
+  }
+];
+
+function initAuth() {
+  const savedUserStr = localStorage.getItem('sonrisa_perfecta_auth_user');
+  if (savedUserStr) {
+    try {
+      const savedUser = JSON.parse(savedUserStr);
+      const matched = SYSTEM_USERS.find(u => u.username.toLowerCase() === savedUser.username?.toLowerCase());
+      if (matched) {
+        loginUser(matched, false);
+        return;
+      }
+    } catch (e) {
+      console.error('Error parseando sesión guardada:', e);
+    }
+  }
+
+  // Si no hay sesión válida activa, mostrar pantalla de inicio de sesión
+  showLoginScreen();
+}
+
+function showLoginScreen() {
+  const loginScr = document.getElementById('login-screen');
+  const appCont = document.getElementById('app-container');
+  if (loginScr) loginScr.style.display = 'flex';
+  if (appCont) appCont.style.display = 'none';
+
+  const userInp = document.getElementById('login-username');
+  if (userInp) {
+    userInp.value = '';
+    userInp.focus();
+  }
+  const passInp = document.getElementById('login-password');
+  if (passInp) passInp.value = '';
+
+  const errAlert = document.getElementById('login-error-alert');
+  if (errAlert) errAlert.style.display = 'none';
+}
+
+function loginUser(user, notify = true) {
+  appState.currentUser = user;
+  localStorage.setItem('sonrisa_perfecta_auth_user', JSON.stringify(user));
+
+  const loginScr = document.getElementById('login-screen');
+  const appCont = document.getElementById('app-container');
+  if (loginScr) loginScr.style.display = 'none';
+  if (appCont) appCont.style.display = 'flex';
+
+  updateUserBadgeUI(user);
+  applyUserPermissions(user);
+
+  if (notify) {
+    showToast(`¡Bienvenido(a), ${user.name}! Sesión: ${user.roleLabel}`);
+  }
+}
+
+function logoutUser() {
+  appState.currentUser = null;
+  localStorage.removeItem('sonrisa_perfecta_auth_user');
+  showLoginScreen();
+  showToast('Has cerrado sesión correctamente.');
+}
+
+function updateUserBadgeUI(user) {
+  const avatarElem = document.getElementById('current-user-avatar');
+  if (avatarElem) avatarElem.textContent = user.avatar;
+
+  const nameElem = document.getElementById('current-user-name');
+  if (nameElem) nameElem.textContent = user.name;
+
+  const tagElem = document.getElementById('current-user-role-tag');
+  if (tagElem) {
+    tagElem.textContent = user.roleLabel;
+    tagElem.className = `current-user-role-tag role-tag-${user.role}`;
+  }
+
+  const sidebarText = document.getElementById('sidebar-user-role-text');
+  if (sidebarText) {
+    sidebarText.textContent = `Sesión: ${user.name}`;
+  }
+}
+
+function applyUserPermissions(user) {
+  if (!user) return;
+
+  const isAsistente = user.role === 'asistente';
+
+  // 1. Menús en la Barra Lateral (Sidebar)
+  const restrictedSidebarViews = ['odontograma', 'historia', 'galeria', 'configuracion'];
+  restrictedSidebarViews.forEach(v => {
+    const navItem = document.querySelector(`.nav-item[data-view="${v}"]`);
+    if (navItem) {
+      navItem.style.display = isAsistente ? 'none' : 'flex';
+    }
+  });
+
+  // 2. Menús en la Barra Móvil Inferior
+  const restrictedMobileViews = ['odontograma', 'historia'];
+  restrictedMobileViews.forEach(v => {
+    const mItem = document.querySelector(`.mobile-nav-item[data-view="${v}"]`);
+    if (mItem) {
+      mItem.style.display = isAsistente ? 'none' : 'flex';
+    }
+  });
+
+  // 3. Botón de Historia Clínica en Topbar
+  const btnHistory = document.getElementById('btn-quick-open-history');
+  if (btnHistory) {
+    btnHistory.style.display = isAsistente ? 'none' : 'inline-flex';
+  }
+
+  // 4. En Presupuestos & Pagos: Bloquear y ocultar totales del mes de toda la clínica para asistente
+  const btnMonthly = document.getElementById('btn-tab-monthly-overview');
+  if (btnMonthly) {
+    btnMonthly.style.display = isAsistente ? 'none' : 'inline-block';
+  }
+  const monthlyPanel = document.getElementById('budget-monthly-overview-panel');
+  if (monthlyPanel && isAsistente) {
+    monthlyPanel.style.display = 'none';
+  }
+
+  // 5. Ocultar botones de acceso a Historia en tarjetas de Citas para asistente
+  document.querySelectorAll('.weekly-btn-history, .btn-open-apt-history, .btn-open-patient-odonto').forEach(btn => {
+    btn.style.display = isAsistente ? 'none' : 'inline-flex';
+  });
+
+  // 6. Si el usuario asistente estaba en una vista no autorizada, redirigir a inicio
+  const activeNav = document.querySelector('.nav-item.active');
+  const activeView = activeNav ? activeNav.getAttribute('data-view') : 'inicio';
+  if (isAsistente && restrictedSidebarViews.includes(activeView)) {
+    switchView('inicio');
+  }
+
+  // Refrescar vistas pertinentes con los nuevos permisos
+  renderWeeklyScheduleView();
+  renderBudgetsView();
 }
 
 // TOAST NOTIFICATIONS
