@@ -171,6 +171,19 @@ function setupNavigation() {
       navItems.forEach(n => n.classList.remove('active'));
       item.classList.add('active');
 
+      // Sincronizar barra móvil inferior
+      const mobileItems = document.querySelectorAll('.mobile-nav-item[data-view]');
+      mobileItems.forEach(m => {
+        if (m.getAttribute('data-view') === view) {
+          m.classList.add('active');
+        } else {
+          m.classList.remove('active');
+        }
+      });
+
+      // Cerrar drawer lateral en móvil al cambiar de vista
+      closeMobileSidebar();
+
       viewPanels.forEach(p => p.classList.remove('active'));
       const activePanel = document.getElementById(`view-${view}`);
       if (activePanel) activePanel.classList.add('active');
@@ -190,6 +203,28 @@ function setupNavigation() {
       if (view === 'galeria') renderGalleryView();
     });
   });
+
+  // Escuchar taps en la barra de navegación móvil inferior
+  document.querySelectorAll('.mobile-nav-item[data-view]').forEach(mItem => {
+    mItem.addEventListener('click', () => {
+      const v = mItem.getAttribute('data-view');
+      if (v) switchView(v);
+    });
+  });
+}
+
+function openMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (sidebar) sidebar.classList.add('mobile-open');
+  if (backdrop) backdrop.classList.add('active');
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (sidebar) sidebar.classList.remove('mobile-open');
+  if (backdrop) backdrop.classList.remove('active');
 }
 
 function switchView(viewName) {
@@ -1585,6 +1620,45 @@ function renderWeeklyScheduleView(refDate) {
         <span class="weekly-th-count">${dayAptsCount} ${dayAptsCount === 1 ? 'cita' : 'citas'}</span>
       `;
       headerRow.appendChild(th);
+    });
+  }
+
+  // 1.1 Renderizar selector de días en móvil
+  const mobileStrip = document.getElementById('weekly-mobile-day-strip');
+  if (mobileStrip) {
+    mobileStrip.innerHTML = '<span style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Día:</span>';
+
+    const allBtn = document.createElement('button');
+    allBtn.type = 'button';
+    allBtn.className = 'mobile-day-pill active';
+    allBtn.textContent = '📅 Toda la Semana';
+    allBtn.addEventListener('click', () => {
+      mobileStrip.querySelectorAll('.mobile-day-pill').forEach(b => b.classList.remove('active'));
+      allBtn.classList.add('active');
+      const container = document.querySelector('.weekly-table-container');
+      if (container) container.scrollTo({ left: 0, behavior: 'smooth' });
+    });
+    mobileStrip.appendChild(allBtn);
+
+    days.forEach((day, dayIdx) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `mobile-day-pill ${day.isToday ? 'is-today-pill' : ''}`;
+      btn.textContent = `${day.name.slice(0, 3)} ${day.displayDate}${day.isToday ? ' (Hoy)' : ''}`;
+      btn.addEventListener('click', () => {
+        mobileStrip.querySelectorAll('.mobile-day-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const hRow = document.getElementById('weekly-table-header-row');
+        if (hRow && hRow.children[dayIdx + 1]) {
+          const targetTh = hRow.children[dayIdx + 1];
+          const container = document.querySelector('.weekly-table-container');
+          if (container && targetTh) {
+            const offset = targetTh.offsetLeft - 85;
+            container.scrollTo({ left: Math.max(0, offset), behavior: 'smooth' });
+          }
+        }
+      });
+      mobileStrip.appendChild(btn);
     });
   }
 
@@ -3415,6 +3489,29 @@ function setupEventListeners() {
   const btnReassignLeaveFree = document.getElementById('btn-reassign-leave-free');
   if (btnReassignLeaveFree) {
     btnReassignLeaveFree.addEventListener('click', saveReassignLeaveFree);
+  }
+
+  // ==========================================
+  // Control de Menú Drawer en Móviles & Tablets
+  // ==========================================
+  const btnMobileMenu = document.getElementById('btn-mobile-menu-toggle');
+  if (btnMobileMenu) {
+    btnMobileMenu.addEventListener('click', openMobileSidebar);
+  }
+
+  const btnMobileMore = document.getElementById('btn-mobile-open-sidebar');
+  if (btnMobileMore) {
+    btnMobileMore.addEventListener('click', openMobileSidebar);
+  }
+
+  const btnCloseSidebarMobile = document.getElementById('btn-close-sidebar-mobile');
+  if (btnCloseSidebarMobile) {
+    btnCloseSidebarMobile.addEventListener('click', closeMobileSidebar);
+  }
+
+  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+  if (sidebarBackdrop) {
+    sidebarBackdrop.addEventListener('click', closeMobileSidebar);
   }
 
   // ==========================================

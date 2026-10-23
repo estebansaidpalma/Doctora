@@ -19,6 +19,7 @@
           <h1>Sonrisa Perfecta</h1>
           <span>Gestión Dental</span>
         </div>
+        <button type="button" id="btn-close-sidebar-mobile" class="mobile-close-sidebar-btn" aria-label="Cerrar Menú">&times;</button>
       </div>
 
       <nav class="sidebar-nav">
@@ -65,24 +66,32 @@
       </div>
     </aside>
 
+    <!-- BACKDROP PARA MENÚ MÓVIL -->
+    <div id="sidebar-backdrop"></div>
+
     <!-- ÁREA PRINCIPAL -->
     <main id="main-view">
       <!-- TOPBAR -->
       <header class="topbar">
-        <div class="topbar-title">
-          <h2 id="current-view-title">Horario Semanal de Citas</h2>
-          <p id="current-view-subtitle">Control semanal de 9:00 AM a 4:00 PM, confirmaciones y reasignaciones</p>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" id="btn-mobile-menu-toggle" class="mobile-hamburger-btn" aria-label="Abrir Menú">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          <div class="topbar-title">
+            <h2 id="current-view-title">Horario Semanal de Citas</h2>
+            <p id="current-view-subtitle">Control semanal de 9:00 AM a 4:00 PM, confirmaciones y reasignaciones</p>
+          </div>
         </div>
 
         <div class="topbar-actions">
           <button id="btn-quick-open-history" class="btn btn-secondary btn-sm" title="Abrir Formato de Historia Clínica de la Dra. Celenia Tovar">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-            <span>Historia Clínica</span>
+            <span class="btn-text-responsive">Historia Clínica</span>
           </button>
 
           <button id="btn-quick-new-appointment" class="btn btn-primary btn-sm">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span>Nueva Cita</span>
+            <span class="btn-text-responsive">Nueva Cita</span>
           </button>
         </div>
       </header>
@@ -147,6 +156,12 @@
               <span>🕒 Jornada: <strong>9:00 AM - 4:00 PM</strong> • Bloques de <strong>30m</strong> y <strong>1h</strong></span>
             </div>
           </div>
+        </div>
+
+        <!-- SELECTOR DE DÍAS EN DISPOSITIVOS MÓVILES -->
+        <div class="weekly-mobile-day-strip" id="weekly-mobile-day-strip">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Ver Día:</span>
+          <!-- Generado dinámicamente por JS con [ Lun ] [ Mar ] [ Mié ] [ Jue ] [ Vie ] [ Sáb ] [ Todo ] -->
         </div>
 
         <!-- CUADRO GRANDE DEL HORARIO SEMANAL -->
@@ -1742,6 +1757,34 @@
       </div>
     </div>
   </div>
+
+  <!-- BARRA DE NAVEGACIÓN INFERIOR PARA MÓVILES -->
+  <nav id="mobile-bottom-nav" class="mobile-bottom-nav">
+    <div class="mobile-nav-item active" data-view="inicio">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <span>Inicio</span>
+    </div>
+    <div class="mobile-nav-item" data-view="citas">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      <span>Agenda</span>
+    </div>
+    <div class="mobile-nav-item" data-view="pacientes">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+      <span>Pacientes</span>
+    </div>
+    <div class="mobile-nav-item" data-view="odontograma">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.5 2 6 4.5 6 8c0 3 1.5 6.5 3 9.5 1 2 1.5 3.5 2 4.5.2.4.6.6 1 .6s.8-.2 1-.6c.5-1 1-2.5 2-4.5 1.5-3 3-6.5 3-9.5 0-3.5-2.5-6-6-6z"></path></svg>
+      <span>Dientes</span>
+    </div>
+    <div class="mobile-nav-item" data-view="historia">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+      <span>Historia</span>
+    </div>
+    <div class="mobile-nav-item" id="btn-mobile-open-sidebar" title="Abrir Menú Completo">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle></svg>
+      <span>Más</span>
+    </div>
+  </nav>
 
   <!-- CONTENEDOR DE TOASTS -->
   <div id="toast-container"></div>
