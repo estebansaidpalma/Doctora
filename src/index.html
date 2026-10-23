@@ -1229,20 +1229,53 @@
              PANEL B: DESGLOSE DETALLADO DE UN PACIENTE ESPECÍFICO
              ========================================================================= -->
         <div id="budget-patient-breakdown-panel" style="display: none;">
-          <!-- Barra superior para volver al resumen general -->
-          <div class="card" style="margin-bottom: 16px; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border-left: 5px solid var(--primary); padding: 12px 18px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <button type="button" id="btn-back-to-monthly-summary" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+          <!-- Barra superior de control y selector directo de paciente -->
+          <div class="card" style="margin-bottom: 16px; background: #ffffff; border: 1px solid var(--border-color); border-left: 5px solid var(--primary); padding: 16px 20px;">
+            <!-- Fila superior: Navegación y selector de paciente -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1;">
+                <button type="button" id="btn-back-to-monthly-summary" class="btn btn-secondary btn-sm" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                   ◀ Volver a Totales del Mes (Toda la Clínica)
                 </button>
-                <div>
-                  <h4 id="breakdown-patient-name" style="font-size: 16px; font-weight: 800; color: var(--text-main); margin: 0;">Mariana Valentina Gómez</h4>
-                  <p id="breakdown-patient-meta" style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Cédula: V-24.890.123 • Teléfono: +58 414 9876543</p>
+
+                <!-- Selector de Paciente Directo -->
+                <div class="budget-patient-picker" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1.5px solid #bae6fd;">
+                  <label for="budget-patient-select" style="font-size: 13px; font-weight: 700; color: #0284c7; margin: 0; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+                    👤 Cambiar Paciente:
+                  </label>
+                  <select id="budget-patient-select" class="form-control" style="font-size: 13px; font-weight: 700; min-width: 280px; max-width: 380px; height: 36px; padding: 4px 10px; border: 1.5px solid #38bdf8; border-radius: 6px; cursor: pointer; background: #ffffff; color: var(--text-main);" title="Selecciona cualquier paciente para ver su presupuesto y saldo">
+                    <!-- Opciones generadas dinámicamente -->
+                  </select>
+                  <input type="text" id="budget-patient-search" placeholder="🔍 Filtrar lista..." class="form-control" style="font-size: 12px; width: 150px; height: 36px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px;" title="Buscar paciente por nombre o cédula">
                 </div>
               </div>
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <button type="button" id="btn-print-budget" class="btn btn-primary btn-sm">🖨️ Imprimir Presupuesto de este Paciente</button>
+
+              <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <button type="button" id="btn-print-budget" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+                  🖨️ Imprimir Presupuesto
+                </button>
+              </div>
+            </div>
+
+            <!-- Fila inferior: Ficha y datos del paciente activo -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div id="breakdown-patient-avatar" style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);">
+                  M
+                </div>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <h3 id="breakdown-patient-name" style="font-size: 18px; font-weight: 800; color: var(--text-main); margin: 0;">Mariana Valentina Gómez</h3>
+                    <span id="breakdown-patient-status-badge" class="badge badge-warning" style="font-size: 12px;">Saldo Pendiente</span>
+                  </div>
+                  <p id="breakdown-patient-meta" style="font-size: 13px; color: var(--text-muted); margin: 3px 0 0 0;">Cédula: V-24.890.123 • Teléfono: +58 414 9876543</p>
+                </div>
+              </div>
+
+              <div id="breakdown-patient-extra-actions" style="display: flex; gap: 8px;">
+                <button type="button" id="btn-budget-quick-patient-file" class="btn btn-secondary btn-sm" style="font-weight: 600; font-size: 12px;">
+                  👤 Ver Ficha de Paciente
+                </button>
               </div>
             </div>
           </div>

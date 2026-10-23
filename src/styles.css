@@ -2682,6 +2682,18 @@ body {
     flex-direction: column !important;
     gap: 10px !important;
   }
+
+  .budget-patient-picker {
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  #budget-patient-select, #budget-patient-search {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
 }
 
 /* IMPRESIÓN DEL HORARIO SEMANAL */

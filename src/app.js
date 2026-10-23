@@ -2667,6 +2667,9 @@ function renderPatientDetail() {
       <button id="btn-create-apt-for-patient" class="btn btn-secondary btn-sm">
         📅 Agendar Cita
       </button>
+      <button id="btn-go-to-patient-budget" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #0284c7; border-color: #bae6fd;">
+        💰 Presupuesto & Pagos
+      </button>
       <button id="btn-edit-patient-info" class="btn btn-secondary btn-sm">
         ✏️ Editar Datos Personales
       </button>
@@ -2718,6 +2721,13 @@ function renderPatientDetail() {
 
   document.getElementById('btn-create-apt-for-patient')?.addEventListener('click', () => {
     openNewAppointmentModal(patient.id);
+  });
+
+  document.getElementById('btn-go-to-patient-budget')?.addEventListener('click', () => {
+    appState.currentPatientId = patient.id;
+    appState.budgetViewMode = 'patient';
+    switchView('presupuestos');
+    renderBudgetsView();
   });
 
   document.getElementById('btn-edit-patient-info')?.addEventListener('click', () => {
@@ -2989,8 +2999,66 @@ function renderMonthlyBudgetOverview() {
   });
 }
 
+// LLENAR SELECTOR DE PACIENTES DEL DESGLOSE DE PRESUPUESTO
+function populateBudgetPatientSelect(filterText = '') {
+  const select = document.getElementById('budget-patient-select');
+  if (!select) return;
+
+  const currentVal = appState.currentPatientId;
+  select.innerHTML = '';
+
+  const cleanFilter = (filterText || '').toLowerCase().trim();
+
+  let patientsToRender = appState.patients || [];
+  if (cleanFilter) {
+    patientsToRender = patientsToRender.filter(p => 
+      (p.name && p.name.toLowerCase().includes(cleanFilter)) ||
+      (p.documentId && p.documentId.toLowerCase().includes(cleanFilter)) ||
+      (p.phone && p.phone.toLowerCase().includes(cleanFilter))
+    );
+  }
+
+  if (patientsToRender.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = '❌ No se encontraron pacientes';
+    select.appendChild(opt);
+    return;
+  }
+
+  patientsToRender.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+
+    // Calcular saldo actual de este paciente
+    let balance = 0;
+    if (p.budgets && p.budgets.length > 0) {
+      const b = p.budgets[0];
+      const subtotal = (b.items || []).reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
+      const discount = parseFloat(b.discount) || 0;
+      const total = Math.max(0, subtotal - discount);
+      const paid = (b.payments || []).reduce((acc, pay) => acc + (parseFloat(pay.amount) || 0), 0);
+      balance = Math.max(0, total - paid);
+    }
+
+    const balanceTxt = balance > 0 ? `• Debe: $${balance.toFixed(2)}` : `• ✅ Al Día ($0)`;
+    opt.textContent = `${p.name} (${p.documentId || 'S/C'}) ${balanceTxt}`;
+
+    if (p.id === currentVal) {
+      opt.selected = true;
+    }
+
+    select.appendChild(opt);
+  });
+
+  if (patientsToRender.some(p => p.id === currentVal)) {
+    select.value = currentVal;
+  }
+}
+
 // 2. DESGLOSE DETALLADO DEL PACIENTE SELECCIONADO
 function renderPatientBudgetBreakdown() {
+  const isAssistant = appState.currentUser && appState.currentUser.role === 'asistente';
   const monthlyPanel = document.getElementById('budget-monthly-overview-panel');
   const patientPanel = document.getElementById('budget-patient-breakdown-panel');
   const btnMonthly = document.getElementById('btn-tab-monthly-overview');
@@ -3000,6 +3068,16 @@ function renderPatientBudgetBreakdown() {
   if (patientPanel) patientPanel.style.display = 'block';
   if (btnMonthly) { btnMonthly.classList.add('btn-secondary'); btnMonthly.classList.remove('btn-primary'); }
   if (btnPatient) { btnPatient.classList.add('btn-primary'); btnPatient.classList.remove('btn-secondary'); }
+
+  // Control de permisos en botones de la tarjeta de paciente
+  const btnBackMonthly = document.getElementById('btn-back-to-monthly-summary');
+  if (btnBackMonthly) {
+    btnBackMonthly.style.display = isAssistant ? 'none' : 'inline-flex';
+  }
+  const extraActions = document.getElementById('breakdown-patient-extra-actions');
+  if (extraActions) {
+    extraActions.style.display = isAssistant ? 'none' : 'flex';
+  }
 
   const patient = getCurrentPatient();
   if (!patient) return;
@@ -3017,11 +3095,17 @@ function renderPatientBudgetBreakdown() {
     }];
   }
 
+  // Refrescar selector de pacientes en el desglose
+  const searchInput = document.getElementById('budget-patient-search');
+  populateBudgetPatientSelect(searchInput ? searchInput.value : '');
+
   // Encabezado del paciente en el desglose
   const nameElem = document.getElementById('breakdown-patient-name');
   if (nameElem) nameElem.textContent = patient.name;
   const metaElem = document.getElementById('breakdown-patient-meta');
   if (metaElem) metaElem.textContent = `Cédula: ${patient.documentId || 'S/C'} • Teléfono: ${patient.phone || 'S/T'}`;
+  const avatarElem = document.getElementById('breakdown-patient-avatar');
+  if (avatarElem) avatarElem.textContent = (patient.name || 'P').charAt(0).toUpperCase();
 
   const budget = patient.budgets[0];
   const subtotal = budget.items.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
@@ -3034,6 +3118,24 @@ function renderPatientBudgetBreakdown() {
   budget.discount = discount;
   budget.total = total;
   budget.balance = balance;
+
+  // Actualizar etiqueta dinámica de saldo pendiente
+  const statusBadge = document.getElementById('breakdown-patient-status-badge');
+  if (statusBadge) {
+    if (balance > 0) {
+      statusBadge.className = 'badge badge-warning';
+      statusBadge.textContent = `Saldo Pendiente: $${balance.toFixed(2)}`;
+      statusBadge.style.backgroundColor = 'var(--danger-bg)';
+      statusBadge.style.color = 'var(--danger)';
+      statusBadge.style.borderColor = 'var(--danger)';
+    } else {
+      statusBadge.className = 'badge badge-success';
+      statusBadge.textContent = '✅ Cuenta al Día ($0.00)';
+      statusBadge.style.backgroundColor = 'var(--success-bg)';
+      statusBadge.style.color = 'var(--success)';
+      statusBadge.style.borderColor = 'var(--success)';
+    }
+  }
 
   const subtotalElem = document.getElementById('budget-subtotal-amount');
   if (subtotalElem) subtotalElem.textContent = `$${subtotal.toFixed(2)}`;
@@ -3631,6 +3733,34 @@ function setupEventListeners() {
     });
   }
 
+  // Selector y buscador directo de paciente en desglose de presupuestos
+  const budgetSelect = document.getElementById('budget-patient-select');
+  if (budgetSelect) {
+    budgetSelect.addEventListener('change', (e) => {
+      const pId = e.target.value;
+      if (pId) {
+        appState.currentPatientId = pId;
+        renderPatientBudgetBreakdown();
+        renderPatientDetail();
+        showToast(`Mostrando presupuesto de: ${getCurrentPatient()?.name || ''}`);
+      }
+    });
+  }
+
+  const budgetSearch = document.getElementById('budget-patient-search');
+  if (budgetSearch) {
+    budgetSearch.addEventListener('input', (e) => {
+      populateBudgetPatientSelect(e.target.value);
+    });
+  }
+
+  const btnBudgetQuickFile = document.getElementById('btn-budget-quick-patient-file');
+  if (btnBudgetQuickFile) {
+    btnBudgetQuickFile.addEventListener('click', () => {
+      switchView('pacientes');
+    });
+  }
+
   // Modal Diente
   document.querySelectorAll('.condition-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -4150,6 +4280,14 @@ function applyUserPermissions(user) {
   const monthlyPanel = document.getElementById('budget-monthly-overview-panel');
   if (monthlyPanel && isAsistente) {
     monthlyPanel.style.display = 'none';
+  }
+  const btnBackMonthly = document.getElementById('btn-back-to-monthly-summary');
+  if (btnBackMonthly) {
+    btnBackMonthly.style.display = isAsistente ? 'none' : 'inline-flex';
+  }
+  const extraActions = document.getElementById('breakdown-patient-extra-actions');
+  if (extraActions) {
+    extraActions.style.display = isAsistente ? 'none' : 'flex';
   }
 
   // 5. Ocultar botones de acceso a Historia en tarjetas de Citas para asistente
