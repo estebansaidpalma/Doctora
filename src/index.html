@@ -22,9 +22,13 @@
       </div>
 
       <nav class="sidebar-nav">
-        <div class="nav-item active" data-view="citas">
+        <div class="nav-item active" data-view="inicio">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Inicio</span>
+        </div>
+        <div class="nav-item" data-view="citas">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          <span>Agenda & Citas</span>
+          <span>Agenda Diaria</span>
         </div>
         <div class="nav-item" data-view="odontograma">
           <svg viewBox="0 0 24 24"><path d="M12 2C8.5 2 6 4.5 6 8c0 3 1.5 6.5 3 9.5 1 2 1.5 3.5 2 4.5.2.4.6.6 1 .6s.8-.2 1-.6c.5-1 1-2.5 2-4.5 1.5-3 3-6.5 3-9.5 0-3.5-2.5-6-6-6z"></path></svg>
@@ -66,20 +70,11 @@
       <!-- TOPBAR -->
       <header class="topbar">
         <div class="topbar-title">
-          <h2 id="current-view-title">Agenda & Control de Citas</h2>
-          <p id="current-view-subtitle">Organización diaria, confirmaciones e historial</p>
+          <h2 id="current-view-title">Horario Semanal de Citas</h2>
+          <p id="current-view-subtitle">Control semanal de 9:00 AM a 4:00 PM, confirmaciones y reasignaciones</p>
         </div>
 
         <div class="topbar-actions">
-          <!-- Selector rápido de paciente activo -->
-          <div class="active-patient-badge">
-            <span class="pulse"></span>
-            <span>Paciente:</span>
-            <select id="global-patient-select" style="background:transparent; border:none; font-weight:700; color:inherit; outline:none; cursor:pointer;">
-              <!-- Llenado dinámicamente -->
-            </select>
-          </div>
-
           <button id="btn-quick-open-history" class="btn btn-secondary btn-sm" title="Abrir Formato de Historia Clínica de la Dra. Celenia Tovar">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
             <span>Historia Clínica</span>
@@ -92,8 +87,87 @@
         </div>
       </header>
 
-      <!-- 1. VISTA: CITAS & AGENDA -->
-      <section id="view-citas" class="view-panel active">
+      <!-- 0. VISTA: INICIO (HORARIO SEMANAL DE CITAS) -->
+      <section id="view-inicio" class="view-panel active">
+        <!-- Banner superior estilo formato Dra. Celenia / Imagen de referencia -->
+        <div class="weekly-schedule-banner-box">
+          <div class="weekly-banner-decor-top"></div>
+          <div class="weekly-banner-header-row">
+            <div class="weekly-banner-title-col">
+              <h1 class="weekly-main-title">HORARIO SEMANAL</h1>
+              <span class="weekly-subtitle-pill">Consultorio Odontológico Sonrisa Perfecta • Od. Celenia Tovar</span>
+            </div>
+
+            <!-- Controles de navegación de la semana -->
+            <div class="weekly-nav-actions">
+              <div class="weekly-date-nav-wrapper">
+                <button type="button" id="btn-week-prev" class="btn btn-secondary btn-sm" title="Semana Anterior">◀</button>
+                <div class="weekly-current-range-pill">
+                  <span id="weekly-current-label">Cargando semana...</span>
+                  <input type="date" id="weekly-date-picker" title="Seleccionar fecha para ver semana" class="weekly-hidden-date-picker">
+                </div>
+                <button type="button" id="btn-week-next" class="btn btn-secondary btn-sm" title="Semana Siguiente">▶</button>
+                <button type="button" id="btn-week-today" class="btn btn-secondary btn-sm">📅 Esta Semana</button>
+              </div>
+
+              <div style="display: flex; gap: 8px;">
+                <button type="button" id="btn-weekly-new-apt" class="btn btn-primary btn-sm" style="font-weight: 700;">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <span>+ Agendar Cita</span>
+                </button>
+                <button type="button" id="btn-weekly-print" class="btn btn-secondary btn-sm" title="Imprimir Horario Semanal">
+                  🖨️ Imprimir
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Métricas y Leyendas de Estado -->
+          <div class="weekly-metrics-strip">
+            <div class="weekly-metric-item">
+              <span class="weekly-metric-lbl">Total Citas:</span>
+              <strong id="weekly-stat-total" class="weekly-metric-num">0</strong>
+            </div>
+            <div class="weekly-metric-item metric-confirmed">
+              <span class="weekly-dot dot-confirmed"></span>
+              <span class="weekly-metric-lbl">Confirmadas (Marca de Agua):</span>
+              <strong id="weekly-stat-confirmed" class="weekly-metric-num">0</strong>
+            </div>
+            <div class="weekly-metric-item metric-pending">
+              <span class="weekly-dot dot-pending"></span>
+              <span class="weekly-metric-lbl">Por Confirmar:</span>
+              <strong id="weekly-stat-pending" class="weekly-metric-num">0</strong>
+            </div>
+            <div class="weekly-metric-item metric-reassigned">
+              <span class="weekly-dot dot-reassigned"></span>
+              <span class="weekly-metric-lbl">Reasignadas:</span>
+              <strong id="weekly-stat-reassigned" class="weekly-metric-num">0</strong>
+            </div>
+            <div class="weekly-metric-item metric-shift">
+              <span>🕒 Jornada: <strong>9:00 AM - 4:00 PM</strong> • Bloques de <strong>30m</strong> y <strong>1h</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CUADRO GRANDE DEL HORARIO SEMANAL -->
+        <div class="card weekly-schedule-card">
+          <div class="weekly-table-container">
+            <table class="weekly-schedule-table" id="weekly-schedule-table">
+              <thead>
+                <tr id="weekly-table-header-row">
+                  <!-- Se genera por JS: Hora + Lunes a Sábado -->
+                </tr>
+              </thead>
+              <tbody id="weekly-table-body">
+                <!-- Se genera por JS: 14 filas de 30 min (09:00 a 16:00) -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 1. VISTA: CITAS & AGENDA DIARIA -->
+      <section id="view-citas" class="view-panel">
         <!-- Tarjetas de estadísticas del día -->
         <div class="stats-bar">
           <div class="stat-card">
@@ -1578,6 +1652,93 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-close="discount-modal">Cancelar</button>
         <button type="button" id="btn-save-discount-confirm" class="btn btn-primary">Guardar Descuento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: REASIGNACIÓN Y CANCELACIÓN DE CITAS (DRA. CELENIA TOVAR)
+       ========================================================================== -->
+  <div id="modal-reassign-appointment" class="modal-overlay">
+    <div class="modal-container" style="max-width: 580px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%); color: #fff; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+        <h3 class="modal-title" style="color: #fff; display: flex; align-items: center; gap: 8px;">
+          <span>🔄</span> Reasignar / Reagendar Cita
+        </h3>
+        <button class="modal-close-btn" data-close="modal-reassign-appointment" style="color: #fff;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="reassign-apt-id">
+
+        <!-- Detalle de la cita original que se cancela -->
+        <div class="reassign-original-box" style="background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="color: #be123c; font-size: 13px;">❌ Cita a Reasignar / Cupo a Liberar:</strong>
+            <span id="reassign-original-datetime" class="badge badge-danger">Lunes 09:30 AM (60 min)</span>
+          </div>
+          <div style="font-size: 14px; font-weight: 700; color: #1e293b;" id="reassign-original-patient">
+            Mariana Valentina Gómez
+          </div>
+          <div style="font-size: 12px; color: #64748b; margin-top: 3px;" id="reassign-original-reason">
+            Procedimiento previo: Cirugía de Cordales
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight: 700; color: #be123c;">Motivo de Cancelación del Paciente:*</label>
+          <input type="text" id="reassign-cancel-reason-input" class="form-control" placeholder="Ej: Paciente llamó cancelando por viaje / trabajo / enfermedad" required>
+        </div>
+
+        <hr style="margin: 16px 0; border: none; border-top: 1px dashed var(--border-color);">
+
+        <h4 style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+          <span>👤</span> Nuevo Paciente que Toma el Horario:
+        </h4>
+
+        <div class="form-group">
+          <label class="form-label">Seleccionar Paciente para Asignarle este Cupo:*</label>
+          <select id="reassign-new-patient-select" class="form-control" style="font-weight: 700;">
+            <!-- Llenado dinámico -->
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Bloque a Ocupar por el Nuevo Paciente:</label>
+            <select id="reassign-duration-select" class="form-control" style="font-weight: 700;">
+              <option value="30">⏱️ Media Hora (30 minutos)</option>
+              <option value="60" selected>⏱️ 1 Hora Completa (60 minutos)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estado de Confirmación:</label>
+            <select id="reassign-status-select" class="form-control" style="font-weight: 700;">
+              <option value="confirmada" selected>🟢 Confirmada de Inmediato (Por Teléfono)</option>
+              <option value="programada">🟠 Por Confirmar / Pendiente</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Motivo de Consulta / Tratamiento del Nuevo Paciente:*</label>
+          <input type="text" id="reassign-new-reason-input" class="form-control" placeholder="Ej: Consulta de urgencia, limpieza, control..." required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Notas Adicionales de la Reasignación:</label>
+          <input type="text" id="reassign-notes-input" class="form-control" placeholder="Ej: Se llamó de la lista de espera telefónica">
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+        <button type="button" id="btn-reassign-leave-free" class="btn btn-warning btn-sm" title="Marcar como cupo cancelado/liberado para llamar pacientes más tarde">
+          📢 Dejar como Cupo Disponible
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn btn-secondary" data-close="modal-reassign-appointment">Cancelar</button>
+          <button type="button" id="btn-save-reassign-confirm" class="btn btn-primary" style="font-weight: 700;">
+            ✓ Confirmar Reasignación
+          </button>
+        </div>
       </div>
     </div>
   </div>

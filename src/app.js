@@ -86,6 +86,7 @@ let appState = {
   activeTool: 'caries', // Herramienta activa de pincel por defecto (🔴 Caries)
   appointmentViewMode: 'blocks', // 'blocks' (cronograma 30 min) o 'list'
   selectedAppointmentDate: new Date().toISOString().slice(0, 10),
+  selectedWeekDate: new Date().toISOString().slice(0, 10),
   selectedBudgetMonth: new Date().toISOString().slice(0, 7), // YYYY-MM actual
   budgetViewMode: 'monthly' // 'monthly' (totales del mes) o 'patient' (desglose)
 };
@@ -96,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupNavigation();
   setupEventListeners();
   populateGlobalPatientSelect();
+  renderWeeklyScheduleView();
   renderAppointmentsView();
   renderOdontogramBoard();
   renderPatientsList();
@@ -153,7 +155,8 @@ function setupNavigation() {
   const subtitleElem = document.getElementById('current-view-subtitle');
 
   const titles = {
-    citas: { title: "Agenda & Control de Citas", sub: "Control diario, recordatorios vía WhatsApp y estados" },
+    inicio: { title: "Horario Semanal de Citas", sub: "Control semanal de 9:00 AM a 4:00 PM, confirmaciones y reasignaciones" },
+    citas: { title: "Agenda Diaria de Citas", sub: "Control diario, recordatorios vía WhatsApp y estados" },
     odontograma: { title: "Odontograma Interactivo FDI", sub: "Visualización anatómica completa con cordales y piezas temporales" },
     historia: { title: "Historia Clínica Odontológica (Control de Cita)", sub: "Formato oficial de la Dra. Celenia Tovar, antecedentes y odontograma por cuadrantes" },
     pacientes: { title: "Expediente & Ficha de Pacientes", sub: "Historial médico, antecedentes y alertas de salud críticas" },
@@ -178,6 +181,7 @@ function setupNavigation() {
       }
 
       // Refrescar vistas pertinentes
+      if (view === 'inicio') renderWeeklyScheduleView();
       if (view === 'odontograma') renderOdontogramBoard();
       if (view === 'historia') renderClinicalHistoryView();
       if (view === 'citas') renderAppointmentsView();
@@ -1480,6 +1484,440 @@ function saveCurrentClinicalHistoryForm(showNotification = false) {
 }
 
 // ==========================================================================
+// 0. VISTA INICIO: HORARIO SEMANAL DE CITAS (09:00 A 16:00 - 30 MIN Y 1 HORA)
+// ==========================================================================
+
+const WEEKLY_HOURS = [
+  { start: "09:00", end: "09:30", display: "09:00 AM", endDisplay: "09:30 AM" },
+  { start: "09:30", end: "10:00", display: "09:30 AM", endDisplay: "10:00 AM" },
+  { start: "10:00", end: "10:30", display: "10:00 AM", endDisplay: "10:30 AM" },
+  { start: "10:30", end: "11:00", display: "10:30 AM", endDisplay: "11:00 AM" },
+  { start: "11:00", end: "11:30", display: "11:00 AM", endDisplay: "11:30 AM" },
+  { start: "11:30", end: "12:00", display: "11:30 AM", endDisplay: "12:00 PM" },
+  { start: "12:00", end: "12:30", display: "12:00 PM", endDisplay: "12:30 PM" },
+  { start: "12:30", end: "13:00", display: "12:30 PM", endDisplay: "01:00 PM" },
+  { start: "13:00", end: "13:30", display: "01:00 PM", endDisplay: "01:30 PM" },
+  { start: "13:30", end: "14:00", display: "01:30 PM", endDisplay: "02:00 PM" },
+  { start: "14:00", end: "14:30", display: "02:00 PM", endDisplay: "02:30 PM" },
+  { start: "14:30", end: "15:00", display: "02:30 PM", endDisplay: "03:00 PM" },
+  { start: "15:00", end: "15:30", display: "03:00 PM", endDisplay: "03:30 PM" },
+  { start: "15:30", end: "16:00", display: "03:30 PM", endDisplay: "04:00 PM" }
+];
+
+function getWeeklyScheduleDays(refDateStr) {
+  const safeStr = refDateStr || appState.selectedWeekDate || new Date().toISOString().slice(0, 10);
+  const parts = safeStr.split('-').map(Number);
+  const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+  const dayOfWeek = dateObj.getDay(); // 0: Dom, 1: Lun, ..., 6: Sáb
+  const diffToMon = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+  const monday = new Date(parts[0], parts[1] - 1, parts[2] + diffToMon);
+
+  const days = [];
+  const dayNames = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  for (let i = 0; i < 6; i++) {
+    const cur = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+    const yyyy = cur.getFullYear();
+    const mm = String(cur.getMonth() + 1).padStart(2, '0');
+    const dd = String(cur.getDate()).padStart(2, '0');
+    const curStr = `${yyyy}-${mm}-${dd}`;
+    days.push({
+      name: dayNames[i],
+      dateStr: curStr,
+      displayDate: `${dd}/${mm}`,
+      fullDateObj: cur,
+      isToday: curStr === todayStr
+    });
+  }
+  return { monday, days };
+}
+
+function renderWeeklyScheduleView(refDate) {
+  const targetDateStr = refDate || appState.selectedWeekDate || new Date().toISOString().slice(0, 10);
+  appState.selectedWeekDate = targetDateStr;
+
+  const { monday, days } = getWeeklyScheduleDays(targetDateStr);
+
+  // Label de la semana actual
+  const labelElem = document.getElementById('weekly-current-label');
+  if (labelElem) {
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const startM = months[days[0].fullDateObj.getMonth()];
+    const endM = months[days[5].fullDateObj.getMonth()];
+    const monthTxt = startM === endM ? `${startM} ${days[5].fullDateObj.getFullYear()}` : `${startM} - ${endM} ${days[5].fullDateObj.getFullYear()}`;
+    labelElem.textContent = `Semana del ${days[0].displayDate} al ${days[5].displayDate} (${monthTxt})`;
+  }
+
+  const picker = document.getElementById('weekly-date-picker');
+  if (picker) {
+    picker.value = targetDateStr;
+  }
+
+  // Citas de esta semana
+  const weekDatesSet = new Set(days.map(d => d.dateStr));
+  const weekAppointments = appState.appointments.filter(a => weekDatesSet.has(a.date));
+
+  // Actualizar métricas del resumen
+  const statTotal = document.getElementById('weekly-stat-total');
+  if (statTotal) statTotal.textContent = weekAppointments.filter(a => a.status !== 'cancelada').length;
+
+  const statConf = document.getElementById('weekly-stat-confirmed');
+  if (statConf) statConf.textContent = weekAppointments.filter(a => a.status === 'confirmada').length;
+
+  const statPend = document.getElementById('weekly-stat-pending');
+  if (statPend) statPend.textContent = weekAppointments.filter(a => a.status === 'programada' || a.status === 'en_espera').length;
+
+  const statReas = document.getElementById('weekly-stat-reassigned');
+  if (statReas) statReas.textContent = weekAppointments.filter(a => Boolean(a.reassignedFrom)).length;
+
+  // 1. Renderizar fila de encabezados
+  const headerRow = document.getElementById('weekly-table-header-row');
+  if (headerRow) {
+    headerRow.innerHTML = '<th class="weekly-th-time">HORA</th>';
+    days.forEach(day => {
+      const dayAptsCount = weekAppointments.filter(a => a.date === day.dateStr && a.status !== 'cancelada').length;
+      const th = document.createElement('th');
+      th.className = `weekly-th-day ${day.isToday ? 'is-today' : ''}`;
+      th.innerHTML = `
+        <div>${day.name}</div>
+        <span class="weekly-th-day-date">${day.displayDate}${day.isToday ? ' • HOY' : ''}</span>
+        <span class="weekly-th-count">${dayAptsCount} ${dayAptsCount === 1 ? 'cita' : 'citas'}</span>
+      `;
+      headerRow.appendChild(th);
+    });
+  }
+
+  // 2. Renderizar filas de bloques de tiempo (14 bloques de 30 min de 09:00 a 16:00)
+  const tbody = document.getElementById('weekly-table-body');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  // Mapa para rastrear celdas cubiertas por citas multabloque (ej: 1 hora = 2 bloques)
+  const coveredSlots = {};
+
+  WEEKLY_HOURS.forEach((slot, slotIdx) => {
+    const tr = document.createElement('tr');
+
+    // Columna de hora
+    const timeTd = document.createElement('td');
+    timeTd.className = 'weekly-time-cell';
+    timeTd.innerHTML = `<strong>${slot.display}</strong><br><span style="font-size:10px; opacity:0.85;">a ${slot.endDisplay}</span>`;
+    tr.appendChild(timeTd);
+
+    // Columnas de días
+    days.forEach(day => {
+      const covKey = `${day.dateStr}_${slotIdx}`;
+      if (coveredSlots[covKey]) {
+        // Esta celda está cubierta por el rowspan de una cita previa de 1 hora o más
+        return;
+      }
+
+      const slotStartMin = timeToMinutes(slot.start);
+      const slotEndMin = slotStartMin + 30;
+
+      // Buscar cita que inicie en este bloque de 30 minutos
+      const apt = weekAppointments.find(a => {
+        if (a.date !== day.dateStr) return false;
+        const aStart = timeToMinutes(a.time);
+        return aStart >= slotStartMin && aStart < slotEndMin;
+      });
+
+      if (apt) {
+        // Calcular duración en bloques de 30 minutos (30 min = 1 bloque, 60 min = 2 bloques)
+        const durationMin = parseInt(apt.duration) || 60;
+        const blockSpan = Math.max(1, Math.min(4, Math.round(durationMin / 30)));
+
+        // Marcar los siguientes bloques como cubiertos para no generar celdas duplicadas
+        for (let s = 1; s < blockSpan && (slotIdx + s) < WEEKLY_HOURS.length; s++) {
+          coveredSlots[`${day.dateStr}_${slotIdx + s}`] = true;
+        }
+
+        const td = document.createElement('td');
+        td.className = 'weekly-slot-cell';
+        if (blockSpan > 1) {
+          td.rowSpan = blockSpan;
+        }
+
+        const isConfirmed = apt.status === 'confirmada';
+        const isReassigned = Boolean(apt.reassignedFrom);
+        const isFreed = apt.status === 'cupo_liberado' || apt.status === 'cancelada';
+
+        if (isFreed) {
+          td.innerHTML = `
+            <div class="weekly-apt-card is-freed">
+              <div class="weekly-watermark watermark-liberada">CUPO LIBERADO</div>
+              <div class="weekly-freed-box">
+                <div class="weekly-freed-title">⚠️ Cupo Disponible (${slot.start})</div>
+                <div class="weekly-freed-desc">Liberado por: <strong>${apt.patientName}</strong> (${apt.duration || 60} min)</div>
+                <button type="button" class="btn-assign-freed" data-id="${apt.id}">
+                  📞 Llamar & Reasignar Cupo
+                </button>
+              </div>
+            </div>
+          `;
+          td.querySelector('.btn-assign-freed').addEventListener('click', () => {
+            openReassignModal(apt.id);
+          });
+        } else {
+          // Marca de agua dinámica: CONFIRMADA vs NO CONFIRMADA vs REASIGNADA
+          let watermarkText = 'NO CONFIRMADA';
+          let watermarkClass = 'watermark-pendiente';
+
+          if (isConfirmed) {
+            watermarkText = 'CONFIRMADA';
+            watermarkClass = 'watermark-confirmada';
+          } else if (isReassigned) {
+            watermarkText = 'REASIGNADA';
+            watermarkClass = 'watermark-reasignada';
+          }
+
+          const cardMinHeight = blockSpan > 1 ? `style="min-height: ${blockSpan * 62 - 10}px;"` : '';
+
+          td.innerHTML = `
+            <div class="weekly-apt-card ${isConfirmed ? 'is-confirmed' : isReassigned ? 'is-reassigned' : 'is-pending'}" ${cardMinHeight}>
+              <div class="weekly-watermark ${watermarkClass}">${watermarkText}</div>
+
+              <div class="weekly-card-content">
+                ${isReassigned ? `
+                  <div class="weekly-reassigned-badge">🔄 Cita Reasignada</div>
+                  <div class="weekly-original-patient-info" title="Cita cancelada por paciente original: ${apt.reassignedFrom?.reason || ''}">
+                    ↩️ Tomada de: <strong>${apt.reassignedFrom?.originalPatientName || 'Paciente previo'}</strong> (Canceló)
+                  </div>
+                ` : ''}
+
+                <div class="weekly-patient-title" title="${apt.patientName}">
+                  👤 ${apt.patientName}
+                </div>
+                <div class="weekly-procedure-text" title="${apt.reason || 'Consulta'}">
+                  🦷 ${apt.reason || 'Consulta Odontológica'}
+                </div>
+              </div>
+
+              <div class="weekly-card-actions">
+                <button type="button" class="btn-toggle-confirm ${isConfirmed ? 'is-confirmed' : 'is-pending'}" data-id="${apt.id}" title="${isConfirmed ? 'Click para marcar como Sin Confirmar' : 'Click para CONFIRMAR de inmediato'}">
+                  ${isConfirmed ? '🟢 Confirmada' : '🟠 Confirmar'}
+                </button>
+
+                <span class="weekly-duration-pill">
+                  ${apt.duration == 30 ? '⏱️ 30m' : apt.duration == 60 ? '⏱️ 1h' : `⏱️ ${apt.duration}m`}
+                </span>
+
+                <button type="button" class="weekly-btn-reassign" data-id="${apt.id}" title="Reasignar cita a otro paciente si cancela">
+                  🔄 Reasignar
+                </button>
+
+                <button type="button" class="weekly-btn-history" data-patient="${apt.patientId}" title="Ver Formato de Historia Clínica" style="font-size:11px; padding:2px 4px; border:1px solid #bae6fd; background:#f0f9ff; color:#0284c7; border-radius:4px; cursor:pointer;">
+                  📋
+                </button>
+              </div>
+            </div>
+          `;
+
+          // Eventos de botones dentro de la cita semanal
+          td.querySelector('.btn-toggle-confirm').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleAppointmentConfirmation(apt.id);
+          });
+
+          td.querySelector('.weekly-btn-reassign').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openReassignModal(apt.id);
+          });
+
+          td.querySelector('.weekly-btn-history').addEventListener('click', (e) => {
+            e.stopPropagation();
+            appState.currentPatientId = apt.patientId;
+            const gs = document.getElementById('global-patient-select');
+            if (gs) gs.value = apt.patientId;
+            switchView('historia');
+          });
+        }
+
+        tr.appendChild(td);
+
+      } else {
+        // Slot libre en este bloque de 30 minutos
+        const emptyTd = document.createElement('td');
+        emptyTd.className = 'weekly-slot-cell';
+        emptyTd.innerHTML = `
+          <div class="weekly-slot-empty" data-date="${day.dateStr}" data-time="${slot.start}" title="Agendar cita (${day.name} ${day.displayDate} - ${slot.display})">
+            <span class="slot-empty-btn">+ Agendar (30m / 1h)</span>
+          </div>
+        `;
+
+        emptyTd.querySelector('.weekly-slot-empty').addEventListener('click', () => {
+          openNewAppointmentModal(null, day.dateStr, slot.start, 60);
+        });
+
+        tr.appendChild(emptyTd);
+      }
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+// ALTERNAR ESTADO DE CONFIRMACIÓN DE CITA (1 CLICK)
+async function toggleAppointmentConfirmation(aptId) {
+  const apt = appState.appointments.find(a => a.id === aptId);
+  if (!apt) return;
+
+  if (apt.status === 'confirmada') {
+    apt.status = 'programada';
+    showToast(`Cita de ${apt.patientName} marcada como NO CONFIRMADA`);
+  } else {
+    apt.status = 'confirmada';
+    showToast(`Cita de ${apt.patientName} CONFIRMADA exitosamente`);
+  }
+
+  await saveAppData();
+  renderWeeklyScheduleView();
+  renderAppointmentsView();
+}
+
+// MODAL DE REASIGNACIÓN DE CITA (EN CASO DE CANCELACIÓN)
+function openReassignModal(aptId) {
+  const apt = appState.appointments.find(a => a.id === aptId);
+  if (!apt) return;
+
+  const idInput = document.getElementById('reassign-apt-id');
+  if (idInput) idInput.value = apt.id;
+
+  const origPatient = document.getElementById('reassign-original-patient');
+  if (origPatient) origPatient.textContent = apt.patientName;
+
+  const origDateTime = document.getElementById('reassign-original-datetime');
+  if (origDateTime) origDateTime.textContent = `${formatDisplayDate(apt.date)} • ${formatTime12h(apt.time)} (${apt.duration || 60} min)`;
+
+  const origReason = document.getElementById('reassign-original-reason');
+  if (origReason) origReason.textContent = `Procedimiento previo: ${apt.reason || 'Consulta Odontológica'}`;
+
+  const cancelReasonInput = document.getElementById('reassign-cancel-reason-input');
+  if (cancelReasonInput) {
+    cancelReasonInput.value = apt.reassignedFrom?.reason || '';
+  }
+
+  // Llenar select con pacientes
+  const pSelect = document.getElementById('reassign-new-patient-select');
+  if (pSelect) {
+    pSelect.innerHTML = '<option value="">-- Seleccionar Paciente para Asignar Cupo --</option>';
+    appState.patients.forEach(p => {
+      if (p.id !== apt.patientId) {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (CI: ${p.documentId || 'S/C'}) - Tel: ${p.phone || ''}`;
+        pSelect.appendChild(opt);
+      }
+    });
+  }
+
+  const durSelect = document.getElementById('reassign-duration-select');
+  if (durSelect) {
+    durSelect.value = String(apt.duration || 60);
+  }
+
+  const statSelect = document.getElementById('reassign-status-select');
+  if (statSelect) {
+    statSelect.value = 'confirmada';
+  }
+
+  const newReasonInput = document.getElementById('reassign-new-reason-input');
+  if (newReasonInput) {
+    newReasonInput.value = 'Consulta Odontológica / Control Reasignado';
+  }
+
+  const notesInput = document.getElementById('reassign-notes-input');
+  if (notesInput) {
+    notesInput.value = '';
+  }
+
+  const modal = document.getElementById('modal-reassign-appointment');
+  if (modal) modal.classList.add('active');
+}
+
+// GUARDAR REASIGNACIÓN A UN NUEVO PACIENTE
+async function saveReassignmentConfirm() {
+  const aptId = document.getElementById('reassign-apt-id').value;
+  const apt = appState.appointments.find(a => a.id === aptId);
+  if (!apt) return;
+
+  const cancelReason = document.getElementById('reassign-cancel-reason-input').value.trim();
+  if (!cancelReason) {
+    showToast('Por favor ingresa el motivo por el cual canceló el paciente', 'warning');
+    document.getElementById('reassign-cancel-reason-input').focus();
+    return;
+  }
+
+  const newPatientId = document.getElementById('reassign-new-patient-select').value;
+  if (!newPatientId) {
+    showToast('Por favor selecciona el nuevo paciente que tomará el horario', 'warning');
+    document.getElementById('reassign-new-patient-select').focus();
+    return;
+  }
+
+  const newPatient = appState.patients.find(p => p.id === newPatientId);
+  if (!newPatient) return;
+
+  const newDuration = parseInt(document.getElementById('reassign-duration-select').value) || 60;
+  const newStatus = document.getElementById('reassign-status-select').value || 'confirmada';
+  const newReason = document.getElementById('reassign-new-reason-input').value.trim() || 'Consulta Odontológica';
+  const newNotes = document.getElementById('reassign-notes-input').value.trim();
+
+  // Guardar historial de reasignación
+  apt.reassignedFrom = {
+    originalPatientId: apt.patientId,
+    originalPatientName: apt.patientName,
+    cancelledAt: new Date().toISOString(),
+    reason: cancelReason
+  };
+
+  // Asignar nuevo paciente al bloque
+  apt.patientId = newPatient.id;
+  apt.patientName = newPatient.name;
+  apt.phone = newPatient.phone;
+  apt.duration = newDuration;
+  apt.status = newStatus;
+  apt.reason = newReason;
+  if (newNotes) apt.notes = newNotes;
+
+  await saveAppData();
+  renderWeeklyScheduleView();
+  renderAppointmentsView();
+
+  const modal = document.getElementById('modal-reassign-appointment');
+  if (modal) modal.classList.remove('active');
+
+  showToast(`✓ Cita reasignada con éxito a ${newPatient.name}. Tomó el horario de ${apt.reassignedFrom.originalPatientName}`);
+}
+
+// DEJAR CUPO LIBERADO DISPONIBLE PARA LLAMAR A OTROS PACIENTES
+async function saveReassignLeaveFree() {
+  const aptId = document.getElementById('reassign-apt-id').value;
+  const apt = appState.appointments.find(a => a.id === aptId);
+  if (!apt) return;
+
+  const cancelReason = document.getElementById('reassign-cancel-reason-input').value.trim() || 'Paciente llamó cancelando su asistencia';
+
+  apt.reassignedFrom = {
+    originalPatientId: apt.patientId,
+    originalPatientName: apt.patientName,
+    cancelledAt: new Date().toISOString(),
+    reason: cancelReason
+  };
+  apt.status = 'cupo_liberado';
+
+  await saveAppData();
+  renderWeeklyScheduleView();
+  renderAppointmentsView();
+
+  const modal = document.getElementById('modal-reassign-appointment');
+  if (modal) modal.classList.remove('active');
+
+  showToast(`Cupo liberado para ${apt.time} (${apt.duration} min). Ahora puede llamar a otros pacientes para asignarlo.`);
+}
+
+// ==========================================================================
 // 2. AGENDA & CONTROL DE CITAS
 // ==========================================================================
 
@@ -1868,6 +2306,7 @@ function bindAppointmentItemEvents(item, apt) {
     apt.status = newStatus;
     await saveAppData();
     renderAppointmentsView();
+    renderWeeklyScheduleView();
     showToast(`Estado de cita actualizado a: ${newStatus}`);
   });
 
@@ -1893,6 +2332,7 @@ function bindAppointmentItemEvents(item, apt) {
       appState.appointments = appState.appointments.filter(a => a.id !== apt.id);
       await saveAppData();
       renderAppointmentsView();
+      renderWeeklyScheduleView();
       showToast('Cita eliminada correctamente.');
     }
   });
@@ -2008,8 +2448,10 @@ async function saveAppointment() {
 
   appState.appointments.push(newApt);
   appState.selectedAppointmentDate = date;
+  appState.selectedWeekDate = date;
   await saveAppData();
   renderAppointmentsView();
+  renderWeeklyScheduleView();
   document.getElementById('appointment-modal').classList.remove('active');
   showToast(`Cita agendada para ${patient.name} (${formatTime12h(time)} - ${duration} min)`);
 }
@@ -2057,7 +2499,8 @@ function renderPatientsList() {
 
     item.addEventListener('click', () => {
       appState.currentPatientId = p.id;
-      document.getElementById('global-patient-select').value = p.id;
+      const gs = document.getElementById('global-patient-select');
+      if (gs) gs.value = p.id;
       renderPatientsList();
       renderPatientDetail();
       renderOdontogramBoard();
@@ -2905,6 +3348,74 @@ function setupEventListeners() {
       el.addEventListener('input', updateAppointmentTimePreview);
     }
   });
+
+  // ==========================================
+  // Navegación del Horario Semanal (Inicio)
+  // ==========================================
+  const btnWeekPrev = document.getElementById('btn-week-prev');
+  if (btnWeekPrev) {
+    btnWeekPrev.addEventListener('click', () => {
+      const cur = appState.selectedWeekDate || new Date().toISOString().slice(0, 10);
+      const parts = cur.split('-').map(Number);
+      const d = new Date(parts[0], parts[1] - 1, parts[2] - 7);
+      appState.selectedWeekDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      renderWeeklyScheduleView();
+    });
+  }
+
+  const btnWeekNext = document.getElementById('btn-week-next');
+  if (btnWeekNext) {
+    btnWeekNext.addEventListener('click', () => {
+      const cur = appState.selectedWeekDate || new Date().toISOString().slice(0, 10);
+      const parts = cur.split('-').map(Number);
+      const d = new Date(parts[0], parts[1] - 1, parts[2] + 7);
+      appState.selectedWeekDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      renderWeeklyScheduleView();
+    });
+  }
+
+  const btnWeekToday = document.getElementById('btn-week-today');
+  if (btnWeekToday) {
+    btnWeekToday.addEventListener('click', () => {
+      appState.selectedWeekDate = new Date().toISOString().slice(0, 10);
+      renderWeeklyScheduleView();
+    });
+  }
+
+  const weeklyPicker = document.getElementById('weekly-date-picker');
+  if (weeklyPicker) {
+    weeklyPicker.addEventListener('change', (e) => {
+      if (e.target.value) {
+        appState.selectedWeekDate = e.target.value;
+        renderWeeklyScheduleView();
+      }
+    });
+  }
+
+  const btnWeeklyNewApt = document.getElementById('btn-weekly-new-apt');
+  if (btnWeeklyNewApt) {
+    btnWeeklyNewApt.addEventListener('click', () => {
+      openNewAppointmentModal(appState.currentPatientId, appState.selectedWeekDate, "09:00", 60);
+    });
+  }
+
+  const btnWeeklyPrint = document.getElementById('btn-weekly-print');
+  if (btnWeeklyPrint) {
+    btnWeeklyPrint.addEventListener('click', () => {
+      window.print();
+    });
+  }
+
+  // Confirmación y Reasignación de Citas en Modal
+  const btnSaveReassign = document.getElementById('btn-save-reassign-confirm');
+  if (btnSaveReassign) {
+    btnSaveReassign.addEventListener('click', saveReassignmentConfirm);
+  }
+
+  const btnReassignLeaveFree = document.getElementById('btn-reassign-leave-free');
+  if (btnReassignLeaveFree) {
+    btnReassignLeaveFree.addEventListener('click', saveReassignLeaveFree);
+  }
 
   // ==========================================
   // Navegación de Presupuestos & Pagos Mensuales

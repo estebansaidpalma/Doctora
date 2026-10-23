@@ -1853,3 +1853,540 @@ body {
     stroke: #334155 !important;
   }
 }
+
+/* ==========================================================================
+   VISTA: HORARIO SEMANAL DE CITAS (DRA. CELENIA TOVAR)
+   Inspirado en formato estético de cuadrícula semanal (09:00 a 16:00)
+   ========================================================================== */
+
+.weekly-schedule-banner-box {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px 24px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.weekly-banner-decor-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #f59e0b 0%, #0284c7 50%, #10b981 100%);
+}
+
+.weekly-banner-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.weekly-banner-title-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weekly-main-title {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #4338ca;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.weekly-subtitle-pill {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.weekly-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.weekly-date-nav-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  border-radius: var(--radius-full);
+}
+
+.weekly-current-range-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  padding: 4px 8px;
+}
+
+.weekly-hidden-date-picker {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 20px;
+  outline: none;
+}
+
+.weekly-metrics-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+}
+
+.weekly-metric-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  color: var(--text-main);
+}
+
+.weekly-metric-item.metric-confirmed {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 600;
+}
+
+.weekly-metric-item.metric-pending {
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 600;
+}
+
+.weekly-metric-item.metric-reassigned {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.weekly-metric-item.metric-shift {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  margin-left: auto;
+  color: var(--text-muted);
+}
+
+.weekly-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-confirmed { background-color: #16a34a; }
+.dot-pending { background-color: #f59e0b; }
+.dot-reassigned { background-color: #0284c7; }
+
+/* CONTENEDOR Y TABLA SEMANAL */
+.weekly-schedule-card {
+  padding: 16px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.weekly-table-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 240px);
+}
+
+.weekly-schedule-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 7px;
+  table-layout: fixed;
+  min-width: 1050px;
+}
+
+/* ENCABEZADOS DE DÍA */
+.weekly-schedule-table thead th {
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-radius: 8px;
+  user-select: none;
+}
+
+.weekly-th-time {
+  width: 110px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.weekly-th-day {
+  background: #fed7aa; /* Tono melocotón pastel idéntico a la imagen de referencia */
+  color: #7c2d12;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: var(--transition);
+}
+
+.weekly-th-day.is-today {
+  background: linear-gradient(135deg, #fcd34d 0%, #fb923c 100%);
+  color: #431407;
+  border: 2px solid #ea580c;
+}
+
+.weekly-th-day-date {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.weekly-th-count {
+  display: inline-block;
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1px 6px;
+  border-radius: 999px;
+  margin-top: 3px;
+}
+
+/* COLUMNA DE HORA */
+.weekly-time-cell {
+  background: #ffedd5;
+  color: #9a3412;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  vertical-align: middle;
+  border-radius: 8px;
+  padding: 8px 4px;
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 1px rgba(251, 146, 60, 0.2);
+}
+
+/* CELDAS DE CITAS */
+.weekly-slot-cell {
+  vertical-align: top;
+  border-radius: 8px;
+  position: relative;
+  transition: all 0.15s ease-in-out;
+  height: 60px;
+  padding: 0;
+}
+
+/* Ranura Vacía */
+.weekly-slot-empty {
+  background-color: #fff7ed; /* Melocotón muy suave según imagen */
+  border: 1px solid #fed7aa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 58px;
+  border-radius: 8px;
+  transition: var(--transition);
+}
+
+.weekly-slot-empty:hover {
+  background-color: #fef3c7;
+  border-color: #f59e0b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15);
+}
+
+.slot-empty-btn {
+  font-size: 11px;
+  font-weight: 700;
+  color: #d97706;
+  opacity: 0.6;
+  transition: var(--transition);
+}
+
+.weekly-slot-empty:hover .slot-empty-btn {
+  opacity: 1;
+  color: #b45309;
+}
+
+/* TARJETA DE CITA OCUPADA */
+.weekly-apt-card {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+}
+
+.weekly-apt-card.is-confirmed {
+  border-left: 6px solid #16a34a;
+  background: #f0fdf4;
+}
+
+.weekly-apt-card.is-pending {
+  border-left: 6px solid #f59e0b;
+  background: #fffbeb;
+}
+
+.weekly-apt-card.is-reassigned {
+  border-left: 6px solid #0284c7;
+  background: #f0f9ff;
+}
+
+.weekly-apt-card.is-freed {
+  border-left: 6px solid #ef4444;
+  background: #fef2f2;
+}
+
+/* MARCA DE AGUA (WATERMARK) */
+.weekly-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-17deg);
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  z-index: 1;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.watermark-confirmada {
+  color: rgba(22, 163, 74, 0.25);
+  border: 2px dashed rgba(22, 163, 74, 0.4);
+  background: rgba(220, 252, 231, 0.35);
+}
+
+.watermark-pendiente {
+  color: rgba(217, 119, 6, 0.28);
+  border: 2px dashed rgba(217, 119, 6, 0.45);
+  background: rgba(254, 243, 199, 0.35);
+}
+
+.watermark-reasignada {
+  color: rgba(3, 105, 161, 0.3);
+  border: 2px dashed rgba(3, 105, 161, 0.45);
+  background: rgba(224, 242, 254, 0.35);
+}
+
+.watermark-liberada {
+  color: rgba(220, 38, 38, 0.32);
+  border: 2px dashed rgba(220, 38, 38, 0.5);
+  background: rgba(254, 226, 226, 0.35);
+}
+
+/* ELEMENTOS DENTRO DE LA TARJETA DE CITA */
+.weekly-card-content {
+  position: relative;
+  z-index: 2;
+}
+
+.weekly-patient-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+  margin-bottom: 2px;
+  word-break: break-word;
+}
+
+.weekly-procedure-text {
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+/* NOTICIA DE CITA REASIGNADA */
+.weekly-reassigned-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.weekly-original-patient-info {
+  font-size: 10px;
+  font-weight: 600;
+  color: #0369a1;
+  background: rgba(224, 242, 254, 0.6);
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+/* BARRA DE ACCIONES INLINE DE LA CITA */
+.weekly-card-actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.btn-toggle-confirm {
+  font-size: 10px;
+  font-weight: 800;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-toggle-confirm.is-confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.btn-toggle-confirm.is-confirmed:hover {
+  background: #bbf7d0;
+}
+
+.btn-toggle-confirm.is-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.btn-toggle-confirm.is-pending:hover {
+  background: #fde68a;
+}
+
+.weekly-duration-pill {
+  font-size: 10px;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+.weekly-btn-reassign {
+  font-size: 10px;
+  font-weight: 700;
+  background: #f8fafc;
+  color: var(--primary);
+  border: 1px solid #bae6fd;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.weekly-btn-reassign:hover {
+  background: #e0f2fe;
+}
+
+/* CUPO LIBERADO ESPERANDO LLAMADA */
+.weekly-freed-box {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 4px;
+}
+
+.weekly-freed-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #be123c;
+  margin-bottom: 2px;
+}
+
+.weekly-freed-desc {
+  font-size: 11px;
+  color: #881337;
+  margin-bottom: 6px;
+}
+
+.btn-assign-freed {
+  font-size: 11px;
+  font-weight: 800;
+  background: #be123c;
+  color: #ffffff;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-assign-freed:hover {
+  background: #9f1239;
+}
+
+/* IMPRESIÓN DEL HORARIO SEMANAL */
+@media print {
+  #sidebar, .topbar, .weekly-nav-actions, .weekly-metrics-strip, .weekly-card-actions, .btn {
+    display: none !important;
+  }
+  body, #app-container, #main-view {
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+  .view-panel {
+    display: none !important;
+  }
+  #view-inicio {
+    display: block !important;
+  }
+  .weekly-schedule-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .weekly-table-container {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .weekly-schedule-table {
+    border-spacing: 2px !important;
+  }
+  .weekly-watermark {
+    opacity: 0.4 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+

@@ -292,12 +292,30 @@ const initialData = {
       patientId: "P001",
       patientName: "Mariana Valentina Gómez",
       phone: "+584149876543",
-      date: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
-      time: "15:00",
-      duration: 45,
-      reason: "Resina Estética #26 y Retiro de Puntos de Sutura",
+      date: new Date(Date.now() + 86400000 * 1).toISOString().slice(0, 10),
+      time: "10:00",
+      duration: 30,
+      reason: "Resina Estética #26 (Control de Caries)",
       status: "programada",
       notes: "Chequeo posoperatorio de extracción de cordal."
+    },
+    {
+      id: "APT-104",
+      patientId: "P002",
+      patientName: "Alejandro José Mendoza",
+      phone: "+584241239876",
+      date: new Date().toISOString().slice(0, 10),
+      time: "14:00",
+      duration: 60,
+      reason: "Limpieza Profunda y Detartraje",
+      status: "confirmada",
+      reassignedFrom: {
+        originalPatientId: "P001",
+        originalPatientName: "Mariana Valentina Gómez",
+        cancelledAt: new Date().toISOString(),
+        reason: "Paciente canceló por viaje imprevisto de trabajo. Se reasignó el turno a Alejandro Mendoza."
+      },
+      notes: "Cupo tomado por llamada de confirmación de la Doctora."
     }
   ]
 };
