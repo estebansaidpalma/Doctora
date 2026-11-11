@@ -2,7 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0284c7">
+  <meta name="description" content="Sonrisa Perfecta - Software Odontológico, Control de Citas y Odontograma Clínico Integral">
+  <link rel="icon" type="image/png" href="../assets/icon.png">
   <title>Sonrisa Perfecta - Software Odontológico & Control de Citas</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -15,7 +18,7 @@
     <div class="login-card">
       <div class="login-brand">
         <div class="login-logo-box">
-          <img src="../assets/logo.png" alt="Sonrisa Perfecta Logo">
+          <img src="../assets/logo.png" alt="Sonrisa Perfecta Logo" width="72" height="72" loading="eager" decoding="async">
         </div>
         <h2>Sonrisa Perfecta</h2>
         <span class="login-tagline">Consultorio Odontológico • Od. Celenia Tovar</span>
@@ -83,7 +86,7 @@
     <aside id="sidebar">
       <div class="brand-header">
         <div class="brand-icon-wrapper" style="overflow: hidden; padding: 0; background: transparent; border-radius: 12px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
-          <img src="../assets/logo.png" alt="Sonrisa Perfecta Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+          <img src="../assets/logo.png" alt="Sonrisa Perfecta Logo" width="44" height="44" loading="eager" decoding="async" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
         </div>
         <div class="brand-text">
           <h1>Sonrisa Perfecta</h1>
@@ -604,19 +607,21 @@
           </div>
 
           <!-- Listado de partidas presupuestadas con precios editables -->
-          <table class="table-custom" style="margin-bottom: 16px;">
-            <thead>
-              <tr>
-                <th style="width: 140px;">Pieza / Zona</th>
-                <th>Detalle del Tratamiento & Ángulos / Caras Dañadas</th>
-                <th style="width: 160px;">Monto a Cobrar ($)</th>
-                <th style="width: 70px; text-align: right;">Eliminar</th>
-              </tr>
-            </thead>
-            <tbody id="odonto-live-tbody">
-              <!-- Renderizado dinámico en tiempo real -->
-            </tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th style="width: 140px;">Pieza / Zona</th>
+                  <th>Detalle del Tratamiento & Ángulos / Caras Dañadas</th>
+                  <th style="width: 160px;">Monto a Cobrar ($)</th>
+                  <th style="width: 70px; text-align: right;">Eliminar</th>
+                </tr>
+              </thead>
+              <tbody id="odonto-live-tbody">
+                <!-- Renderizado dinámico en tiempo real -->
+              </tbody>
+            </table>
+          </div>
 
           <!-- Barra de Totales y Descuento Editable Directo -->
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; background: #f8fafc; padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color); align-items: center;">
@@ -1202,26 +1207,28 @@
               </div>
             </div>
 
-            <table class="table-custom">
-              <thead>
-                <tr>
-                  <th>Paciente</th>
-                  <th>Contacto</th>
-                  <th>Fecha Presupuesto</th>
-                  <th>Tratamientos</th>
-                  <th>Presupuesto Total</th>
-                  <th>Desc. Dra.</th>
-                  <th>Total Neto</th>
-                  <th>Abonado</th>
-                  <th>Saldo Pendiente</th>
-                  <th>Estado</th>
-                  <th style="text-align: right;">Desglose</th>
-                </tr>
-              </thead>
-              <tbody id="monthly-patients-tbody">
-                <!-- Renderizado dinámico -->
-              </tbody>
-            </table>
+            <div class="table-responsive table-wide" id="monthly-patients-table-wrapper">
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th>Paciente</th>
+                    <th>Contacto</th>
+                    <th>Fecha Presupuesto</th>
+                    <th>Tratamientos</th>
+                    <th>Presupuesto Total</th>
+                    <th>Desc. Dra.</th>
+                    <th>Total Neto</th>
+                    <th>Abonado</th>
+                    <th>Saldo Pendiente</th>
+                    <th>Estado</th>
+                    <th style="text-align: right;">Desglose</th>
+                  </tr>
+                </thead>
+                <tbody id="monthly-patients-tbody">
+                  <!-- Renderizado dinámico -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -1330,19 +1337,21 @@
               </div>
             </div>
 
-            <table class="table-custom">
-              <thead>
-                <tr>
-                  <th>Pieza / Diente</th>
-                  <th>Tratamiento Odontológico</th>
-                  <th>Precio Acordado ($)</th>
-                  <th style="text-align: right;">Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="budget-items-tbody">
-                <!-- Renderizado de items -->
-              </tbody>
-            </table>
+            <div class="table-responsive">
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th>Pieza / Diente</th>
+                    <th>Tratamiento Odontológico</th>
+                    <th>Precio Acordado ($)</th>
+                    <th style="text-align: right;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="budget-items-tbody">
+                  <!-- Renderizado de items -->
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <!-- Historial de Abonos / Pagos del Paciente -->
@@ -1355,20 +1364,22 @@
               <button id="btn-add-payment" class="btn btn-whatsapp btn-sm">+ Registrar Nuevo Abono</button>
             </div>
 
-            <table class="table-custom">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Método de Pago</th>
-                  <th>Referencia / Comprobante</th>
-                  <th>Nota</th>
-                  <th>Monto Abonado</th>
-                </tr>
-              </thead>
-              <tbody id="payments-items-tbody">
-                <!-- Renderizado de pagos -->
-              </tbody>
-            </table>
+            <div class="table-responsive">
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Método de Pago</th>
+                    <th>Referencia / Comprobante</th>
+                    <th>Nota</th>
+                    <th>Monto Abonado</th>
+                  </tr>
+                </thead>
+                <tbody id="payments-items-tbody">
+                  <!-- Renderizado de pagos -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>

@@ -491,6 +491,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .arch-container {
@@ -501,6 +504,9 @@ body {
   padding: 18px;
   border-radius: var(--radius-md);
   border: 1px solid #e2e8f0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .arch-header {
@@ -514,15 +520,26 @@ body {
   letter-spacing: 0.6px;
   border-bottom: 1px solid #e2e8f0;
   padding-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .teeth-grid {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   overflow-x: auto;
-  padding: 6px 0;
+  padding: 8px 10px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  max-width: 100%;
+}
+
+@media (min-width: 1280px) {
+  .teeth-grid {
+    justify-content: center;
+  }
 }
 
 .quadrant-divider {
@@ -1074,6 +1091,28 @@ body {
   margin-top: 6px;
 }
 
+/* CONTENEDOR RESPONSIVO DE TABLAS */
+.table-responsive {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+}
+
+.table-responsive .table-custom {
+  margin-top: 0;
+  min-width: 650px;
+}
+
+.table-responsive.table-wide .table-custom {
+  min-width: 960px;
+}
+
 .table-custom {
   width: 100%;
   border-collapse: collapse;
@@ -1434,10 +1473,6 @@ body {
     width: 100%;
     max-width: 890px;
   }
-}
-  color: #0f172a;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  box-sizing: border-box;
 }
 
 /* Encabezado */
