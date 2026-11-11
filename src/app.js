@@ -1793,8 +1793,8 @@ function renderWeeklyScheduleView(refDate) {
                 </button>
 
                 ${(appState.currentUser && appState.currentUser.role === 'asistente') ? '' : `
-                  <button type="button" class="weekly-btn-history" data-patient="${apt.patientId}" title="Ver Formato de Historia Clínica" style="font-size:11px; padding:2px 4px; border:1px solid #bae6fd; background:#f0f9ff; color:#0284c7; border-radius:4px; cursor:pointer;">
-                    📋
+                  <button type="button" class="weekly-btn-history" data-patient="${apt.patientId}" title="Ver Formato de Historia Clínica de este Paciente" aria-label="Ver Historia Clínica">
+                    📋 Historia
                   </button>
                 `}
               </div>
@@ -3462,18 +3462,48 @@ async function saveClinicConfig() {
   showToast('Datos del consultorio guardados.');
 }
 
+// UTILIDAD DEBOUNCE PARA BÚSQUEDAS FLUIDAS SIN BLOQUEO DE HILO
+function debounce(fn, delay = 200) {
+  let timer = null;
+  return function (...args) {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  };
+}
+
 // ==========================================================================
 // LISTENERS GENERALES & MODALES
 // ==========================================================================
 
 function setupEventListeners() {
-  // Cierre de modales
+  // Cierre de modales mediante botones data-close y click en backdrop exterior
   document.querySelectorAll('[data-close]').forEach(btn => {
     btn.addEventListener('click', () => {
       const modalId = btn.getAttribute('data-close');
       const m = document.getElementById(modalId);
       if (m) m.classList.remove('active');
     });
+  });
+
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.classList.remove('active');
+      }
+    });
+  });
+
+  // Cierre accesible de modales y cajón lateral con tecla Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const activeModal = document.querySelector('.modal-overlay.active');
+      if (activeModal) {
+        activeModal.classList.remove('active');
+      }
+      closeMobileSidebar();
+    }
   });
 
   // Botón nueva cita topbar y modal
@@ -3724,13 +3754,13 @@ function setupEventListeners() {
 
   const searchMonthlyPatients = document.getElementById('monthly-patients-search');
   if (searchMonthlyPatients) {
-    searchMonthlyPatients.addEventListener('input', (e) => {
+    searchMonthlyPatients.addEventListener('input', debounce((e) => {
       const term = e.target.value.toLowerCase().trim();
       document.querySelectorAll('.monthly-patient-row').forEach(row => {
         const dataSearch = row.getAttribute('data-search') || '';
         row.style.display = dataSearch.includes(term) ? '' : 'none';
       });
-    });
+    }, 180));
   }
 
   // Selector y buscador directo de paciente en desglose de presupuestos
@@ -3749,9 +3779,9 @@ function setupEventListeners() {
 
   const budgetSearch = document.getElementById('budget-patient-search');
   if (budgetSearch) {
-    budgetSearch.addEventListener('input', (e) => {
+    budgetSearch.addEventListener('input', debounce((e) => {
       populateBudgetPatientSelect(e.target.value);
-    });
+    }, 180));
   }
 
   const btnBudgetQuickFile = document.getElementById('btn-budget-quick-patient-file');
@@ -3787,7 +3817,11 @@ function setupEventListeners() {
     openEditPatientModal(null);
   });
   document.getElementById('btn-save-patient').addEventListener('click', savePatientModal);
-  document.getElementById('patient-search-input').addEventListener('input', renderPatientsList);
+  
+  const pSearchInput = document.getElementById('patient-search-input');
+  if (pSearchInput) {
+    pSearchInput.addEventListener('input', debounce(renderPatientsList, 200));
+  }
 
   // Presupuestos
   document.getElementById('btn-add-payment').addEventListener('click', openPaymentModal);
