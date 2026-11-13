@@ -2579,7 +2579,7 @@ function renderPatientsList() {
     item.style.border = p.id === appState.currentPatientId ? '2px solid var(--primary)' : '1px solid var(--border-color)';
     item.style.backgroundColor = p.id === appState.currentPatientId ? 'var(--primary-light)' : '#ffffff';
     item.style.cursor = 'pointer';
-    item.style.transition = 'all 0.2s';
+    item.style.transition = 'border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease';
 
     item.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">

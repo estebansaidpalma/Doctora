@@ -7,46 +7,57 @@
   --primary: #0284c7;
   --primary-hover: #0369a1;
   --primary-light: #e0f2fe;
+  --primary-soft: rgba(2, 132, 199, 0.08);
   --primary-dark: #075985;
   
   --teal: #0d9488;
   --teal-light: #ccfbf1;
+  --teal-soft: rgba(13, 148, 136, 0.09);
   
-  --gold: #d97706;
+  --gold: #b45309;
   --gold-light: #fef3c7;
-  --gold-border: #f59e0b;
+  --gold-soft: rgba(217, 119, 6, 0.08);
+  --gold-border: rgba(217, 119, 6, 0.35);
   
-  --bg-main: #f8fafc;
+  --bg-main: #f4f7fb;
+  --bg-subtle: #f8fafc;
   --bg-card: #ffffff;
   --bg-sidebar: #0f172a;
-  --bg-sidebar-hover: #1e293b;
+  --bg-sidebar-hover: rgba(255, 255, 255, 0.07);
   
   --text-main: #0f172a;
   --text-muted: #475569;
   --text-light: #64748b;
   --text-white: #ffffff;
   
-  --border-color: #e2e8f0;
+  --border-color: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.14);
   --border-focus: #0284c7;
   
-  --success: #10b981;
+  --success: #059669;
   --success-bg: #d1fae5;
-  --warning: #f59e0b;
+  --success-soft: rgba(16, 185, 129, 0.10);
+  --warning: #d97706;
   --warning-bg: #fef3c7;
-  --danger: #ef4444;
+  --warning-soft: rgba(245, 158, 11, 0.10);
+  --danger: #dc2626;
   --danger-bg: #fee2e2;
-  --info: #3b82f6;
+  --danger-soft: rgba(239, 68, 68, 0.09);
+  --info: #2563eb;
   --info-bg: #dbeafe;
-  --purple: #8b5cf6;
+  --info-soft: rgba(37, 99, 235, 0.09);
+  --purple: #7c3aed;
   --purple-bg: #ede9fe;
+  --purple-soft: rgba(124, 58, 237, 0.09);
   
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 10px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.1), 0 4px 8px -4px rgba(15, 23, 42, 0.04);
-  --shadow-xl: 0 24px 38px -8px rgba(15, 23, 42, 0.14), 0 8px 16px -6px rgba(15, 23, 42, 0.06);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 6px 16px -4px rgba(15, 23, 42, 0.07), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 14px 30px -6px rgba(15, 23, 42, 0.10), 0 4px 10px -4px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 24px 44px -10px rgba(15, 23, 42, 0.14), 0 8px 18px -6px rgba(15, 23, 42, 0.06);
   
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius-sm: 8px;
+  --radius-md: 11px;
   --radius-lg: 16px;
   --radius-full: 9999px;
   
@@ -55,20 +66,22 @@
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
   
-  --transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  --transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
+  line-height: 1.45;
   min-height: 100vh;
   min-height: 100dvh;
   height: 100vh;
@@ -115,17 +128,21 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+  overflow: hidden;
+  padding: 0;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
 }
 
-.brand-icon-wrapper svg {
-  width: 26px;
-  height: 26px;
-  fill: #ffffff;
+.brand-icon-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .brand-text h1 {
@@ -245,34 +262,7 @@ body {
 .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.active-patient-badge {
-  display: flex;
-  align-items: center;
   gap: 10px;
-  background-color: var(--primary-light);
-  border: 1px solid #bae6fd;
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary-dark);
-}
-
-.active-patient-badge .pulse {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--primary);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(2, 132, 199, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
 }
 
 /* CONTENT CONTAINER */
@@ -383,17 +373,14 @@ body {
 .card {
   background-color: var(--bg-card);
   border-radius: var(--radius-lg);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   padding: 20px;
-  transition: var(--transition);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .card:hover {
   box-shadow: var(--shadow-md);
-}
-  box-shadow: var(--shadow-sm);
-  padding: 20px;
 }
 
 .card-header {
@@ -681,7 +668,7 @@ body {
   stroke-width: 1.2;
   cursor: pointer;
   pointer-events: auto;
-  transition: all 0.15s ease;
+  transition: fill 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease, transform 0.15s ease;
 }
 
 .tooth-surface:hover {
@@ -714,7 +701,7 @@ body {
 
 /* Herramientas de pincel clínico activas */
 .btn-clinical-tool {
-  transition: all 0.2s ease;
+  transition: var(--transition);
   cursor: pointer;
 }
 
@@ -746,7 +733,7 @@ body {
 
 /* TARJETAS DE CARAS INDIVIDUALES CON SELECCIÓN DIRECTA */
 .angle-face-card {
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   background: #ffffff !important;
   border: 1.5px solid #e2e8f0 !important;
 }
@@ -762,7 +749,7 @@ body {
   color: var(--text-muted);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition);
   user-select: none;
 }
 
@@ -932,7 +919,7 @@ body {
   justify-content: space-between;
   padding: 10px 16px;
   border-radius: var(--radius-md);
-  transition: all 0.15s ease;
+  transition: var(--transition);
   min-height: 54px;
 }
 
@@ -1101,34 +1088,70 @@ body {
 
 .budget-summary-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
 .budget-card {
-  background-color: #ffffff;
+  background-color: var(--bg-card);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 18px 20px;
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-xs);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
-.budget-card.total { border-top: 4px solid var(--primary); }
-.budget-card.paid { border-top: 4px solid var(--success); }
-.budget-card.balance { border-top: 4px solid var(--danger); }
+.budget-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--border-strong);
+}
+
+.budget-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.budget-card.subtotal::before { background: linear-gradient(90deg, var(--info), #60a5fa); }
+.budget-card.discount::before { background: linear-gradient(90deg, var(--warning), #fbbf24); }
+.budget-card.total::before { background: linear-gradient(90deg, var(--primary), var(--teal)); }
+.budget-card.paid::before { background: linear-gradient(90deg, var(--success), #34d399); }
+.budget-card.balance::before { background: linear-gradient(90deg, var(--danger), #f87171); }
 
 .budget-card h4 {
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
 }
 
 .budget-card .amount {
-  font-size: 28px;
+  font-size: clamp(22px, 2.2vw, 27px);
   font-weight: 800;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
   color: var(--text-main);
-  margin-top: 6px;
+  margin-top: 8px;
+  line-height: 1.15;
+}
+
+.budget-card.discount .amount { color: var(--gold); }
+.budget-card.paid .amount { color: var(--success); }
+.budget-card.balance .amount { color: var(--danger); }
+
+.budget-card small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-light);
 }
 
 /* CONTENEDOR RESPONSIVO DE TABLAS */
@@ -1141,7 +1164,7 @@ body {
   margin-bottom: 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  background: #ffffff;
+  background: var(--bg-card);
 }
 
 .table-responsive .table-custom {
@@ -1160,26 +1183,31 @@ body {
 }
 
 .table-custom th {
-  background-color: #f8fafc;
+  background-color: var(--bg-subtle);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
 }
 
 .table-custom td {
-  padding: 14px 16px;
+  padding: 13px 16px;
   font-size: 13px;
   color: var(--text-main);
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  font-variant-numeric: tabular-nums;
+}
+
+.table-custom tr:last-child td {
+  border-bottom: none;
 }
 
 .table-custom tr:hover td {
-  background-color: #f8fafc;
+  background-color: rgba(248, 250, 252, 0.85);
 }
 
 /* ==========================================================================
@@ -1480,7 +1508,7 @@ body {
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1644,7 +1672,7 @@ body {
   color: #0f172a;
   outline: none;
   flex: 1;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
   min-width: 40px;
 }
 
@@ -1694,7 +1722,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
   flex-shrink: 0;
 }
 
@@ -1799,135 +1827,7 @@ body {
   height: 18px;
 }
 
-/* ==========================================================================
-   ESTILOS DE IMPRESIÓN OFICIAL (1 PÁGINA EXACTA TIPO HOJA CLÍNICA)
-   ========================================================================== */
-@media print {
-  @page {
-    size: letter portrait;
-    margin: 6mm 8mm;
-  }
-
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  /* Ocultar barra lateral, barra superior, botones y modales */
-  #sidebar, 
-  .topbar, 
-  .no-print, 
-  .tool-palette-buttons, 
-  .btn, 
-  .modal-overlay, 
-  #toast-container,
-  #quick-tooth-action-bar {
-    display: none !important;
-  }
-
-  #main-view {
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: visible !important;
-  }
-
-  .view-panel {
-    display: none !important;
-  }
-
-  /* Forzar que solo se imprima el panel activo (o Historia si se imprime historia) */
-  .view-panel.active, #view-historia {
-    display: block !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .history-paper-container {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .history-paper {
-    border: none !important;
-    box-shadow: none !important;
-    padding: 4mm 6mm !important;
-    max-width: 100% !important;
-    width: 100% !important;
-  }
-
-  .hc-line-input {
-    border-bottom: 1px solid #000000 !important;
-    color: #000000 !important;
-    font-size: 11px !important;
-  }
-
-  .hc-checkboxes-grid {
-    background: transparent !important;
-    border: 1px solid #cbd5e1 !important;
-    padding: 6px 10px !important;
-  }
-
-  .hc-cb-box {
-    border-color: #000000 !important;
-    width: 12px !important;
-    height: 12px !important;
-  }
-
-  .hc-cb:checked + .hc-cb-box {
-    background-color: #0284c7 !important;
-    border-color: #0284c7 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .hc-odontogram-section {
-    border: 1px solid #0284c7 !important;
-    padding: 8px 4px !important;
-    margin: 10px 0 !important;
-  }
-
-  .tooth-surface {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .tooth-surface.caries {
-    fill: #ef4444 !important;
-    stroke: #b91c1c !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .tooth-surface.obturado {
-    fill: #2563eb !important;
-    stroke: #1d4ed8 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .tooth-surface.sano {
-    fill: #ffffff !important;
-    stroke: #334155 !important;
-  }
-
-  /* Modo de impresión en blanco */
-  .blank-print-mode .hc-line-input {
-    color: transparent !important;
-  }
-  .blank-print-mode .hc-cb-box {
-    background-color: #ffffff !important;
-    border-color: #000000 !important;
-  }
-  .blank-print-mode .hc-cb:checked + .hc-cb-box::after {
-    display: none !important;
-  }
-  .blank-print-mode .tooth-surface {
-    fill: #ffffff !important;
-    stroke: #334155 !important;
-  }
-}
+/* (Estilos de impresión unificados al final de la hoja) */
 
 /* ==========================================================================
    VISTA: HORARIO SEMANAL DE CITAS (DRA. CELENIA TOVAR)
@@ -2209,7 +2109,7 @@ body {
   vertical-align: top;
   border-radius: 8px;
   position: relative;
-  transition: all 0.15s ease-in-out;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
   height: 58px;
   padding: 0;
 }
@@ -2836,41 +2736,7 @@ body {
   }
 }
 
-/* IMPRESIÓN DEL HORARIO SEMANAL */
-@media print {
-  #sidebar, .topbar, .weekly-nav-actions, .weekly-metrics-strip, .weekly-card-actions, .btn, .mobile-bottom-nav, #sidebar-backdrop, .weekly-mobile-day-strip {
-    display: none !important;
-  }
-  body, #app-container, #main-view {
-    height: auto !important;
-    overflow: visible !important;
-    background: #ffffff !important;
-    padding-bottom: 0 !important;
-  }
-  .view-panel {
-    display: none !important;
-  }
-  #view-inicio {
-    display: block !important;
-  }
-  .weekly-schedule-card {
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-  }
-  .weekly-table-container {
-    max-height: none !important;
-    overflow: visible !important;
-  }
-  .weekly-schedule-table {
-    border-spacing: 2px !important;
-  }
-  .weekly-watermark {
-    opacity: 0.4 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-}
+/* (Sección de impresión unificada al final del archivo) */
 
 /* ==========================================================================
    PANTALLA DE CONTROL DE ACCESO & LOGIN (AUTENTICACIÓN)
@@ -3148,6 +3014,445 @@ body {
   color: #fca5a5;
   text-decoration: underline;
 }
+
+/* ==========================================================================
+   SISTEMA UTILITARIO & CLASES LIMPIAS (REEMPLAZO DE INLINE STYLES)
+   ========================================================================== */
+
+.tabular-nums,
+.stat-info h3,
+.weekly-time-cell,
+.weekly-metric-num,
+.live-item-price-input {
+  font-variant-numeric: tabular-nums;
+}
+
+.u-hidden { display: none; }
+.u-block { display: block; }
+.u-flex { display: flex; }
+.u-flex-col { display: flex; flex-direction: column; }
+.u-flex-between { display: flex; align-items: center; justify-content: space-between; }
+.u-flex-wrap { flex-wrap: wrap; }
+.u-items-center { align-items: center; }
+.u-justify-center { justify-content: center; }
+.u-flex-1 { flex: 1; min-width: 0; }
+
+.u-gap-xs { gap: 4px; }
+.u-gap-sm { gap: 8px; }
+.u-gap-md { gap: 12px; }
+.u-gap-lg { gap: 16px; }
+
+.u-m-0 { margin: 0; }
+.u-mt-xs { margin-top: 4px; }
+.u-mt-sm { margin-top: 8px; }
+.u-mb-xs { margin-bottom: 4px; }
+.u-mb-sm { margin-bottom: 10px; }
+.u-mb-md { margin-bottom: 16px; }
+.u-mb-lg { margin-bottom: 20px; }
+.u-mb-xl { margin-bottom: 24px; }
+
+.u-w-full { width: 100%; }
+.u-text-right { text-align: right; }
+.u-text-center { text-align: center; }
+.u-fw-600 { font-weight: 600; }
+.u-fw-700 { font-weight: 700; }
+.u-fw-800 { font-weight: 800; }
+
+.u-text-muted-xs { font-size: 11px; color: var(--text-muted); }
+.u-text-muted-sm { font-size: 12px; color: var(--text-muted); }
+.u-text-muted-md { font-size: 13px; color: var(--text-muted); }
+.u-text-danger { color: var(--danger); }
+.u-text-gold { color: var(--gold); }
+.u-text-primary { color: var(--primary); }
+.u-text-success { color: var(--success); }
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.section-heading {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.2px;
+}
+
+.section-subheading {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.search-box-sm {
+  max-width: 320px;
+  width: 100%;
+}
+
+.select-compact-md {
+  width: 165px;
+  font-weight: 600;
+}
+
+.select-compact-sm {
+  width: 160px;
+  font-size: 12px;
+}
+
+.card-accent-primary {
+  border-left: 3px solid var(--primary);
+}
+
+.divider-bottom-soft {
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.discount-bar-card {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-xs);
+}
+
+.breakdown-patient-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--teal) 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.25);
+}
+
+.breakdown-patient-name {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.breakdown-patient-meta {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.budget-card-header-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-pill-mini {
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.btn-outline-gold {
+  border-color: var(--gold-border);
+  color: var(--gold);
+  background: var(--gold-soft);
+  font-weight: 600;
+}
+
+.btn-outline-gold:hover {
+  background: var(--gold-light);
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.budget-patient-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--bg-subtle);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(2, 132, 199, 0.22);
+}
+
+.budget-picker-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.budget-patient-select {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 260px;
+  max-width: 360px;
+  height: 36px;
+  padding: 4px 10px;
+  border: 1px solid rgba(2, 132, 199, 0.35);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: #ffffff;
+  color: var(--text-main);
+}
+
+.budget-patient-search {
+  font-size: 12px;
+  width: 155px;
+  height: 36px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.budget-toolbar-card {
+  margin-bottom: 18px;
+  padding: 12px 18px;
+}
+
+.month-input-compact {
+  width: 175px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.patients-split-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+}
+
+.patients-sidebar-card {
+  padding: 14px;
+  max-height: calc(100vh - 220px);
+  max-height: calc(100dvh - 220px);
+  overflow-y: auto;
+}
+
+.patients-sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .patients-split-layout {
+    grid-template-columns: 1fr;
+  }
+  .patients-sidebar-card {
+    max-height: 280px;
+  }
+}
+
+.segmented-control {
+  display: inline-flex;
+  background: var(--bg-subtle);
+  padding: 3px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  gap: 2px;
+}
+
+.segmented-control .btn {
+  border: none;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.segmented-control .btn-secondary {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.segmented-control .btn-secondary:hover {
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--text-main);
+  transform: none;
+}
+
+/* ==========================================================================
+   IMPRESIÓN UNIFICADA (IMPRIME ÚNICAMENTE LA VISTA ACTIVA)
+   ========================================================================== */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 6mm 8mm;
+  }
+
+  #login-screen,
+  #sidebar,
+  .topbar,
+  .no-print,
+  .tool-palette-buttons,
+  .btn,
+  .modal-overlay,
+  #toast-container,
+  #quick-tooth-action-bar,
+  .weekly-nav-actions,
+  .weekly-metrics-strip,
+  .weekly-card-actions,
+  .mobile-bottom-nav,
+  #sidebar-backdrop,
+  .weekly-mobile-day-strip {
+    display: none !important;
+  }
+
+  body,
+  #app-container,
+  #main-view {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  .view-panel {
+    display: none !important;
+  }
+
+  .view-panel.active {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .card,
+  .weekly-schedule-card,
+  .history-paper {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .history-paper-container {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .history-paper {
+    padding: 4mm 6mm !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .hc-line-input {
+    border-bottom: 1px solid #000000 !important;
+    color: #000000 !important;
+    font-size: 11px !important;
+  }
+
+  .hc-checkboxes-grid {
+    background: transparent !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 10px !important;
+  }
+
+  .hc-cb-box {
+    border-color: #000000 !important;
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  .hc-cb:checked + .hc-cb-box {
+    background-color: #0284c7 !important;
+    border-color: #0284c7 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .hc-odontogram-section {
+    border: 1px solid #0284c7 !important;
+    padding: 8px 4px !important;
+    margin: 10px 0 !important;
+  }
+
+  .tooth-surface {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .tooth-surface.caries {
+    fill: #ef4444 !important;
+    stroke: #b91c1c !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .tooth-surface.obturado {
+    fill: #2563eb !important;
+    stroke: #1d4ed8 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .tooth-surface.sano {
+    fill: #ffffff !important;
+    stroke: #334155 !important;
+  }
+
+  .blank-print-mode .hc-line-input { color: transparent !important; }
+  .blank-print-mode .hc-cb-box {
+    background-color: #ffffff !important;
+    border-color: #000000 !important;
+  }
+  .blank-print-mode .hc-cb:checked + .hc-cb-box::after { display: none !important; }
+  .blank-print-mode .tooth-surface {
+    fill: #ffffff !important;
+    stroke: #334155 !important;
+  }
+
+  .weekly-schedule-card { padding: 0 !important; }
+  .weekly-table-container {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .weekly-schedule-table { border-spacing: 2px !important; }
+  .weekly-watermark {
+    opacity: 0.4 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* ACCESIBILIDAD: MOVIMIENTO REDUCIDO */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 
 
 
