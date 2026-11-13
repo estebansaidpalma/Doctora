@@ -163,6 +163,9 @@ async function saveAppData() {
     }
   } catch (e) {
     console.error('Error guardando datos:', e);
+    if (e && (e.name === 'QuotaExceededError' || e.code === 22)) {
+      showToast('Almacenamiento local lleno. Elimina imágenes pesadas o exporta un respaldo.', 'danger');
+    }
   }
 }
 
@@ -228,6 +231,16 @@ function setupNavigation() {
     mItem.addEventListener('click', () => {
       const v = mItem.getAttribute('data-view');
       if (v) switchView(v);
+    });
+  });
+
+  // Activación accesible por teclado (Enter / Espacio) para menús de navegación
+  document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(el => {
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.click();
+      }
     });
   });
 }
@@ -1594,7 +1607,7 @@ function renderWeeklyScheduleView(refDate) {
   // 1.1 Renderizar selector de días en móvil
   const mobileStrip = document.getElementById('weekly-mobile-day-strip');
   if (mobileStrip) {
-    mobileStrip.innerHTML = '<span style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Día:</span>';
+    mobileStrip.innerHTML = '<span class="weekly-mobile-day-label">Día:</span>';
 
     const allBtn = document.createElement('button');
     allBtn.type = 'button';
@@ -1633,8 +1646,10 @@ function renderWeeklyScheduleView(refDate) {
   // 2. Renderizar filas de bloques de tiempo (14 bloques de 30 min de 09:00 a 16:00)
   const tbody = document.getElementById('weekly-table-body');
   if (!tbody) return;
+  setupWeeklyTableDelegation(tbody);
   tbody.innerHTML = '';
 
+  const fragment = document.createDocumentFragment();
   // Mapa para rastrear celdas cubiertas por citas multabloque (ej: 1 hora = 2 bloques)
   const coveredSlots = {};
 
@@ -1698,9 +1713,6 @@ function renderWeeklyScheduleView(refDate) {
               </div>
             </div>
           `;
-          td.querySelector('.btn-assign-freed').addEventListener('click', () => {
-            openReassignModal(apt.id);
-          });
         } else {
           // Marca de agua dinámica: CONFIRMADA vs NO CONFIRMADA vs REASIGNADA
           let watermarkText = 'NO CONFIRMADA';
@@ -1758,29 +1770,6 @@ function renderWeeklyScheduleView(refDate) {
               </div>
             </div>
           `;
-
-          // Eventos de botones dentro de la cita semanal
-          td.querySelector('.btn-toggle-confirm').addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleAppointmentConfirmation(apt.id);
-          });
-
-          td.querySelector('.weekly-btn-reassign').addEventListener('click', (e) => {
-            e.stopPropagation();
-            openReassignModal(apt.id);
-          });
-
-          td.querySelector('.weekly-btn-history')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (appState.currentUser && appState.currentUser.role === 'asistente') {
-              showToast('⚠️ Acceso Restringido: Sección exclusiva de la Doctora.', 'warning');
-              return;
-            }
-            appState.currentPatientId = apt.patientId;
-            const gs = document.getElementById('global-patient-select');
-            if (gs) gs.value = apt.patientId;
-            switchView('historia');
-          });
         }
 
         tr.appendChild(td);
@@ -1790,20 +1779,76 @@ function renderWeeklyScheduleView(refDate) {
         const emptyTd = document.createElement('td');
         emptyTd.className = 'weekly-slot-cell';
         emptyTd.innerHTML = `
-          <div class="weekly-slot-empty" data-date="${day.dateStr}" data-time="${slot.start}" title="Agendar cita (${day.name} ${day.displayDate} - ${slot.display})">
+          <div class="weekly-slot-empty" role="button" tabindex="0" data-date="${day.dateStr}" data-time="${slot.start}" title="Agendar cita (${day.name} ${day.displayDate} - ${slot.display})">
             <span class="slot-empty-btn">+ Agendar (30m / 1h)</span>
           </div>
         `;
-
-        emptyTd.querySelector('.weekly-slot-empty').addEventListener('click', () => {
-          openNewAppointmentModal(null, day.dateStr, slot.start, 60);
-        });
 
         tr.appendChild(emptyTd);
       }
     });
 
-    tbody.appendChild(tr);
+    fragment.appendChild(tr);
+  });
+
+  tbody.appendChild(fragment);
+}
+
+// DELEGACIÓN DE EVENTOS EN LA TABLA SEMANAL (1 SOLO LISTENER EN VEZ DE N POR CELDA)
+function setupWeeklyTableDelegation(tbody) {
+  if (!tbody || tbody.dataset.delegated === '1') return;
+  tbody.dataset.delegated = '1';
+
+  const handleAction = (e) => {
+    const confirmBtn = e.target.closest('.btn-toggle-confirm');
+    if (confirmBtn) {
+      e.stopPropagation();
+      toggleAppointmentConfirmation(confirmBtn.getAttribute('data-id'));
+      return;
+    }
+
+    const reassignBtn = e.target.closest('.weekly-btn-reassign, .btn-assign-freed');
+    if (reassignBtn) {
+      e.stopPropagation();
+      openReassignModal(reassignBtn.getAttribute('data-id'));
+      return;
+    }
+
+    const historyBtn = e.target.closest('.weekly-btn-history');
+    if (historyBtn) {
+      e.stopPropagation();
+      if (appState.currentUser && appState.currentUser.role === 'asistente') {
+        showToast('Acceso Restringido: Sección exclusiva de la Doctora.', 'warning');
+        return;
+      }
+      const patientId = historyBtn.getAttribute('data-patient');
+      appState.currentPatientId = patientId;
+      const gs = document.getElementById('global-patient-select');
+      if (gs) gs.value = patientId;
+      switchView('historia');
+      return;
+    }
+
+    const emptySlot = e.target.closest('.weekly-slot-empty');
+    if (emptySlot) {
+      openNewAppointmentModal(
+        null,
+        emptySlot.getAttribute('data-date'),
+        emptySlot.getAttribute('data-time'),
+        60
+      );
+    }
+  };
+
+  tbody.addEventListener('click', handleAction);
+  tbody.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const emptySlot = e.target.closest('.weekly-slot-empty');
+      if (emptySlot) {
+        e.preventDefault();
+        handleAction(e);
+      }
+    }
   });
 }
 
@@ -2098,7 +2143,22 @@ function renderDailyTimeBlocks(dateStr) {
 
   const grid = document.getElementById('appointments-timeblocks-grid');
   if (!grid) return;
+  if (grid.dataset.delegated !== '1') {
+    grid.dataset.delegated = '1';
+    grid.addEventListener('click', (e) => {
+      const bookBtn = e.target.closest('.btn-book-slot');
+      if (bookBtn) {
+        openNewAppointmentModal(
+          null,
+          bookBtn.getAttribute('data-date'),
+          bookBtn.getAttribute('data-time'),
+          60
+        );
+      }
+    });
+  }
   grid.innerHTML = '';
+  const fragment = document.createDocumentFragment();
 
   const statusFilter = document.getElementById('appointment-status-filter')?.value || 'all';
 
@@ -2199,7 +2259,7 @@ function renderDailyTimeBlocks(dateStr) {
       `;
 
       bindAppointmentItemEvents(slotDiv, startingApt);
-      grid.appendChild(slotDiv);
+      fragment.appendChild(slotDiv);
 
     } else if (coveringApt) {
       const slotDiv = document.createElement('div');
@@ -2220,7 +2280,7 @@ function renderDailyTimeBlocks(dateStr) {
           Ocupado (Cita de las ${coveringApt.time})
         </div>
       `;
-      grid.appendChild(slotDiv);
+      fragment.appendChild(slotDiv);
 
     } else {
       const slotDiv = document.createElement('div');
@@ -2242,13 +2302,11 @@ function renderDailyTimeBlocks(dateStr) {
         </div>
       `;
 
-      slotDiv.querySelector('.btn-book-slot').addEventListener('click', () => {
-        openNewAppointmentModal(null, dateStr, block.start, 60);
-      });
-
-      grid.appendChild(slotDiv);
+      fragment.appendChild(slotDiv);
     }
   });
+
+  grid.appendChild(fragment);
 }
 
 function renderAppointmentsList(dateFilter) {
@@ -2279,6 +2337,7 @@ function renderAppointmentsList(dateFilter) {
     return;
   }
 
+  const fragment = document.createDocumentFragment();
   filtered.forEach(apt => {
     const item = document.createElement('div');
     item.className = 'appointment-item';
@@ -2340,8 +2399,9 @@ function renderAppointmentsList(dateFilter) {
     `;
 
     bindAppointmentItemEvents(item, apt);
-    container.appendChild(item);
+    fragment.appendChild(item);
   });
+  container.appendChild(fragment);
 }
 
 function bindAppointmentItemEvents(item, apt) {
@@ -2528,10 +2588,43 @@ function renderPatientsList() {
     );
   }
 
+  if (!container) return;
+  if (container.dataset.delegated !== '1') {
+    container.dataset.delegated = '1';
+    const selectPatientFromList = (e) => {
+      const card = e.target.closest('.patient-list-item');
+      if (!card) return;
+      const pId = card.getAttribute('data-patient-id');
+      if (!pId) return;
+      appState.currentPatientId = pId;
+      const gs = document.getElementById('global-patient-select');
+      if (gs) gs.value = pId;
+      renderPatientsList();
+      renderPatientDetail();
+      renderOdontogramBoard();
+      renderBudgetsView();
+      renderGalleryView();
+    };
+    container.addEventListener('click', selectPatientFromList);
+    container.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const card = e.target.closest('.patient-list-item');
+        if (card) {
+          e.preventDefault();
+          selectPatientFromList(e);
+        }
+      }
+    });
+  }
+
   container.innerHTML = '';
+  const fragment = document.createDocumentFragment();
   filtered.forEach(p => {
     const item = document.createElement('div');
     item.className = `patient-list-item${p.id === appState.currentPatientId ? ' is-selected' : ''}`;
+    item.setAttribute('data-patient-id', p.id);
+    item.setAttribute('role', 'button');
+    item.setAttribute('tabindex', '0');
 
     item.innerHTML = `
       <div class="patient-list-row">
@@ -2546,20 +2639,10 @@ function renderPatientsList() {
       ` : ''}
     `;
 
-    item.addEventListener('click', () => {
-      appState.currentPatientId = p.id;
-      const gs = document.getElementById('global-patient-select');
-      if (gs) gs.value = p.id;
-      renderPatientsList();
-      renderPatientDetail();
-      renderOdontogramBoard();
-      renderBudgetsView();
-      renderGalleryView();
-    });
-
-    container.appendChild(item);
+    fragment.appendChild(item);
   });
 
+  container.appendChild(fragment);
   renderPatientDetail();
 }
 
@@ -2878,6 +2961,20 @@ function renderMonthlyBudgetOverview() {
   // Tabla general de pacientes con presupuesto
   const tbody = document.getElementById('monthly-patients-tbody');
   if (!tbody) return;
+  if (tbody.dataset.delegated !== '1') {
+    tbody.dataset.delegated = '1';
+    tbody.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-open-breakdown-action');
+      if (!btn) return;
+      const pId = btn.getAttribute('data-id');
+      appState.currentPatientId = pId;
+      const gSelect = document.getElementById('global-patient-select');
+      if (gSelect) gSelect.value = pId;
+      appState.budgetViewMode = 'patient';
+      renderBudgetsView();
+      showToast(`Desglose de presupuesto abierto para: ${getCurrentPatient()?.name || ''}`);
+    });
+  }
   tbody.innerHTML = '';
 
   if (appState.patients.length === 0) {
@@ -2885,6 +2982,7 @@ function renderMonthlyBudgetOverview() {
     return;
   }
 
+  const fragment = document.createDocumentFragment();
   appState.patients.forEach(patient => {
     const budget = (patient.budgets && patient.budgets[0]) || { items: [], payments: [], discount: 0, subtotal: 0, total: 0, balance: 0 };
     const allPaid = (budget.payments || []).reduce((acc, p) => acc + (parseFloat(p.amount) || 0), 0);
@@ -2936,20 +3034,10 @@ function renderMonthlyBudgetOverview() {
       </td>
     `;
 
-    tbody.appendChild(tr);
+    fragment.appendChild(tr);
   });
 
-  tbody.querySelectorAll('.btn-open-breakdown-action').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const pId = e.currentTarget.getAttribute('data-id');
-      appState.currentPatientId = pId;
-      const gSelect = document.getElementById('global-patient-select');
-      if (gSelect) gSelect.value = pId;
-      appState.budgetViewMode = 'patient';
-      renderBudgetsView();
-      showToast(`Desglose de presupuesto abierto para: ${getCurrentPatient()?.name || ''}`);
-    });
-  });
+  tbody.appendChild(fragment);
 }
 
 // LLENAR SELECTOR DE PACIENTES DEL DESGLOSE DE PRESUPUESTO
@@ -3347,36 +3435,80 @@ function renderGalleryView() {
   });
 }
 
+/**
+ * Redimensiona y comprime imágenes subidas a la galería clínica mediante Canvas
+ * para optimizar peso y evitar desbordar la cuota de localStorage.
+ */
+function compressClinicalImage(file, maxDimension = 1024, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo seleccionado.'));
+    reader.onload = (ev) => {
+      const rawDataUrl = ev.target.result;
+      const img = new Image();
+      img.onerror = () => resolve(rawDataUrl);
+      img.onload = () => {
+        const { width, height } = img;
+        if (!width || !height || (width <= maxDimension && height <= maxDimension && file.size <= 350 * 1024)) {
+          resolve(rawDataUrl);
+          return;
+        }
+        const scale = Math.min(1, maxDimension / Math.max(width, height));
+        const targetW = Math.max(1, Math.round(width * scale));
+        const targetH = Math.max(1, Math.round(height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(rawDataUrl);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, targetW, targetH);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function handleUploadPhoto() {
   const patient = getCurrentPatient();
+  if (!patient) {
+    showToast('Selecciona primero un paciente para agregar una imagen.', 'warning');
+    return;
+  }
+
   const title = prompt('Título o descripción de la imagen (Ej: Radiografía de Cordales, Foto Inicial):');
   if (!title) return;
 
   const notes = prompt('Observación clínica:') || '';
 
-  // Input de archivo para cargar imagen local
+  // Input de archivo para cargar imagen local con compresión automática
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.accept = 'image/*';
-  fileInput.onchange = (e) => {
+  fileInput.onchange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = async (readerEvent) => {
-        if (!patient.gallery) patient.gallery = [];
-        patient.gallery.push({
-          id: `IMG-${Date.now()}`,
-          date: new Date().toISOString().slice(0, 10),
-          title,
-          type: "Radiografía / Fotografía",
-          notes,
-          src: readerEvent.target.result
-        });
-        await saveAppData();
-        renderGalleryView();
-        showToast('Imagen guardada en el expediente del paciente.');
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    try {
+      const compressedSrc = await compressClinicalImage(file, 1024, 0.82);
+      if (!patient.gallery) patient.gallery = [];
+      patient.gallery.push({
+        id: `IMG-${Date.now()}`,
+        date: new Date().toISOString().slice(0, 10),
+        title,
+        type: "Radiografía / Fotografía",
+        notes,
+        src: compressedSrc
+      });
+      await saveAppData();
+      renderGalleryView();
+      showToast('Imagen optimizada y guardada en el expediente del paciente.');
+    } catch (err) {
+      console.error('Error procesando imagen:', err);
+      showToast('No se pudo procesar la imagen seleccionada.', 'danger');
     }
   };
   fileInput.click();
