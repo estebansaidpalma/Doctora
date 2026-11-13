@@ -78,15 +78,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html,
+body {
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+}
+
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
   line-height: 1.45;
-  min-height: 100vh;
-  min-height: 100dvh;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
   display: flex;
 }
 
@@ -96,9 +99,7 @@ body {
 
 #app-container {
   display: flex;
-  width: 100vw;
-  min-height: 100vh;
-  min-height: 100dvh;
+  width: 100%;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
@@ -242,6 +243,8 @@ body {
   overflow: hidden;
   background-color: var(--bg-main);
   min-width: 0;
+  min-height: 0;
+  height: 100%;
 }
 
 .topbar {
@@ -281,6 +284,7 @@ body {
 /* CONTENT CONTAINER */
 .view-panel {
   flex: 1;
+  min-height: 0;
   padding: 24px 28px;
   overflow-y: auto;
   display: none;
@@ -289,6 +293,19 @@ body {
 .view-panel.active {
   display: block;
   animation: fadeIn 0.25s ease-in-out;
+}
+
+#view-inicio.view-panel {
+  overflow: hidden;
+  padding: 16px 24px 18px;
+  height: 100%;
+  min-height: 0;
+}
+
+#view-inicio.view-panel.active {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 @keyframes fadeIn {
@@ -1862,11 +1879,12 @@ body {
    ========================================================================== */
 
 .weekly-schedule-banner-box {
+  flex-shrink: 0;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 16px 20px;
-  margin-bottom: 16px;
+  padding: 14px 18px;
+  margin-bottom: 0;
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
@@ -1886,8 +1904,8 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 14px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
 .weekly-banner-title-col {
@@ -1953,7 +1971,7 @@ body {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  padding-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid var(--border-color);
   font-size: 12px;
 }
@@ -2011,10 +2029,11 @@ body {
 /* SELECTOR DE DÍA EN MÓVIL */
 .weekly-mobile-day-strip {
   display: none;
+  flex-shrink: 0;
   align-items: center;
   gap: 6px;
   overflow-x: auto;
-  padding: 4px 0 10px 0;
+  padding: 2px 0;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -2040,7 +2059,11 @@ body {
 
 /* CONTENEDOR Y TABLA SEMANAL */
 .weekly-schedule-card {
-  padding: 14px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
   overflow: hidden;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -2048,25 +2071,52 @@ body {
 }
 
 .weekly-table-container {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   overflow-x: auto;
   overflow-y: auto;
-  max-height: calc(100vh - 230px);
+  padding: 2px 6px 20px 2px;
   -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.weekly-table-container::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.weekly-table-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.weekly-table-container::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.weekly-table-container::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
 }
 
 .weekly-schedule-table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 6px;
+  border-spacing: 5px;
   table-layout: fixed;
-  min-width: 950px;
+  min-width: 920px;
 }
 
 /* ENCABEZADOS DE DÍA - PALETA CORPORATIVA AZUL REAL & CIAN */
 .weekly-schedule-table thead th {
-  padding: 9px 8px;
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  padding: 8px 6px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 800;
   text-transform: uppercase;
   border-radius: 8px;
@@ -2074,17 +2124,19 @@ body {
 }
 
 .weekly-th-time {
-  width: 110px;
+  width: 104px;
   background: #f8fafc;
   color: #334155;
   border: 1px solid #e2e8f0;
+  box-shadow: 0 -6px 0 2px var(--bg-card);
+  z-index: 20;
 }
 
 .weekly-th-day {
   background: #f0f9ff;
   color: #0369a1;
   border: 1px solid #bae6fd;
-  box-shadow: 0 1px 2px rgba(2, 132, 199, 0.05);
+  box-shadow: 0 -6px 0 2px var(--bg-card), 0 1px 2px rgba(2, 132, 199, 0.05);
   transition: var(--transition);
 }
 
@@ -2092,7 +2144,7 @@ body {
   background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
   color: #ffffff;
   border: none;
-  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+  box-shadow: 0 -6px 0 2px var(--bg-card), 0 4px 10px rgba(2, 132, 199, 0.25);
 }
 
 .weekly-th-day-date {
@@ -2141,7 +2193,7 @@ body {
   border-radius: 8px;
   position: relative;
   transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-  height: 58px;
+  height: 54px;
   padding: 0;
 }
 
@@ -2154,7 +2206,7 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
-  min-height: 56px;
+  min-height: 52px;
   border-radius: 10px;
   transition: var(--transition);
 }
@@ -2318,6 +2370,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 4px;
   margin-top: 5px;
   padding-top: 4px;
@@ -2626,10 +2679,15 @@ body {
     padding: 12px 10px;
   }
 
+  #view-inicio.view-panel {
+    padding: 10px 10px 10px;
+    gap: 8px;
+  }
+
   /* Horario Semanal en Móvil */
   .weekly-schedule-banner-box {
-    padding: 12px 12px;
-    margin-bottom: 12px;
+    padding: 10px 12px;
+    margin-bottom: 0;
   }
 
   .weekly-main-title {
@@ -2681,6 +2739,10 @@ body {
     padding: 8px;
   }
 
+  .weekly-table-container {
+    padding: 2px 2px 18px 2px;
+  }
+
   .weekly-schedule-table {
     min-width: 800px;
     border-spacing: 4px;
@@ -2690,9 +2752,9 @@ body {
   .weekly-th-time {
     position: sticky;
     left: 0;
-    z-index: 25;
+    z-index: 30;
     background: #f8fafc;
-    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 -6px 0 2px var(--bg-card), 2px 0 6px rgba(0, 0, 0, 0.05);
     width: 85px;
   }
 
@@ -3469,9 +3531,9 @@ body {
   font-weight: 500;
 }
 
-.weekly-apt-card--span2 { min-height: 114px; }
-.weekly-apt-card--span3 { min-height: 176px; }
-.weekly-apt-card--span4 { min-height: 238px; }
+.weekly-apt-card--span2 { min-height: 112px; }
+.weekly-apt-card--span3 { min-height: 170px; }
+.weekly-apt-card--span4 { min-height: 228px; }
 
 .monthly-patient-name {
   font-size: 13.5px;
@@ -4744,6 +4806,7 @@ body {
     display: none !important;
   }
 
+  html,
   body,
   #app-container,
   #main-view {
@@ -4757,12 +4820,17 @@ body {
     display: block !important;
   }
 
-  .view-panel {
+  .view-panel,
+  #view-inicio.view-panel {
     display: none !important;
   }
 
-  .view-panel.active {
+  .view-panel.active,
+  #view-inicio.view-panel.active {
     display: block !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
     padding: 0 !important;
     margin: 0 !important;
   }
@@ -4851,12 +4919,23 @@ body {
     stroke: #334155 !important;
   }
 
-  .weekly-schedule-card { padding: 0 !important; }
+  .weekly-schedule-card {
+    flex: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
   .weekly-table-container {
+    flex: none !important;
     max-height: none !important;
     overflow: visible !important;
+    padding: 0 !important;
   }
   .weekly-schedule-table { border-spacing: 2px !important; }
+  .weekly-schedule-table thead th {
+    position: static !important;
+    box-shadow: none !important;
+  }
   .weekly-watermark {
     opacity: 0.4 !important;
     -webkit-print-color-adjust: exact !important;
