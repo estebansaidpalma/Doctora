@@ -26,22 +26,27 @@
       </div>
 
       <form id="login-form" class="login-form" autocomplete="off">
-        <div id="login-error-alert" class="login-error" style="display: none;">
-          ⚠️ Usuario o contraseña incorrectos.
+        <div id="login-error-alert" class="login-error u-hidden">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <span>Usuario o contraseña incorrectos.</span>
         </div>
 
-        <div class="form-group" style="margin-bottom: 14px;">
-          <label class="form-label" for="login-username" style="font-weight: 700; color: #0f172a;">Usuario:</label>
+        <div class="form-group u-mb-md">
+          <label class="form-label login-label" for="login-username">Usuario:</label>
           <div class="login-input-wrap">
-            <span class="login-input-icon">👤</span>
+            <span class="login-input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </span>
             <input type="text" id="login-username" class="form-control" placeholder="Ej: asistente, doctora, admin" required autofocus>
           </div>
         </div>
 
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label class="form-label" for="login-password" style="font-weight: 700; color: #0f172a;">Contraseña:</label>
+        <div class="form-group u-mb-md">
+          <label class="form-label login-label" for="login-password">Contraseña:</label>
           <div class="login-input-wrap">
-            <span class="login-input-icon">🔒</span>
+            <span class="login-input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </span>
             <input type="password" id="login-password" class="form-control" placeholder="Contraseña de acceso" required>
           </div>
         </div>
@@ -53,28 +58,49 @@
 
       <!-- Accesos Rápidos de Prueba (Clave genérica: prueba) -->
       <div class="login-demo-accounts">
-        <p class="login-demo-title">Accesos Rápidos (Clave genérica: prueba):</p>
+        <p class="login-demo-title">Accesos Rápidos (Clave genérica: prueba)</p>
         <div class="demo-pills-row">
           <button type="button" class="btn-demo-login" data-user="asistente" data-pass="prueba">
-            <div>
-              <span class="demo-role">📋 Asistente</span>
-              <small style="display:block;">Agendar, confirmar, WhatsApp y pagos por paciente</small>
+            <div class="demo-btn-main">
+              <span class="demo-role-chip chip-asistente" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+              </span>
+              <div>
+                <span class="demo-role u-block">Asistente</span>
+                <small class="u-block">Agendar, confirmar, WhatsApp y pagos por paciente</small>
+              </div>
             </div>
-            <span class="demo-arrow">➔</span>
+            <span class="demo-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
           </button>
           <button type="button" class="btn-demo-login" data-user="doctora" data-pass="prueba">
-            <div>
-              <span class="demo-role">👩‍⚕️ Doctora (Od. Celenia Tovar)</span>
-              <small style="display:block;">Full Privilegios Clínicos y Totales</small>
+            <div class="demo-btn-main">
+              <span class="demo-role-chip chip-doctora" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              </span>
+              <div>
+                <span class="demo-role u-block">Doctora (Od. Celenia Tovar)</span>
+                <small class="u-block">Full Privilegios Clínicos y Totales</small>
+              </div>
             </div>
-            <span class="demo-arrow">➔</span>
+            <span class="demo-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
           </button>
           <button type="button" class="btn-demo-login" data-user="admin" data-pass="prueba">
-            <div>
-              <span class="demo-role">⚙️ Administrador</span>
-              <small style="display:block;">Full Privilegios Totales del Sistema</small>
+            <div class="demo-btn-main">
+              <span class="demo-role-chip chip-admin" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              </span>
+              <div>
+                <span class="demo-role u-block">Administrador</span>
+                <small class="u-block">Full Privilegios Totales del Sistema</small>
+              </div>
             </div>
-            <span class="demo-arrow">➔</span>
+            <span class="demo-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
           </button>
         </div>
       </div>
@@ -162,23 +188,25 @@
         <div class="topbar-actions">
           <!-- Indicador de Usuario Activo y Rol -->
           <div class="current-user-badge" id="current-user-badge" title="Usuario actualmente autenticado">
-            <span id="current-user-avatar">👩‍⚕️</span>
+            <span id="current-user-avatar" class="user-avatar-chip" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </span>
             <span id="current-user-name" class="btn-text-responsive">Od. Celenia Tovar</span>
             <span id="current-user-role-tag" class="current-user-role-tag role-tag-doctora">Doctora</span>
           </div>
 
           <button id="btn-quick-open-history" class="btn btn-secondary btn-sm only-doctor" title="Abrir Formato de Historia Clínica de la Dra. Celenia Tovar">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
             <span class="btn-text-responsive">Historia</span>
           </button>
 
           <button id="btn-quick-new-appointment" class="btn btn-primary btn-sm">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             <span class="btn-text-responsive">Nueva Cita</span>
           </button>
 
           <button type="button" id="btn-logout" class="btn-logout" title="Cerrar sesión">
-            <span>🚪</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             <span class="btn-text-responsive">Salir</span>
           </button>
         </div>
@@ -191,29 +219,37 @@
           <div class="weekly-banner-decor-top"></div>
           <div class="weekly-banner-header-row">
             <div class="weekly-banner-title-col">
-              <h1 class="weekly-main-title">HORARIO SEMANAL</h1>
+              <h1 class="weekly-main-title">Horario Semanal</h1>
               <span class="weekly-subtitle-pill">Consultorio Odontológico Sonrisa Perfecta • Od. Celenia Tovar</span>
             </div>
 
             <!-- Controles de navegación de la semana -->
             <div class="weekly-nav-actions">
               <div class="weekly-date-nav-wrapper">
-                <button type="button" id="btn-week-prev" class="btn btn-secondary btn-sm" title="Semana Anterior">◀</button>
+                <button type="button" id="btn-week-prev" class="btn btn-secondary btn-sm" title="Semana Anterior" aria-label="Semana Anterior">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
                 <div class="weekly-current-range-pill">
                   <span id="weekly-current-label">Cargando semana...</span>
                   <input type="date" id="weekly-date-picker" title="Seleccionar fecha para ver semana" class="weekly-hidden-date-picker">
                 </div>
-                <button type="button" id="btn-week-next" class="btn btn-secondary btn-sm" title="Semana Siguiente">▶</button>
-                <button type="button" id="btn-week-today" class="btn btn-secondary btn-sm">📅 Esta Semana</button>
+                <button type="button" id="btn-week-next" class="btn btn-secondary btn-sm" title="Semana Siguiente" aria-label="Semana Siguiente">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+                <button type="button" id="btn-week-today" class="btn btn-secondary btn-sm">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>Esta Semana</span>
+                </button>
               </div>
 
-              <div style="display: flex; gap: 8px;">
-                <button type="button" id="btn-weekly-new-apt" class="btn btn-primary btn-sm" style="font-weight: 700;">
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                  <span>+ Agendar Cita</span>
+              <div class="u-flex u-gap-sm">
+                <button type="button" id="btn-weekly-new-apt" class="btn btn-primary btn-sm u-fw-700">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <span>Agendar Cita</span>
                 </button>
                 <button type="button" id="btn-weekly-print" class="btn btn-secondary btn-sm" title="Imprimir Horario Semanal">
-                  🖨️ Imprimir
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                  <span>Imprimir</span>
                 </button>
               </div>
             </div>
@@ -227,7 +263,7 @@
             </div>
             <div class="weekly-metric-item metric-confirmed">
               <span class="weekly-dot dot-confirmed"></span>
-              <span class="weekly-metric-lbl">Confirmadas (Marca de Agua):</span>
+              <span class="weekly-metric-lbl">Confirmadas:</span>
               <strong id="weekly-stat-confirmed" class="weekly-metric-num">0</strong>
             </div>
             <div class="weekly-metric-item metric-pending">
@@ -241,14 +277,15 @@
               <strong id="weekly-stat-reassigned" class="weekly-metric-num">0</strong>
             </div>
             <div class="weekly-metric-item metric-shift">
-              <span>🕒 Jornada: <strong>9:00 AM - 4:00 PM</strong> • Bloques de <strong>30m</strong> y <strong>1h</strong></span>
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>Jornada: <strong>9:00 AM - 4:00 PM</strong> • Bloques de <strong>30m</strong> y <strong>1h</strong></span>
             </div>
           </div>
         </div>
 
         <!-- SELECTOR DE DÍAS EN DISPOSITIVOS MÓVILES -->
         <div class="weekly-mobile-day-strip" id="weekly-mobile-day-strip">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Ver Día:</span>
+          <span class="weekly-mobile-label">Ver Día:</span>
           <!-- Generado dinámicamente por JS con [ Lun ] [ Mar ] [ Mié ] [ Jue ] [ Vie ] [ Sáb ] [ Todo ] -->
         </div>
 
@@ -274,8 +311,8 @@
         <!-- Tarjetas de estadísticas del día -->
         <div class="stats-bar">
           <div class="stat-card">
-            <div class="stat-icon" style="background-color: var(--primary-light); color: var(--primary);">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <div class="stat-icon stat-icon--primary">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             </div>
             <div class="stat-info">
               <h3 id="stat-total-today">0</h3>
@@ -283,8 +320,8 @@
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <div class="stat-icon stat-icon--success">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             </div>
             <div class="stat-info">
               <h3 id="stat-confirmed-today">0</h3>
@@ -292,8 +329,8 @@
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <div class="stat-icon stat-icon--warning">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             </div>
             <div class="stat-info">
               <h3 id="stat-pending-today">0</h3>
@@ -303,28 +340,37 @@
         </div>
 
         <!-- Filtros y controles de agenda -->
-        <div class="card" style="margin-bottom: 20px;">
-          <div class="appointments-top" style="align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div class="card u-mb-lg">
+          <div class="appointments-top u-flex-between u-flex-wrap u-gap-md u-mb-md">
             <!-- Navegación de fecha diaria -->
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <button type="button" id="btn-date-prev" class="btn btn-secondary btn-sm" title="Día Anterior">◀</button>
-              <input type="date" id="appointment-date-filter" class="form-control" style="width: 165px; font-weight: 700;">
-              <button type="button" id="btn-date-next" class="btn btn-secondary btn-sm" title="Día Siguiente">▶</button>
-              <button type="button" id="btn-filter-today" class="btn btn-secondary btn-sm">📅 Hoy</button>
+            <div class="u-flex u-items-center u-flex-wrap u-gap-sm">
+              <button type="button" id="btn-date-prev" class="btn btn-secondary btn-sm" title="Día Anterior" aria-label="Día Anterior">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <input type="date" id="appointment-date-filter" class="form-control select-compact-md">
+              <button type="button" id="btn-date-next" class="btn btn-secondary btn-sm" title="Día Siguiente" aria-label="Día Siguiente">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+              <button type="button" id="btn-filter-today" class="btn btn-secondary btn-sm">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>Hoy</span>
+              </button>
             </div>
 
             <!-- Alternador de vista: Bloques 30 min vs Lista -->
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <div class="btn-group" style="display: flex; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden;">
-                <button type="button" id="btn-view-blocks" class="btn btn-sm btn-primary" style="border-radius: 0; padding: 6px 12px; font-weight: 700;">
-                  🗓️ Bloques (30 min / 9 a 5)
+            <div class="u-flex u-items-center u-flex-wrap u-gap-sm">
+              <div class="btn-group segmented-control">
+                <button type="button" id="btn-view-blocks" class="btn btn-sm btn-primary">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                  <span>Bloques (30m)</span>
                 </button>
-                <button type="button" id="btn-view-list" class="btn btn-sm btn-secondary" style="border-radius: 0; padding: 6px 12px; font-weight: 700;">
-                  📋 Lista General
+                <button type="button" id="btn-view-list" class="btn btn-sm btn-secondary">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                  <span>Lista General</span>
                 </button>
               </div>
 
-              <select id="appointment-status-filter" class="form-control form-control-sm" style="width: 150px; font-size: 12px;">
+              <select id="appointment-status-filter" class="form-control form-control-sm select-compact-sm">
                 <option value="all">Todos los estados</option>
                 <option value="programada">Programadas</option>
                 <option value="confirmada">Confirmadas</option>
@@ -333,26 +379,28 @@
                 <option value="cancelada">Canceladas</option>
               </select>
 
-              <button type="button" id="btn-quick-new-apt-view" class="btn btn-primary btn-sm" style="font-weight: 700;">
-                + Agendar Cita
+              <button type="button" id="btn-quick-new-apt-view" class="btn btn-primary btn-sm u-fw-700">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Agendar Cita</span>
               </button>
             </div>
           </div>
 
           <!-- 1. VISTA: CRONOGRAMA EN BLOQUES DE 30 MINUTOS (HORARIO 9:00 AM - 5:00 PM) -->
           <div id="appointments-timeblocks-wrapper">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+            <div class="appointments-blocks-header">
               <div>
-                <h4 id="timeblocks-date-title" style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-main);">
+                <h4 id="timeblocks-date-title" class="timeblocks-title">
                   Martes, 13 de Octubre de 2026
                 </h4>
-                <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--text-muted);">
-                  🕒 Horario de Trabajo: <strong>9:00 AM a 5:00 PM</strong> (16 Bloques de 30 minutos). Haz clic en cualquier bloque libre para agendar.
+                <p class="timeblocks-subtitle">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>Horario de Trabajo: <strong>9:00 AM a 5:00 PM</strong> (16 Bloques de 30 minutos). Haz clic en cualquier bloque libre para agendar.</span>
                 </p>
               </div>
-              <div style="display: flex; gap: 8px; font-size: 11px; font-weight: 700;">
-                <span style="display: inline-flex; align-items: center; gap: 4px; color: #16a34a;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #16a34a;"></span> 1 Bloque = 30 min</span>
-                <span style="display: inline-flex; align-items: center; gap: 4px; color: #0284c7;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #0284c7;"></span> 2 Bloques = 1 hora</span>
+              <div class="legend-pill-list">
+                <span class="legend-pill legend-pill--green"><span class="legend-dot legend-dot--green"></span> 1 Bloque = 30 min</span>
+                <span class="legend-pill legend-pill--blue"><span class="legend-dot legend-dot--blue"></span> 2 Bloques = 1 hora</span>
               </div>
             </div>
 
@@ -363,7 +411,7 @@
           </div>
 
           <!-- 2. VISTA: LISTADO TRADICIONAL DE CITAS -->
-          <div id="appointments-list-container" class="appointments-list" style="display: none;">
+          <div id="appointments-list-container" class="appointments-list u-hidden">
             <!-- Renderizado dinámico -->
           </div>
         </div>
@@ -1139,19 +1187,28 @@
           <div class="u-flex-between u-flex-wrap u-gap-md">
             <div class="u-flex u-items-center u-flex-wrap u-gap-sm">
               <span class="u-text-muted-md u-fw-700">Mes a Consultar:</span>
-              <button type="button" id="btn-budget-month-prev" class="btn btn-secondary btn-sm" title="Mes Anterior">◀</button>
+              <button type="button" id="btn-budget-month-prev" class="btn btn-secondary btn-sm" title="Mes Anterior" aria-label="Mes Anterior">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
               <input type="month" id="budget-month-filter" class="form-control month-input-compact">
-              <button type="button" id="btn-budget-month-next" class="btn btn-secondary btn-sm" title="Mes Siguiente">▶</button>
-              <button type="button" id="btn-budget-month-current" class="btn btn-secondary btn-sm">📅 Mes Actual</button>
+              <button type="button" id="btn-budget-month-next" class="btn btn-secondary btn-sm" title="Mes Siguiente" aria-label="Mes Siguiente">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+              <button type="button" id="btn-budget-month-current" class="btn btn-secondary btn-sm">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>Mes Actual</span>
+              </button>
             </div>
 
             <div class="u-flex u-items-center u-flex-wrap u-gap-sm">
               <div class="btn-group segmented-control">
                 <button type="button" id="btn-tab-monthly-overview" class="btn btn-sm btn-primary">
-                  📊 Totales del Mes (Toda la Clínica)
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                  <span>Totales del Mes (Clínica)</span>
                 </button>
                 <button type="button" id="btn-tab-patient-breakdown" class="btn btn-sm btn-secondary">
-                  👤 Desglose por Paciente
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  <span>Desglose por Paciente</span>
                 </button>
               </div>
             </div>
@@ -1196,14 +1253,15 @@
             <div class="card-header u-flex-wrap u-gap-sm">
               <div>
                 <h3 class="card-title u-mb-xs">
-                  <span>📋 Pacientes con Presupuesto & Abonos en este Mes</span>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                  <span>Pacientes con Presupuesto & Abonos en este Mes</span>
                 </h3>
                 <p class="u-text-muted-sm u-m-0">
                   Haz clic en <strong>"Ver Desglose"</strong> en cualquier paciente para revisar diente por diente, fijar precios o registrar pagos.
                 </p>
               </div>
               <div class="search-box-sm">
-                <input type="text" id="monthly-patients-search" class="form-control form-control-sm" placeholder="🔍 Buscar paciente en este mes...">
+                <input type="text" id="monthly-patients-search" class="form-control form-control-sm" placeholder="Buscar paciente en este mes...">
               </div>
             </div>
 
@@ -1242,24 +1300,27 @@
             <div class="u-flex-between u-flex-wrap u-gap-md divider-bottom-soft">
               <div class="u-flex u-items-center u-flex-wrap u-gap-md u-flex-1">
                 <button type="button" id="btn-back-to-monthly-summary" class="btn btn-secondary btn-sm u-fw-700">
-                  ◀ Volver a Totales del Mes (Toda la Clínica)
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  <span>Volver a Totales del Mes (Toda la Clínica)</span>
                 </button>
 
                 <!-- Selector de Paciente Directo -->
                 <div class="budget-patient-picker">
                   <label for="budget-patient-select" class="budget-picker-label">
-                    👤 Cambiar Paciente:
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>Cambiar Paciente:</span>
                   </label>
                   <select id="budget-patient-select" class="form-control budget-patient-select" title="Selecciona cualquier paciente para ver su presupuesto y saldo">
                     <!-- Opciones generadas dinámicamente -->
                   </select>
-                  <input type="text" id="budget-patient-search" placeholder="🔍 Filtrar lista..." class="form-control budget-patient-search" title="Buscar paciente por nombre o cédula">
+                  <input type="text" id="budget-patient-search" placeholder="Filtrar lista..." class="form-control budget-patient-search" title="Buscar paciente por nombre o cédula">
                 </div>
               </div>
 
               <div class="u-flex u-items-center u-flex-wrap u-gap-sm">
                 <button type="button" id="btn-print-budget" class="btn btn-primary btn-sm">
-                  🖨️ Imprimir Presupuesto
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                  <span>Imprimir Presupuesto</span>
                 </button>
               </div>
             </div>
@@ -1281,7 +1342,8 @@
 
               <div id="breakdown-patient-extra-actions" class="u-flex u-gap-sm">
                 <button type="button" id="btn-budget-quick-patient-file" class="btn btn-secondary btn-sm">
-                  👤 Ver Ficha de Paciente
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  <span>Ver Ficha de Paciente</span>
                 </button>
               </div>
             </div>
@@ -1296,7 +1358,10 @@
             <div class="budget-card discount">
               <div class="budget-card-header-inline">
                 <h4>Descuento Dra. ($)</h4>
-                <button id="btn-edit-discount" class="btn btn-secondary btn-sm btn-pill-mini">✏️ Cambiar</button>
+                <button id="btn-edit-discount" class="btn btn-secondary btn-sm btn-pill-mini">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                  <span>Cambiar</span>
+                </button>
               </div>
               <div id="budget-discount-amount" class="amount">$0.00</div>
             </div>
@@ -1317,11 +1382,13 @@
           <!-- Barra de Descuento directo en $ del paciente -->
           <div class="discount-bar-card">
             <div class="u-flex u-items-center u-gap-sm u-flex-wrap">
-              <span class="u-text-muted-md u-fw-600">🏷️ Descuento especial otorgado por la doctora:</span>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+              <span class="u-text-muted-md u-fw-600">Descuento especial otorgado por la doctora:</span>
               <span id="budget-discount-badge" class="badge badge-warning">$0.00 Descuento</span>
             </div>
             <button id="btn-quick-discount-modal" class="btn btn-secondary btn-sm btn-outline-gold">
-              ✏️ Asignar / Modificar Descuento en $
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <span>Asignar / Modificar Descuento en $</span>
             </button>
           </div>
 
@@ -1448,10 +1515,12 @@
           </p>
           <div class="u-flex u-flex-wrap u-gap-md">
             <button id="btn-export-backup" class="btn btn-secondary">
-              📥 Exportar Copia de Seguridad (.json)
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Exportar Copia de Seguridad (.json)</span>
             </button>
             <button id="btn-import-backup" class="btn btn-secondary">
-              📤 Restaurar Datos desde Copia (.json)
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>Restaurar Datos desde Copia (.json)</span>
             </button>
           </div>
         </div>

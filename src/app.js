@@ -74,6 +74,21 @@ const TEETH_MAP = {
   "38": { name: "Tercer Molar Inferior Izquierdo (Cordal)", type: "molar", isCordal: true, quadrant: 3, arch: "inferior", isTemporal: false }
 };
 
+// ICONOS SVG UNIFORMES PARA UI MODERNA (ESTILO CLINICAL SAAS)
+const UI_ICONS = {
+  user: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+  shield: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>',
+  clipboard: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>',
+  alert: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+  phone: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>',
+  refresh: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>',
+  tooth: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2C8.5 2 6 4.5 6 8c0 3 1.5 6.5 3 9.5 1 2 1.5 3.5 2 4.5.2.4.6.6 1 .6s.8-.2 1-.6c.5-1 1-2.5 2-4.5 1.5-3 3-6.5 3-9.5 0-3.5-2.5-6-6-6z"></path></svg>',
+  clock: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+  fileText: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>',
+  checkCircle: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
+  eye: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+};
+
 // ESTADO GLOBAL
 let appState = {
   currentUser: null,
@@ -1642,7 +1657,7 @@ function renderWeeklyScheduleView(refDate) {
     const allBtn = document.createElement('button');
     allBtn.type = 'button';
     allBtn.className = 'mobile-day-pill active';
-    allBtn.textContent = '📅 Toda la Semana';
+    allBtn.textContent = 'Toda la Semana';
     allBtn.addEventListener('click', () => {
       mobileStrip.querySelectorAll('.mobile-day-pill').forEach(b => b.classList.remove('active'));
       allBtn.classList.add('active');
@@ -1687,7 +1702,7 @@ function renderWeeklyScheduleView(refDate) {
     // Columna de hora
     const timeTd = document.createElement('td');
     timeTd.className = 'weekly-time-cell';
-    timeTd.innerHTML = `<strong>${slot.display}</strong><br><span style="font-size:10px; opacity:0.85;">a ${slot.endDisplay}</span>`;
+    timeTd.innerHTML = `<strong>${slot.display}</strong><br><span class="weekly-time-range">a ${slot.endDisplay}</span>`;
     tr.appendChild(timeTd);
 
     // Columnas de días
@@ -1733,10 +1748,10 @@ function renderWeeklyScheduleView(refDate) {
             <div class="weekly-apt-card is-freed">
               <div class="weekly-watermark watermark-liberada">CUPO LIBERADO</div>
               <div class="weekly-freed-box">
-                <div class="weekly-freed-title">⚠️ Cupo Disponible (${slot.start})</div>
+                <div class="weekly-freed-title">${UI_ICONS.alert}<span>Cupo Disponible (${slot.start})</span></div>
                 <div class="weekly-freed-desc">Liberado por: <strong>${apt.patientName}</strong> (${apt.duration || 60} min)</div>
                 <button type="button" class="btn-assign-freed" data-id="${apt.id}">
-                  📞 Llamar & Reasignar Cupo
+                  ${UI_ICONS.phone}<span>Llamar & Reasignar Cupo</span>
                 </button>
               </div>
             </div>
@@ -1757,44 +1772,45 @@ function renderWeeklyScheduleView(refDate) {
             watermarkClass = 'watermark-reasignada';
           }
 
-          const cardMinHeight = blockSpan > 1 ? `style="min-height: ${blockSpan * 62 - 10}px;"` : '';
+          const spanClass = blockSpan > 1 ? `weekly-apt-card--span${blockSpan}` : '';
 
           td.innerHTML = `
-            <div class="weekly-apt-card ${isConfirmed ? 'is-confirmed' : isReassigned ? 'is-reassigned' : 'is-pending'}" ${cardMinHeight}>
+            <div class="weekly-apt-card ${isConfirmed ? 'is-confirmed' : isReassigned ? 'is-reassigned' : 'is-pending'} ${spanClass}">
               <div class="weekly-watermark ${watermarkClass}">${watermarkText}</div>
 
               <div class="weekly-card-content">
                 ${isReassigned ? `
-                  <div class="weekly-reassigned-badge">🔄 Cita Reasignada</div>
+                  <div class="weekly-reassigned-badge">${UI_ICONS.refresh}<span>Cita Reasignada</span></div>
                   <div class="weekly-original-patient-info" title="Cita cancelada por paciente original: ${apt.reassignedFrom?.reason || ''}">
-                    ↩️ Tomada de: <strong>${apt.reassignedFrom?.originalPatientName || 'Paciente previo'}</strong> (Canceló)
+                    <span>Tomada de: <strong>${apt.reassignedFrom?.originalPatientName || 'Paciente previo'}</strong> (Canceló)</span>
                   </div>
                 ` : ''}
 
                 <div class="weekly-patient-title" title="${apt.patientName}">
-                  👤 ${apt.patientName}
+                  ${UI_ICONS.user}<span>${apt.patientName}</span>
                 </div>
                 <div class="weekly-procedure-text" title="${apt.reason || 'Consulta'}">
-                  🦷 ${apt.reason || 'Consulta Odontológica'}
+                  ${UI_ICONS.tooth}<span>${apt.reason || 'Consulta Odontológica'}</span>
                 </div>
               </div>
 
               <div class="weekly-card-actions">
                 <button type="button" class="btn-toggle-confirm ${isConfirmed ? 'is-confirmed' : 'is-pending'}" data-id="${apt.id}" title="${isConfirmed ? 'Click para marcar como Sin Confirmar' : 'Click para CONFIRMAR de inmediato'}">
-                  ${isConfirmed ? '🟢 Confirmada' : '🟠 Confirmar'}
+                  <span class="dot-status-pill ${isConfirmed ? 'dot-status-pill--confirmed' : 'dot-status-pill--pending'}"></span>
+                  <span>${isConfirmed ? 'Confirmada' : 'Confirmar'}</span>
                 </button>
 
                 <span class="weekly-duration-pill">
-                  ${apt.duration == 30 ? '⏱️ 30m' : apt.duration == 60 ? '⏱️ 1h' : `⏱️ ${apt.duration}m`}
+                  ${UI_ICONS.clock}<span>${apt.duration == 30 ? '30m' : apt.duration == 60 ? '1h' : `${apt.duration}m`}</span>
                 </span>
 
                 <button type="button" class="weekly-btn-reassign" data-id="${apt.id}" title="Reasignar cita a otro paciente si cancela">
-                  🔄 Reasignar
+                  ${UI_ICONS.refresh}<span>Reasignar</span>
                 </button>
 
                 ${(appState.currentUser && appState.currentUser.role === 'asistente') ? '' : `
                   <button type="button" class="weekly-btn-history" data-patient="${apt.patientId}" title="Ver Formato de Historia Clínica de este Paciente" aria-label="Ver Historia Clínica">
-                    📋 Historia
+                    ${UI_ICONS.fileText}<span>Historia</span>
                   </button>
                 `}
               </div>
@@ -2929,7 +2945,7 @@ function renderMonthlyBudgetOverview() {
   tbody.innerHTML = '';
 
   if (appState.patients.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: var(--text-muted); padding: 24px;">No hay pacientes registrados en el sistema.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" class="table-empty-cell">No hay pacientes registrados en el sistema.</td></tr>';
     return;
   }
 
@@ -2947,38 +2963,39 @@ function renderMonthlyBudgetOverview() {
 
     tr.innerHTML = `
       <td>
-        <strong style="color: var(--text-main); font-size: 14px;">${patient.name}</strong><br>
-        <small style="color: var(--text-muted); font-size: 11px;">C.I: ${patient.documentId || 'S/C'}</small>
+        <div class="monthly-patient-name">${patient.name}</div>
+        <div class="monthly-patient-ci">C.I: ${patient.documentId || 'S/C'}</div>
       </td>
       <td>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="font-size: 12px;">📞 ${patient.phone || 'S/N'}</span>
+        <div class="monthly-contact-row">
+          ${UI_ICONS.phone}
+          <span>${patient.phone || 'S/N'}</span>
           ${cleanPhone ? `
-            <a href="${waUrl}" target="_blank" class="btn btn-whatsapp btn-sm" style="padding: 2px 6px; font-size: 10px;" title="Contactar por WhatsApp">
+            <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-sm btn-wa-mini" title="Contactar por WhatsApp">
               WA
             </a>
           ` : ''}
         </div>
       </td>
-      <td><span style="font-size: 12px; color: var(--text-muted);">${formatDisplayDate(budget.date || '')}</span></td>
-      <td><span class="badge badge-info" style="font-size: 11px;">${itemsCount} ${itemsCount === 1 ? 'partida' : 'partidas'}</span></td>
-      <td><strong style="font-size: 13px; color: var(--text-main);">$${(budget.subtotal || 0).toFixed(2)}</strong></td>
-      <td><span style="color: var(--gold); font-weight: 700; font-size: 12px;">-${(budget.discount || 0) > 0 ? `$${(budget.discount || 0).toFixed(2)}` : '$0.00'}</span></td>
-      <td><strong style="color: var(--primary); font-size: 14px;">$${(budget.total || 0).toFixed(2)}</strong></td>
-      <td><strong style="color: var(--success); font-size: 13px;">+$${allPaid.toFixed(2)}</strong></td>
+      <td><span class="u-text-muted-sm">${formatDisplayDate(budget.date || '')}</span></td>
+      <td><span class="badge badge-info">${itemsCount} ${itemsCount === 1 ? 'partida' : 'partidas'}</span></td>
+      <td><strong class="tabular-nums">$${(budget.subtotal || 0).toFixed(2)}</strong></td>
+      <td><span class="u-text-gold u-fw-700 tabular-nums">-${(budget.discount || 0) > 0 ? `$${(budget.discount || 0).toFixed(2)}` : '$0.00'}</span></td>
+      <td><strong class="u-text-primary tabular-nums">$${(budget.total || 0).toFixed(2)}</strong></td>
+      <td><strong class="u-text-success tabular-nums">+$${allPaid.toFixed(2)}</strong></td>
       <td>
-        <strong style="font-size: 13px; color: ${balance > 0 ? 'var(--danger)' : 'var(--success)'};">
-          ${balance > 0 ? `$${balance.toFixed(2)}` : '✅ Pagado'}
-        </strong>
+        ${balance > 0
+          ? `<strong class="u-text-danger tabular-nums">$${balance.toFixed(2)}</strong>`
+          : `<span class="status-paid-pill">${UI_ICONS.checkCircle}<span>Pagado</span></span>`}
       </td>
       <td>
         ${balance > 0 
-          ? `<span class="badge badge-warning" style="font-size: 11px;">Con Saldo</span>` 
-          : (itemsCount > 0 ? `<span class="badge badge-success" style="font-size: 11px;">Al Día</span>` : `<span class="badge badge-secondary" style="font-size: 11px;">Sin Plan</span>`)}
+          ? `<span class="badge badge-warning">Con Saldo</span>` 
+          : (itemsCount > 0 ? `<span class="badge badge-success">Al Día</span>` : `<span class="badge badge-secondary">Sin Plan</span>`)}
       </td>
-      <td style="text-align: right;">
-        <button type="button" class="btn btn-primary btn-sm btn-open-breakdown-action" data-id="${patient.id}" style="font-weight: 700; padding: 5px 12px; font-size: 12px;">
-          👁️ Ver Desglose & Cobrar
+      <td class="u-text-right">
+        <button type="button" class="btn btn-primary btn-sm btn-action-compact btn-open-breakdown-action" data-id="${patient.id}">
+          ${UI_ICONS.eye}<span>Ver Desglose & Cobrar</span>
         </button>
       </td>
     `;
@@ -4131,8 +4148,8 @@ function setupEventListeners() {
       } else {
         const errAlert = document.getElementById('login-error-alert');
         if (errAlert) {
-          errAlert.style.display = 'block';
-          errAlert.textContent = '⚠️ Usuario o contraseña incorrectos. Verifica tus credenciales.';
+          errAlert.style.display = 'flex';
+          errAlert.innerHTML = `${UI_ICONS.alert}<span>Usuario o contraseña incorrectos. Verifica tus credenciales.</span>`;
         }
       }
     });
@@ -4175,7 +4192,7 @@ const SYSTEM_USERS = [
     role: "doctora",
     roleLabel: "Doctora",
     password: "prueba",
-    avatar: "👩‍⚕️"
+    iconKey: "user"
   },
   {
     id: "usr_admin",
@@ -4184,7 +4201,7 @@ const SYSTEM_USERS = [
     role: "admin",
     roleLabel: "Admin",
     password: "prueba",
-    avatar: "⚙️"
+    iconKey: "shield"
   },
   {
     id: "usr_asistente",
@@ -4193,7 +4210,7 @@ const SYSTEM_USERS = [
     role: "asistente",
     roleLabel: "Asistente",
     password: "prueba",
-    avatar: "📋"
+    iconKey: "clipboard"
   }
 ];
 
@@ -4260,7 +4277,9 @@ function logoutUser() {
 
 function updateUserBadgeUI(user) {
   const avatarElem = document.getElementById('current-user-avatar');
-  if (avatarElem) avatarElem.textContent = user.avatar;
+  if (avatarElem) {
+    avatarElem.innerHTML = UI_ICONS[user.iconKey] || UI_ICONS.user;
+  }
 
   const nameElem = document.getElementById('current-user-name');
   if (nameElem) nameElem.textContent = user.name;
