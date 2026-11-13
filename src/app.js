@@ -86,7 +86,9 @@ const UI_ICONS = {
   clock: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
   fileText: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>',
   checkCircle: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
-  eye: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+  eye: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+  calendar: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+  trash: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>'
 };
 
 // ESTADO GLOBAL
@@ -249,7 +251,7 @@ function switchView(viewName) {
   if (appState.currentUser && appState.currentUser.role === 'asistente') {
     const restricted = ['odontograma', 'historia', 'galeria', 'configuracion'];
     if (restricted.includes(viewName)) {
-      showToast('⚠️ Acceso Restringido: Sección exclusiva de la Doctora y Administrador.', 'warning');
+      showToast('Acceso Restringido: Sección exclusiva de la Doctora y Administrador.', 'warning');
       return;
     }
   }
@@ -454,14 +456,14 @@ function getConditionLabel(cond) {
 
 function getConditionIconLabel(cond) {
   const map = {
-    sano: '🟢 Sano',
-    caries: '🔴 Caries',
-    obturado: '🔵 Resina',
-    endodoncia: '🟡 Conducto',
-    cirugia: '🪚 Cirugía',
-    corona: '🟣 Corona',
-    ausente: '⚫ Ausente',
-    sellante: '🛡️ Sellante'
+    sano: 'Sano',
+    caries: 'Caries',
+    obturado: 'Resina',
+    endodoncia: 'Conducto',
+    cirugia: 'Cirugía',
+    corona: 'Corona',
+    ausente: 'Ausente',
+    sellante: 'Sellante'
   };
   return map[cond] || cond;
 }
@@ -541,9 +543,8 @@ function updateQuickToothPanel(toothNum) {
     const cond = surfaces[face] || (toothData.condition !== 'cirugia' && toothData.condition !== 'ausente' ? 'sano' : toothData.condition);
     const card = document.querySelector(`.angle-face-card[data-face="${face}"]`);
     if (card) {
-      if (cond === 'caries') card.style.borderColor = 'var(--danger)';
-      else if (cond === 'obturado') card.style.borderColor = 'var(--info)';
-      else card.style.borderColor = '#e2e8f0';
+      card.classList.toggle('is-caries', cond === 'caries');
+      card.classList.toggle('is-obturado', cond === 'obturado');
     }
 
     document.querySelectorAll(`.btn-face-choice[data-face="${face}"]`).forEach(btnChoice => {
@@ -813,7 +814,7 @@ async function applyGeneralTreatment(treatmentName) {
   await saveAppData();
   renderLiveOdontoBudget();
   renderBudgetsView();
-  showToast(`✨ ${treatmentName} agregado. Escribe el precio en la casilla al acordar con el paciente.`);
+  showToast(`${treatmentName} agregado. Escribe el precio en la casilla al acordar con el paciente.`);
 }
 
 // TABLA EN VIVO DE TRATAMIENTO CON PRECIOS EDITABLES MANUALMENTE
@@ -851,7 +852,7 @@ function renderLiveOdontoBudget() {
   if (tbody) {
     tbody.innerHTML = '';
     if (budget.items.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 18px;">No hay tratamientos asignados aún. Haz clic en las caras de los dientes arriba o en un procedimiento general.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" class="budget-table-empty">No hay tratamientos asignados aún. Haz clic en las caras de los dientes arriba o en un procedimiento general.</td></tr>';
     } else {
       budget.items.forEach((it, idx) => {
         const tr = document.createElement('tr');
@@ -859,29 +860,28 @@ function renderLiveOdontoBudget() {
         const currentPriceVal = it.price !== undefined ? it.price : 0;
         tr.innerHTML = `
           <td>
-            <span class="badge ${isGen ? 'badge-success' : 'badge-info'}" style="font-size: 11px;">
-              ${isGen ? '✨ Boca Completa' : `Pieza #${it.tooth}`}
+            <span class="badge ${isGen ? 'badge-success' : 'badge-info'}">
+              ${isGen ? 'Boca Completa' : `Pieza #${it.tooth}`}
             </span>
           </td>
           <td>
             <strong>${it.name}</strong>
           </td>
           <td>
-            <div style="display: flex; align-items: center; gap: 4px;">
-              <span style="font-weight: 800; color: var(--primary); font-size: 15px;">$</span>
+            <div class="live-price-cell">
+              <span class="live-price-currency">$</span>
               <input type="number" 
-                     class="form-control live-item-price-input" 
+                     class="form-control live-item-price-input live-price-input" 
                      data-idx="${idx}" 
                      value="${currentPriceVal}" 
                      min="0" 
                      step="any" 
                      placeholder="0.00" 
-                     style="width: 110px;" 
                      title="Ingresa aquí el precio acordado para este procedimiento">
             </div>
           </td>
-          <td style="text-align: right;">
-            <button class="btn btn-secondary btn-sm btn-delete-live-item" data-idx="${idx}" style="color: var(--danger); padding: 3px 8px;" title="Eliminar partida">🗑️</button>
+          <td class="text-right">
+            <button type="button" class="btn btn-secondary btn-sm btn-delete-live-item btn-action-danger" data-idx="${idx}" title="Eliminar partida" aria-label="Eliminar partida">${UI_ICONS.trash}</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1364,104 +1364,46 @@ function updateHistoryStats() {
   const summaryElem = document.getElementById('hc-stats-summary');
   if (summaryElem) {
     summaryElem.innerHTML = `
-      <span style="color: #dc2626; margin-right: 14px;">🔴 <strong>${cariesFacesCount}</strong> Caras por Reparar</span>
-      <span style="color: #0284c7; margin-right: 14px;">🔵 <strong>${obturadoFacesCount}</strong> Caras Reparadas</span>
-      <span style="color: #16a34a;">🟢 Sincronizado</span>
+      <span class="hc-stat-item hc-stat-item--danger"><span class="tool-dot tool-dot--caries" aria-hidden="true"></span> <strong>${cariesFacesCount}</strong> Caras por Reparar</span>
+      <span class="hc-stat-item hc-stat-item--info"><span class="tool-dot tool-dot--obturado" aria-hidden="true"></span> <strong>${obturadoFacesCount}</strong> Caras Reparadas</span>
+      <span class="hc-stat-item hc-stat-item--success"><span class="tool-dot tool-dot--sano" aria-hidden="true"></span> Sincronizado</span>
     `;
   }
 
   const sideCaries = document.getElementById('hc-side-caries-stat');
-  if (sideCaries) sideCaries.textContent = `🔴 ${cariesFacesCount} Caras por Reparar`;
+  if (sideCaries) sideCaries.innerHTML = `<span class="tool-dot tool-dot--caries" aria-hidden="true"></span> ${cariesFacesCount} Caras por Reparar`;
   const sideObturado = document.getElementById('hc-side-obturado-stat');
-  if (sideObturado) sideObturado.textContent = `🔵 ${obturadoFacesCount} Caras Reparadas`;
+  if (sideObturado) sideObturado.innerHTML = `<span class="tool-dot tool-dot--obturado" aria-hidden="true"></span> ${obturadoFacesCount} Caras Reparadas`;
 }
 
 function syncToolPaletteUI(tool) {
   appState.activeTool = tool;
 
-  // Actualizar botones de la barra superior
-  document.querySelectorAll('.btn-hc-tool').forEach(b => {
+  document.querySelectorAll('.btn-hc-tool, .btn-hc-side-tool, .btn-clinical-tool').forEach(b => {
     const isThis = b.getAttribute('data-tool') === tool;
     b.classList.toggle('active', isThis);
-    b.style.backgroundColor = isThis ? getToolBg(tool) : '#ffffff';
   });
 
-  // Actualizar botones del panel lateral derecho
-  document.querySelectorAll('.btn-hc-side-tool').forEach(b => {
-    const isThis = b.getAttribute('data-tool') === tool;
-    b.classList.toggle('active', isThis);
-    b.style.backgroundColor = isThis ? getToolBg(tool) : '#ffffff';
-    b.style.borderColor = isThis ? getToolBorder(tool) : '#cbd5e1';
-  });
-
-  // Actualizar botones de la vista Odontograma
-  document.querySelectorAll('.btn-clinical-tool').forEach(b => {
-    const isThis = b.getAttribute('data-tool') === tool;
-    b.classList.toggle('active', isThis);
-    b.style.backgroundColor = isThis ? getToolBg(tool) : '#ffffff';
-  });
-
-  // Actualizar badge del panel lateral
+  // Actualizar badge del panel lateral vía CSS [data-tool]
   const sideBadge = document.getElementById('hc-side-tool-badge');
   const sideToolName = document.getElementById('hc-side-tool-name');
   if (sideBadge && sideToolName) {
     sideToolName.textContent = getToolLabel(tool);
-    sideBadge.style.backgroundColor = getToolBg(tool);
-    sideBadge.style.borderColor = getToolBorder(tool);
-    sideBadge.style.color = getToolColor(tool);
+    sideBadge.setAttribute('data-tool', tool);
   }
 }
 
 function getToolLabel(tool) {
   const map = {
-    caries: "🔴 Por Reparar (Caries)",
-    obturado: "🔵 Ya Reparado (Resina)",
-    sano: "🟢 Marcar Sano (Goma)",
-    endodoncia: "🟡 Endodoncia",
-    corona: "🟣 Corona",
-    cirugia: "🪚 Cirugía / Extracción",
-    ausente: "⚫ Ya Ausente"
+    caries: "Por Reparar (Caries)",
+    obturado: "Ya Reparado (Resina)",
+    sano: "Marcar Sano",
+    endodoncia: "Endodoncia",
+    corona: "Corona",
+    cirugia: "Cirugía / Extracción",
+    ausente: "Ya Ausente"
   };
   return map[tool] || tool;
-}
-
-function getToolBg(tool) {
-  const map = {
-    caries: "#fef2f2",
-    obturado: "#eff6ff",
-    sano: "#f0fdf4",
-    endodoncia: "#fffbeb",
-    corona: "#f5f3ff",
-    cirugia: "#fff1f2",
-    ausente: "#f8fafc"
-  };
-  return map[tool] || "#ffffff";
-}
-
-function getToolBorder(tool) {
-  const map = {
-    caries: "#ef4444",
-    obturado: "#0284c7",
-    sano: "#22c55e",
-    endodoncia: "#f59e0b",
-    corona: "#8b5cf6",
-    cirugia: "#be123c",
-    ausente: "#64748b"
-  };
-  return map[tool] || "#cbd5e1";
-}
-
-function getToolColor(tool) {
-  const map = {
-    caries: "#dc2626",
-    obturado: "#0369a1",
-    sano: "#15803d",
-    endodoncia: "#b45309",
-    corona: "#7c3aed",
-    cirugia: "#9f1239",
-    ausente: "#334155"
-  };
-  return map[tool] || "#0f172a";
 }
 
 function saveCurrentClinicalHistoryForm(showNotification = false) {
@@ -2201,36 +2143,38 @@ function renderDailyTimeBlocks(dateStr) {
 
       slotDiv.innerHTML = `
         <div class="timeblock-time-label">
-          <span>🕒</span>
+          <span class="badge-icon-wrap">${UI_ICONS.clock}</span>
           <div>
             <div>${formatTime12h(startingApt.time)} - ${formatTime12h(endTimeStr)}</div>
-            <small style="font-size: 10px; color: var(--text-muted); font-weight: normal;">Inicio: ${startingApt.time}</small>
+            <small class="slot-start-sub">Inicio: ${startingApt.time}</small>
           </div>
         </div>
 
         <div class="timeblock-busy-info">
           <div>
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <strong style="font-size: 14px; color: var(--text-main);">${startingApt.patientName}</strong>
+            <div class="slot-busy-header">
+              <strong class="slot-patient-name">${startingApt.patientName}</strong>
               ${getStatusBadge(startingApt.status)}
-              <span class="slot-block-pill" style="background: var(--primary-light); color: var(--primary);">
-                ${blockCount === 1 ? '⏱️ 1 Bloque (30 min)' : `⏱️ ${blockCount} Bloques (${startingApt.duration || 60} min)`}
+              <span class="slot-block-pill">
+                <span class="badge-icon-wrap">${UI_ICONS.clock}</span>
+                ${blockCount === 1 ? '1 Bloque (30 min)' : `${blockCount} Bloques (${startingApt.duration || 60} min)`}
               </span>
             </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
-              <span>🦷 <strong>${startingApt.reason || 'Consulta'}</strong></span>
-              ${startingApt.notes ? ` • <span>📝 <em>${startingApt.notes}</em></span>` : ''}
+            <div class="slot-reason-line">
+              <span class="badge-icon-wrap">${UI_ICONS.tooth}</span>
+              <span><strong>${startingApt.reason || 'Consulta'}</strong></span>
+              ${startingApt.notes ? `<span>• <em>${startingApt.notes}</em></span>` : ''}
             </div>
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <div class="slot-actions-row">
           <button type="button" class="btn btn-whatsapp btn-sm btn-open-wa" title="Enviar recordatorio por WhatsApp" data-url="${waUrl}">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm5.79 14.18c-.24.67-1.39 1.29-1.93 1.34-.51.05-1.18.07-1.92-.16-.46-.14-1.04-.33-1.8-.66-3.19-1.39-5.27-4.63-5.43-4.84-.16-.22-1.3-1.74-1.3-3.32s.82-2.35 1.11-2.67c.29-.32.63-.4 0.85-.4.21 0 .42.01.6.02.19.01.44-.07.69.52.26.62.88 2.14.95 2.3.08.16.13.35.03.56-.1.21-.15.34-.3.51-.15.18-.32.4-.46.54-.15.15-.31.32-.13.63.18.31.8 1.32 1.72 2.14 1.18 1.05 2.18 1.38 2.49 1.54.31.15.49.13.67-.08.18-.21.79-.92 1-1.23.21-.32.42-.26.71-.16.29.11 1.83.86 2.15 1.02.32.16.53.24.61.37.08.14.08.79-.16 1.46z"/></svg>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm5.79 14.18c-.24.67-1.39 1.29-1.93 1.34-.51.05-1.18.07-1.92-.16-.46-.14-1.04-.33-1.8-.66-3.19-1.39-5.27-4.63-5.43-4.84-.16-.22-1.3-1.74-1.3-3.32s.82-2.35 1.11-2.67c.29-.32.63-.4 0.85-.4.21 0 .42.01.6.02.19.01.44-.07.69.52.26.62.88 2.14.95 2.3.08.16.13.35.03.56-.1.21-.15.34-.3.51-.15.18-.32.4-.46.54-.15.15-.31.32-.13.63.18.31.8 1.32 1.72 2.14 1.18 1.05 2.18 1.38 2.49 1.54.31.15.49.13.67-.08.18-.21.79-.92 1-1.23.21-.32.42-.26.71-.16.29.11 1.83.86 2.15 1.02.32.16.53.24.61.37.08.14.08.79-.16 1.46z"/></svg>
             <span>WhatsApp</span>
           </button>
 
-          <select class="form-control form-control-sm apt-status-select" style="width: 120px; font-size: 11px; padding: 4px;" data-id="${startingApt.id}">
+          <select class="form-control form-control-sm apt-status-select apt-status-select--compact" data-id="${startingApt.id}" aria-label="Estado de la cita">
             <option value="programada" ${startingApt.status === 'programada' ? 'selected' : ''}>Programada</option>
             <option value="confirmada" ${startingApt.status === 'confirmada' ? 'selected' : ''}>Confirmada</option>
             <option value="en_espera" ${startingApt.status === 'en_espera' ? 'selected' : ''}>En Espera</option>
@@ -2239,17 +2183,17 @@ function renderDailyTimeBlocks(dateStr) {
           </select>
 
           ${isAsistente ? '' : `
-          <button type="button" class="btn btn-secondary btn-sm btn-open-apt-history" title="Abrir Formato de Historia Clínica de este Paciente" data-patient="${startingApt.patientId}" style="padding: 4px 8px; font-size: 11px; font-weight: 700; color: #0284c7; border-color: #bae6fd;">
-            📋 Historia
+          <button type="button" class="btn btn-secondary btn-sm btn-open-apt-history btn-action-history" title="Abrir Formato de Historia Clínica de este Paciente" data-patient="${startingApt.patientId}">
+            ${UI_ICONS.fileText}<span>Historia</span>
           </button>
 
-          <button type="button" class="btn btn-secondary btn-sm btn-open-patient-odonto" title="Ver Odontograma" data-patient="${startingApt.patientId}" style="padding: 4px 8px; font-size: 12px;">
-            🦷
+          <button type="button" class="btn btn-secondary btn-sm btn-open-patient-odonto" title="Ver Odontograma" data-patient="${startingApt.patientId}" aria-label="Ver Odontograma">
+            ${UI_ICONS.tooth}
           </button>
           `}
 
-          <button type="button" class="btn btn-secondary btn-sm btn-delete-apt" title="Eliminar / Cancelar Cita" data-id="${startingApt.id}" style="padding: 4px 8px; font-size: 12px; color: var(--danger);">
-            🗑️
+          <button type="button" class="btn btn-secondary btn-sm btn-delete-apt btn-action-danger" title="Eliminar / Cancelar Cita" data-id="${startingApt.id}" aria-label="Eliminar o cancelar cita">
+            ${UI_ICONS.trash}
           </button>
         </div>
       `;
@@ -2259,23 +2203,20 @@ function renderDailyTimeBlocks(dateStr) {
 
     } else if (coveringApt) {
       const slotDiv = document.createElement('div');
-      slotDiv.className = 'timeblock-slot slot-busy';
-      slotDiv.style.background = '#f8fafc';
-      slotDiv.style.borderLeft = '6px dashed var(--primary)';
-      slotDiv.style.opacity = '0.9';
+      slotDiv.className = 'timeblock-slot slot-busy slot-busy--continuacion';
 
       slotDiv.innerHTML = `
         <div class="timeblock-time-label">
-          <span>🕒</span>
+          <span class="badge-icon-wrap">${UI_ICONS.clock}</span>
           <div>${block.label}</div>
         </div>
         <div class="timeblock-busy-info">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="slot-block-pill" style="background: #e0f2fe; color: #0369a1;">↳ Bloque Continuación</span>
-            <span style="font-size: 12px; color: var(--text-main);">Consulta en curso: <strong>${coveringApt.patientName}</strong> (${coveringApt.reason})</span>
+          <div class="slot-continuacion-row">
+            <span class="slot-block-pill slot-continuacion-pill">↳ Bloque Continuación</span>
+            <span class="slot-continuacion-text">Consulta en curso: <strong>${coveringApt.patientName}</strong> (${coveringApt.reason})</span>
           </div>
         </div>
-        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">
+        <div class="slot-continuacion-hint">
           Ocupado (Cita de las ${coveringApt.time})
         </div>
       `;
@@ -2287,15 +2228,15 @@ function renderDailyTimeBlocks(dateStr) {
 
       slotDiv.innerHTML = `
         <div class="timeblock-time-label">
-          <span>🕒</span>
+          <span class="badge-icon-wrap">${UI_ICONS.clock}</span>
           <span>${block.label}</span>
         </div>
         <div class="timeblock-free-desc">
-          <span>🟢</span>
+          <span class="slot-free-dot" aria-hidden="true"></span>
           <span>Bloque Disponible (30 min)</span>
         </div>
         <div>
-          <button type="button" class="btn btn-outline-primary btn-sm btn-book-slot" data-date="${dateStr}" data-time="${block.start}" style="font-weight: 700; font-size: 12px; padding: 5px 12px;">
+          <button type="button" class="btn btn-outline-primary btn-sm btn-book-slot" data-date="${dateStr}" data-time="${block.start}">
             + Agendar Cita en este Horario
           </button>
         </div>
@@ -2330,9 +2271,9 @@ function renderAppointmentsList(dateFilter) {
   container.innerHTML = '';
   if (filtered.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-        <p style="font-size: 15px; font-weight: 600;">No hay citas registradas para este filtro.</p>
-        <p style="font-size: 12px; margin-top: 6px;">Haz clic en "Agendar Cita" para programar una consulta odontológica.</p>
+      <div class="apt-list-empty">
+        <p class="gallery-empty-title">No hay citas registradas para este filtro.</p>
+        <p class="gallery-empty-sub">Haz clic en "Agendar Cita" para programar una consulta odontológica.</p>
       </div>
     `;
     return;
@@ -2355,26 +2296,26 @@ function renderAppointmentsList(dateFilter) {
       </div>
 
       <div class="appointment-details">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+        <div class="apt-list-header-row">
           <h4>${apt.patientName}</h4>
           ${getStatusBadge(apt.status)}
         </div>
         <p>
           <span><strong>Procedimiento:</strong> ${apt.reason}</span>
-          <span>📅 ${formatDisplayDate(apt.date)}</span>
-          ${apt.notes ? `<span>📝 <em>${apt.notes}</em></span>` : ''}
+          <span class="apt-list-meta-row">${UI_ICONS.calendar} ${formatDisplayDate(apt.date)}</span>
+          ${apt.notes ? `<span>• <em>${apt.notes}</em></span>` : ''}
         </p>
       </div>
 
       <div class="appointment-actions">
         <button type="button" class="btn btn-whatsapp btn-sm btn-open-wa" title="Enviar recordatorio por WhatsApp" data-url="${waUrl}">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
             <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm5.79 14.18c-.24.67-1.39 1.29-1.93 1.34-.51.05-1.18.07-1.92-.16-.46-.14-1.04-.33-1.8-.66-3.19-1.39-5.27-4.63-5.43-4.84-.16-.22-1.3-1.74-1.3-3.32s.82-2.35 1.11-2.67c.29-.32.63-.4 0.85-.4.21 0 .42.01.6.02.19.01.44-.07.69.52.26.62.88 2.14.95 2.3.08.16.13.35.03.56-.1.21-.15.34-.3.51-.15.18-.32.4-.46.54-.15.15-.31.32-.13.63.18.31.8 1.32 1.72 2.14 1.18 1.05 2.18 1.38 2.49 1.54.31.15.49.13.67-.08.18-.21.79-.92 1-1.23.21-.32.42-.26.71-.16.29.11 1.83.86 2.15 1.02.32.16.53.24.61.37.08.14.08.79-.16 1.46z"/>
           </svg>
           <span>WhatsApp</span>
         </button>
 
-        <select class="form-control form-control-sm apt-status-select" style="width: 130px; font-size: 12px; padding: 6px;" data-id="${apt.id}">
+        <select class="form-control form-control-sm apt-status-select apt-status-select--list" data-id="${apt.id}" aria-label="Estado de la cita">
           <option value="programada" ${apt.status === 'programada' ? 'selected' : ''}>Programada</option>
           <option value="confirmada" ${apt.status === 'confirmada' ? 'selected' : ''}>Confirmada</option>
           <option value="en_espera" ${apt.status === 'en_espera' ? 'selected' : ''}>En Espera</option>
@@ -2383,17 +2324,17 @@ function renderAppointmentsList(dateFilter) {
         </select>
 
         ${isAsistente ? '' : `
-        <button type="button" class="btn btn-secondary btn-sm btn-open-apt-history" title="Ver Historia Clínica" data-patient="${apt.patientId}" style="font-weight: 700; color: #0284c7; border-color: #bae6fd;">
-          📋 Historia
+        <button type="button" class="btn btn-secondary btn-sm btn-open-apt-history btn-action-history" title="Ver Historia Clínica" data-patient="${apt.patientId}">
+          ${UI_ICONS.fileText}<span>Historia</span>
         </button>
 
         <button type="button" class="btn btn-secondary btn-sm btn-open-patient-odonto" title="Ver Odontograma del paciente" data-patient="${apt.patientId}">
-          🦷 Odontograma
+          ${UI_ICONS.tooth}<span>Odontograma</span>
         </button>
         `}
 
-        <button type="button" class="btn btn-secondary btn-sm btn-delete-apt" title="Eliminar cita" data-id="${apt.id}" style="color: var(--danger);">
-          🗑️
+        <button type="button" class="btn btn-secondary btn-sm btn-delete-apt btn-action-danger" title="Eliminar cita" data-id="${apt.id}" aria-label="Eliminar cita">
+          ${UI_ICONS.trash}
         </button>
       </div>
     `;
@@ -2590,22 +2531,17 @@ function renderPatientsList() {
   container.innerHTML = '';
   filtered.forEach(p => {
     const item = document.createElement('div');
-    item.style.padding = '12px';
-    item.style.borderRadius = '8px';
-    item.style.border = p.id === appState.currentPatientId ? '2px solid var(--primary)' : '1px solid var(--border-color)';
-    item.style.backgroundColor = p.id === appState.currentPatientId ? 'var(--primary-light)' : '#ffffff';
-    item.style.cursor = 'pointer';
-    item.style.transition = 'border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease';
+    item.className = `patient-list-item${p.id === appState.currentPatientId ? ' is-selected' : ''}`;
 
     item.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <strong style="font-size: 14px; color: var(--text-main);">${p.name}</strong>
-        <span style="font-size: 11px; color: var(--text-muted);">${p.documentId || ''}</span>
+      <div class="patient-list-row">
+        <strong class="patient-list-name">${p.name}</strong>
+        <span class="patient-list-doc">${p.documentId || ''}</span>
       </div>
-      <div style="font-size: 12px; color: var(--text-muted);">📞 ${p.phone}</div>
+      <div class="patient-list-phone">${UI_ICONS.phone}<span>${p.phone}</span></div>
       ${p.medicalAlerts && p.medicalAlerts.allergies && p.medicalAlerts.allergies.toLowerCase() !== 'ninguna' ? `
-        <div style="font-size: 10px; font-weight: bold; color: var(--danger); margin-top: 4px;">
-          ⚠️ ${p.medicalAlerts.allergies}
+        <div class="patient-list-allergy">
+          ${UI_ICONS.alert}<span>${p.medicalAlerts.allergies}</span>
         </div>
       ` : ''}
     `;
@@ -2643,13 +2579,13 @@ function renderPatientDetail() {
     <div class="patient-profile-header">
       <div class="patient-avatar-info">
         <div class="patient-avatar">${patient.name.charAt(0)}</div>
-        <div>
-          <h2 style="font-size: 20px; font-weight: 800;">${patient.name}</h2>
-          <p style="font-size: 13px; color: #94a3b8; margin-top: 2px;">
+        <div class="patient-profile-identity">
+          <h2>${patient.name}</h2>
+          <p class="patient-profile-sub">
             Cédula: <strong>${patient.documentId}</strong> • ${patient.age || 0} años • ${patient.occupation || 'Sin ocupación'}
           </p>
-          <p style="font-size: 12px; color: #38bdf8; margin-top: 4px;">
-            📞 ${patient.phone} • ✉️ ${patient.email || 'Sin correo'}
+          <p class="patient-profile-occupation">
+            ${patient.phone} • ${patient.email || 'Sin correo'}
           </p>
         </div>
       </div>
@@ -2657,44 +2593,44 @@ function renderPatientDetail() {
       <div class="patient-critical-alerts">
         ${alerts.allergies && alerts.allergies.toLowerCase() !== 'ninguna' ? `
           <div class="alert-banner">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             <span>${alerts.allergies}</span>
           </div>
         ` : '<span class="badge badge-success">Sin Alergias Reportadas</span>'}
 
         ${alerts.systemicDiseases && alerts.systemicDiseases.toLowerCase() !== 'ninguna' ? `
-          <div style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5); color: #fde68a; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;">
-            ❤️ Condición: ${alerts.systemicDiseases}
+          <div class="patient-alert-pill">
+            ${UI_ICONS.alert}<span>Condición: ${alerts.systemicDiseases}</span>
           </div>
         ` : ''}
       </div>
     </div>
 
     <!-- Botones de Acción Directa -->
-    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+    <div class="patient-action-bar">
       ${isAsistente ? '' : `
-      <button id="btn-go-to-history" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 700;">
-        📋 Abrir Historia Clínica Oficial (Dra. Celenia Tovar)
+      <button type="button" id="btn-go-to-history" class="btn btn-primary btn-sm">
+        ${UI_ICONS.fileText}<span>Historia Clínica Oficial</span>
       </button>
-      <button id="btn-go-to-odontogram" class="btn btn-secondary btn-sm">
-        🦷 Odontograma
+      <button type="button" id="btn-go-to-odontogram" class="btn btn-secondary btn-sm">
+        ${UI_ICONS.tooth}<span>Odontograma</span>
       </button>
       `}
-      <button id="btn-create-apt-for-patient" class="btn btn-secondary btn-sm">
-        📅 Agendar Cita
+      <button type="button" id="btn-create-apt-for-patient" class="btn btn-secondary btn-sm">
+        ${UI_ICONS.calendar}<span>Agendar Cita</span>
       </button>
-      <button id="btn-go-to-patient-budget" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #0284c7; border-color: #bae6fd;">
-        💰 Presupuesto & Pagos
+      <button type="button" id="btn-go-to-patient-budget" class="btn btn-secondary btn-sm btn-print-outline">
+        <span>Presupuesto & Pagos</span>
       </button>
-      <button id="btn-edit-patient-info" class="btn btn-secondary btn-sm">
-        ✏️ Editar Datos Personales
+      <button type="button" id="btn-edit-patient-info" class="btn btn-secondary btn-sm">
+        <span>Editar Datos Personales</span>
       </button>
     </div>
 
     <!-- Antecedentes & Notas Clínicas de Evolución -->
-    <div class="card" style="margin-bottom: 16px; background-color: #f8fafc;">
-      <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 10px;">📋 Antecedentes Médicos & Odontológicos</h4>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 13px;">
+    <div class="card patient-medical-card">
+      <h4 class="patient-medical-title">${UI_ICONS.clipboard}<span>Antecedentes Médicos & Odontológicos</span></h4>
+      <div class="patient-medical-grid">
         <div><strong>Medicamentos Actuales:</strong> ${alerts.medications || 'Ninguno'}</div>
         <div><strong>Contacto Emergencia:</strong> ${patient.emergencyContact || 'No registrado'}</div>
         <div><strong>Dirección:</strong> ${patient.address || 'No registrada'}</div>
@@ -2703,21 +2639,21 @@ function renderPatientDetail() {
 
     <!-- Evolución de Consultas -->
     <div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h4 style="font-size: 15px; font-weight: 700;">Historial Clínico & Evolución</h4>
+      <div class="clinical-notes-header">
+        <h4 class="clinical-notes-title">Historial Clínico & Evolución</h4>
         ${isAsistente ? '' : `
-        <button id="btn-add-clinical-note" class="btn btn-secondary btn-sm">+ Agregar Nota de Evolución</button>
+        <button type="button" id="btn-add-clinical-note" class="btn btn-secondary btn-sm">+ Agregar Nota de Evolución</button>
         `}
       </div>
 
-      <div id="patient-notes-timeline" style="display: flex; flex-direction: column; gap: 10px;">
+      <div id="patient-notes-timeline" class="clinical-notes-timeline">
         ${(patient.clinicalNotes || []).map(n => `
-          <div style="background: #ffffff; border: 1px solid var(--border-color); border-left: 4px solid var(--primary); padding: 12px 16px; border-radius: 8px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">
-              <strong>📅 ${formatDisplayDate(n.date)}</strong>
+          <div class="clinical-note-card">
+            <div class="clinical-note-meta">
+              <strong class="clinical-note-date">${UI_ICONS.calendar}<span>${formatDisplayDate(n.date)}</span></strong>
               <span>${n.author || 'Dra. Tratante'}</span>
             </div>
-            <p style="font-size: 13px; color: var(--text-main);">${n.note}</p>
+            <p class="clinical-note-body">${n.note}</p>
           </div>
         `).join('')}
       </div>
@@ -3140,17 +3076,11 @@ function renderPatientBudgetBreakdown() {
   const statusBadge = document.getElementById('breakdown-patient-status-badge');
   if (statusBadge) {
     if (balance > 0) {
-      statusBadge.className = 'badge badge-warning';
+      statusBadge.className = 'badge badge-danger';
       statusBadge.textContent = `Saldo Pendiente: $${balance.toFixed(2)}`;
-      statusBadge.style.backgroundColor = 'var(--danger-bg)';
-      statusBadge.style.color = 'var(--danger)';
-      statusBadge.style.borderColor = 'var(--danger)';
     } else {
       statusBadge.className = 'badge badge-success';
-      statusBadge.textContent = '✅ Cuenta al Día ($0.00)';
-      statusBadge.style.backgroundColor = 'var(--success-bg)';
-      statusBadge.style.color = 'var(--success)';
-      statusBadge.style.borderColor = 'var(--success)';
+      statusBadge.textContent = 'Cuenta al Día ($0.00)';
     }
   }
 
@@ -3178,30 +3108,29 @@ function renderPatientBudgetBreakdown() {
   if (itemsTbody) {
     itemsTbody.innerHTML = '';
     if (budget.items.length === 0) {
-      itemsTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">No hay procedimientos en el plan de tratamiento actual. Agrega desde el odontograma o con el botón "+ Agregar Procedimiento".</td></tr>';
+      itemsTbody.innerHTML = '<tr><td colspan="4" class="budget-table-empty">No hay procedimientos en el plan de tratamiento actual. Agrega desde el odontograma o con el botón "+ Agregar Procedimiento".</td></tr>';
     } else {
       budget.items.forEach((it, idx) => {
         const tr = document.createElement('tr');
         const currentPriceVal = it.price !== undefined ? it.price : 0;
         tr.innerHTML = `
-          <td><strong style="color: var(--primary);">${it.tooth ? `Pieza #${it.tooth}` : 'General'}</strong></td>
+          <td><strong class="monthly-balance-primary">${it.tooth ? `Pieza #${it.tooth}` : 'General'}</strong></td>
           <td>${it.name}</td>
           <td>
-            <div style="display: flex; align-items: center; gap: 4px;">
-              <span style="font-weight: 800; color: var(--primary); font-size: 14px;">$</span>
+            <div class="live-price-cell">
+              <span class="live-price-currency">$</span>
               <input type="number" 
-                     class="form-control budget-item-price-input" 
+                     class="form-control budget-item-price-input live-price-input" 
                      data-idx="${idx}" 
                      value="${currentPriceVal}" 
                      min="0" 
                      step="any" 
                      placeholder="0.00" 
-                     style="width: 105px; font-weight: 800;" 
                      title="Ingresa aquí el precio acordado">
             </div>
           </td>
-          <td style="text-align: right;">
-            <button type="button" class="btn btn-secondary btn-sm btn-delete-budget-item" data-idx="${idx}" style="color: var(--danger);">🗑️ Eliminar</button>
+          <td class="text-right">
+            <button type="button" class="btn btn-secondary btn-sm btn-delete-budget-item btn-action-danger" data-idx="${idx}">${UI_ICONS.trash}<span>Eliminar</span></button>
           </td>
         `;
         itemsTbody.appendChild(tr);
@@ -3251,7 +3180,7 @@ function renderPatientBudgetBreakdown() {
   if (payTbody) {
     payTbody.innerHTML = '';
     if ((budget.payments || []).length === 0) {
-      payTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Aún no se han registrado abonos para este paciente.</td></tr>';
+      payTbody.innerHTML = '<tr><td colspan="5" class="budget-table-empty">Aún no se han registrado abonos para este paciente.</td></tr>';
     } else {
       budget.payments.forEach(p => {
         const tr = document.createElement('tr');
@@ -3260,7 +3189,7 @@ function renderPatientBudgetBreakdown() {
           <td>${p.method}</td>
           <td><code>${p.reference || 'S/R'}</code></td>
           <td>${p.note || ''}</td>
-          <td><strong style="color: var(--success); font-size: 14px;">+$${(p.amount || 0).toFixed(2)}</strong></td>
+          <td><strong class="monthly-balance-success">+$${(p.amount || 0).toFixed(2)}</strong></td>
         `;
         payTbody.appendChild(tr);
       });
@@ -3395,9 +3324,9 @@ function renderGalleryView() {
 
   if (gallery.length === 0) {
     container.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
-        <p style="font-size: 15px; font-weight: 600;">No hay radiografías ni fotos registradas para este paciente.</p>
-        <p style="font-size: 12px; margin-top: 6px;">Haz clic en "Agregar Imagen o Rayos X" para adjuntar estudios diagnósticos.</p>
+      <div class="gallery-empty-state">
+        <p class="gallery-empty-title">No hay radiografías ni fotos registradas para este paciente.</p>
+        <p class="gallery-empty-sub">Haz clic en "Agregar Imagen o Rayos X" para adjuntar estudios diagnósticos.</p>
       </div>
     `;
     return;
@@ -3407,11 +3336,11 @@ function renderGalleryView() {
     const card = document.createElement('div');
     card.className = 'gallery-card';
     card.innerHTML = `
-      <img src="${img.src}" alt="${img.title}" class="gallery-thumb" />
+      <img src="${img.src}" alt="${img.title}" class="gallery-thumb" loading="lazy" />
       <div class="gallery-info">
         <h5>${img.title}</h5>
-        <p>📅 ${formatDisplayDate(img.date)} • <strong>${img.type || 'Estudio'}</strong></p>
-        ${img.notes ? `<p style="margin-top: 4px; color: var(--text-main); font-size: 12px;">${img.notes}</p>` : ''}
+        <p class="gallery-meta-row">${UI_ICONS.calendar}<span>${formatDisplayDate(img.date)} • <strong>${img.type || 'Estudio'}</strong></span></p>
+        ${img.notes ? `<p class="gallery-notes-text">${img.notes}</p>` : ''}
       </div>
     `;
     container.appendChild(card);
@@ -3849,24 +3778,9 @@ function setupEventListeners() {
   // 1. PALETA DE PINCEL CLÍNICO (Caries, Resina, Endodoncia, Corona, Cirugía, Ausente, Sano)
   document.querySelectorAll('.btn-clinical-tool').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.btn-clinical-tool').forEach(b => {
-        b.classList.remove('active');
-        b.style.backgroundColor = '#ffffff';
-      });
-      btn.classList.add('active');
       const tool = btn.getAttribute('data-tool');
-      appState.activeTool = tool;
-
-      // Color de fondo distintivo según la herramienta activa
-      if (tool === 'caries') btn.style.backgroundColor = 'var(--danger-bg)';
-      else if (tool === 'obturado') btn.style.backgroundColor = '#eff6ff';
-      else if (tool === 'endodoncia') btn.style.backgroundColor = '#fefce8';
-      else if (tool === 'corona') btn.style.backgroundColor = '#f5f3ff';
-      else if (tool === 'cirugia') btn.style.backgroundColor = '#ffe4e6';
-      else if (tool === 'ausente') btn.style.backgroundColor = '#f1f5f9';
-      else if (tool === 'sano') btn.style.backgroundColor = '#f0fdf4';
-
-      showToast(`🖌️ Pincel activo: ${btn.textContent.trim()}. Haz clic en cualquier cuadrito del diente.`);
+      syncToolPaletteUI(tool);
+      showToast(`Pincel activo: ${btn.textContent.trim()}. Haz clic en cualquier cuadrito del diente.`);
     });
   });
 
@@ -4366,12 +4280,12 @@ function showToast(msg, type = 'info') {
   if (!container) return;
 
   const toast = document.createElement('div');
-  toast.className = 'toast';
-  if (type === 'warning') toast.style.backgroundColor = '#d97706';
-  if (type === 'danger') toast.style.backgroundColor = '#dc2626';
+  const variant = type === 'warning' ? 'toast--warning' : (type === 'danger' ? 'toast--danger' : 'toast--info');
+  toast.className = `toast ${variant}`;
 
+  const iconHtml = (type === 'danger' || type === 'warning') ? UI_ICONS.alert : UI_ICONS.checkCircle;
   toast.innerHTML = `
-    <span>${type === 'danger' ? '⚠️' : '✅'}</span>
+    <span class="badge-icon-wrap">${iconHtml}</span>
     <span>${msg}</span>
   `;
 
