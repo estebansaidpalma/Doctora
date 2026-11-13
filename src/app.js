@@ -91,6 +91,86 @@ const UI_ICONS = {
   trash: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>'
 };
 
+// HELPERS DE FECHA LOCAL Y FINANZAS POR PACIENTE (SIN DESFASE UTC)
+function getLocalISODate(dateObj = new Date()) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getLocalISOMonth(dateObj = new Date()) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+function ensurePatientBudget(patient) {
+  if (!patient) return null;
+  if (!Array.isArray(patient.budgets) || patient.budgets.length === 0) {
+    patient.budgets = [{
+      id: `B-${Date.now().toString().slice(-4)}`,
+      date: getLocalISODate(),
+      items: [],
+      subtotal: 0,
+      discount: 0,
+      total: 0,
+      payments: [],
+      balance: 0
+    }];
+  }
+  const budget = patient.budgets[0];
+  if (!Array.isArray(budget.items)) budget.items = [];
+  if (!Array.isArray(budget.payments)) budget.payments = [];
+  return budget;
+}
+
+function recalculatePatientBudget(patient) {
+  const budget = ensurePatientBudget(patient);
+  if (!budget) return { budget: null, subtotal: 0, discount: 0, total: 0, paid: 0, balance: 0 };
+
+  const subtotal = budget.items.reduce((acc, it) => acc + (Math.max(0, parseFloat(it.price) || 0)), 0);
+  const discount = Math.max(0, parseFloat(budget.discount) || 0);
+  const total = Math.max(0, subtotal - discount);
+  const paid = budget.payments.reduce((acc, p) => acc + (Math.max(0, parseFloat(p.amount) || 0)), 0);
+  const balance = Math.max(0, total - paid);
+
+  budget.subtotal = subtotal;
+  budget.discount = discount;
+  budget.total = total;
+  budget.balance = balance;
+
+  return { budget, subtotal, discount, total, paid, balance };
+}
+
+function syncPatientContactInAppointments(patient) {
+  if (!patient || !Array.isArray(appState.appointments)) return;
+  appState.appointments.forEach(apt => {
+    if (apt.patientId === patient.id) {
+      apt.patientName = patient.name;
+      apt.phone = patient.phone;
+    }
+  });
+}
+
+function normalizeAppState() {
+  if (!Array.isArray(appState.patients)) appState.patients = [];
+  if (!Array.isArray(appState.appointments)) appState.appointments = [];
+  if (!Array.isArray(appState.treatments)) appState.treatments = [];
+  if (!appState.clinic || typeof appState.clinic !== 'object') appState.clinic = {};
+  if (!appState.activeTool) appState.activeTool = 'caries';
+  if (!appState.appointmentViewMode) appState.appointmentViewMode = 'blocks';
+  if (!appState.budgetViewMode) appState.budgetViewMode = 'monthly';
+  if (!appState.selectedAppointmentDate) appState.selectedAppointmentDate = getLocalISODate();
+  if (!appState.selectedWeekDate) appState.selectedWeekDate = getLocalISODate();
+  if (!appState.selectedBudgetMonth) appState.selectedBudgetMonth = getLocalISOMonth();
+
+  const hasCurrent = appState.patients.some(p => p.id === appState.currentPatientId);
+  if (appState.patients.length > 0 && !hasCurrent) {
+    appState.currentPatientId = appState.patients[0].id;
+  }
+}
+
 // ESTADO GLOBAL
 let appState = {
   currentUser: null,
@@ -101,11 +181,11 @@ let appState = {
   currentPatientId: null,
   activeToothModalNum: null,
   selectedTooth: null,
-  activeTool: 'caries', // Herramienta activa de pincel por defecto (🔴 Caries)
+  activeTool: 'caries', // Herramienta activa de pincel por defecto (Carie Roja)
   appointmentViewMode: 'blocks', // 'blocks' (cronograma 30 min) o 'list'
-  selectedAppointmentDate: new Date().toISOString().slice(0, 10),
-  selectedWeekDate: new Date().toISOString().slice(0, 10),
-  selectedBudgetMonth: new Date().toISOString().slice(0, 7), // YYYY-MM actual
+  selectedAppointmentDate: getLocalISODate(),
+  selectedWeekDate: getLocalISODate(),
+  selectedBudgetMonth: getLocalISOMonth(), // YYYY-MM actual
   budgetViewMode: 'monthly' // 'monthly' (totales del mes) o 'patient' (desglose)
 };
 
@@ -149,9 +229,7 @@ async function loadAppData() {
     }
   }
 
-  if (appState.patients && appState.patients.length > 0 && !appState.currentPatientId) {
-    appState.currentPatientId = appState.patients[0].id;
-  }
+  normalizeAppState();
 }
 
 async function saveAppData() {
@@ -273,27 +351,58 @@ function switchView(viewName) {
   if (targetNav) targetNav.click();
 }
 
-// SELECTOR GLOBAL DE PACIENTE
+// SINCRONIZACIÓN DE SELECTORES DE PACIENTE POR VISTA
 function populateGlobalPatientSelect() {
-  const select = document.getElementById('global-patient-select');
-  if (!select) return;
-  select.innerHTML = '';
-  appState.patients.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = p.name;
-    if (p.id === appState.currentPatientId) opt.selected = true;
-    select.appendChild(opt);
+  const contextualIds = ['odonto-patient-select', 'gallery-patient-select', 'hc-patient-select'];
+  contextualIds.forEach(selectId => {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    select.innerHTML = '';
+    appState.patients.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `${p.name} (${p.documentId || 'Sin CI'})`;
+      if (p.id === appState.currentPatientId) opt.selected = true;
+      select.appendChild(opt);
+    });
+
+    if (selectId !== 'hc-patient-select') {
+      select.onchange = () => {
+        setActivePatient(select.value, { source: selectId });
+      };
+    }
   });
 
-  select.onchange = () => {
-    appState.currentPatientId = select.value;
-    renderOdontogramBoard();
-    renderPatientsList();
-    renderBudgetsView();
-    renderGalleryView();
+  const budgetSelect = document.getElementById('budget-patient-select');
+  if (budgetSelect && Array.from(budgetSelect.options).some(o => o.value === appState.currentPatientId)) {
+    budgetSelect.value = appState.currentPatientId;
+  }
+}
+
+function setActivePatient(patientId, options = {}) {
+  if (!patientId || !appState.patients.some(p => p.id === patientId)) return;
+  const changed = appState.currentPatientId !== patientId;
+  appState.currentPatientId = patientId;
+
+  if (changed) {
+    appState.selectedTooth = null;
+    const bar = document.getElementById('quick-tooth-action-bar');
+    if (bar) bar.style.display = 'none';
+  }
+
+  populateGlobalPatientSelect();
+  renderOdontogramBoard();
+  if (options.source !== 'historia') {
+    renderClinicalHistoryView();
+  }
+  renderPatientsList();
+  renderBudgetsView();
+  renderGalleryView();
+
+  if (!options.silent && changed) {
     showToast(`Paciente activo cambiado a: ${getCurrentPatient()?.name || ''}`);
-  };
+  }
 }
 
 function getCurrentPatient() {
@@ -522,13 +631,7 @@ function selectToothQuick(toothNum, toggleDetail = true) {
   }
 
   if (toggleDetail) {
-    const patient = getCurrentPatient();
-    if (patient) {
-      renderQuadrantTeeth('teeth-quadrant-1', ['18', '17', '16', '15', '14', '13', '12', '11'], patient);
-      renderQuadrantTeeth('teeth-quadrant-2', ['21', '22', '23', '24', '25', '26', '27', '28'], patient);
-      renderQuadrantTeeth('teeth-quadrant-4', ['48', '47', '46', '45', '44', '43', '42', '41'], patient);
-      renderQuadrantTeeth('teeth-quadrant-3', ['31', '32', '33', '34', '35', '36', '37', '38'], patient);
-    }
+    renderOdontogramBoard();
   }
 }
 
@@ -672,19 +775,7 @@ async function applyToolToToothFace(toothNum, face, tool) {
   toothObj.notes = desc;
 
   // Sincronizar partida de presupuesto (SIN PRECIOS FIJOS - PRESERVAR LO QUE ESCRIBA LA DOCTORA)
-  if (!patient.budgets || patient.budgets.length === 0) {
-    patient.budgets = [{
-      id: `B-${Date.now().toString().slice(-4)}`,
-      date: new Date().toISOString().slice(0, 10),
-      items: [],
-      subtotal: 0,
-      discount: 0,
-      total: 0,
-      payments: [],
-      balance: 0
-    }];
-  }
-  const budget = patient.budgets[0];
+  const budget = ensurePatientBudget(patient);
   const existingIdx = budget.items.findIndex(it => it.tooth === toothNum);
 
   if (overallCond === 'sano') {
@@ -710,6 +801,7 @@ async function applyToolToToothFace(toothNum, face, tool) {
     }
   }
 
+  recalculatePatientBudget(patient);
   await saveAppData();
   renderOdontogramBoard();
   renderHistoryOdontogram();
@@ -755,19 +847,7 @@ async function applyWholeToothCondition(toothNum, condition) {
   }
 
   // Sincronizar presupuesto
-  if (!patient.budgets || patient.budgets.length === 0) {
-    patient.budgets = [{
-      id: `B-${Date.now().toString().slice(-4)}`,
-      date: new Date().toISOString().slice(0, 10),
-      items: [],
-      subtotal: 0,
-      discount: 0,
-      total: 0,
-      payments: [],
-      balance: 0
-    }];
-  }
-  const budget = patient.budgets[0];
+  const budget = ensurePatientBudget(patient);
   const existingIdx = budget.items.findIndex(it => it.tooth === toothNum);
 
   if (condition === 'sano' || condition === 'ausente') {
@@ -788,6 +868,7 @@ async function applyWholeToothCondition(toothNum, condition) {
     }
   }
 
+  recalculatePatientBudget(patient);
   await saveAppData();
   renderOdontogramBoard();
   renderHistoryOdontogram();
@@ -803,20 +884,7 @@ async function applyGeneralTreatment(treatmentName) {
   const patient = getCurrentPatient();
   if (!patient) return;
 
-  if (!patient.budgets || patient.budgets.length === 0) {
-    patient.budgets = [{
-      id: `B-${Date.now().toString().slice(-4)}`,
-      date: new Date().toISOString().slice(0, 10),
-      items: [],
-      subtotal: 0,
-      discount: 0,
-      total: 0,
-      payments: [],
-      balance: 0
-    }];
-  }
-
-  const budget = patient.budgets[0];
+  const budget = ensurePatientBudget(patient);
   budget.items.push({
     treatmentId: `ITEM-${Date.now()}`,
     tooth: 'General',
@@ -824,6 +892,7 @@ async function applyGeneralTreatment(treatmentName) {
     price: 0 // Sin precio fijo, se escribe en la casilla al sentarse con el paciente
   });
 
+  recalculatePatientBudget(patient);
   await saveAppData();
   renderLiveOdontoBudget();
   renderBudgetsView();
@@ -835,30 +904,7 @@ function renderLiveOdontoBudget() {
   const patient = getCurrentPatient();
   if (!patient) return;
 
-  if (!patient.budgets || patient.budgets.length === 0) {
-    patient.budgets = [{
-      id: `B-${Date.now().toString().slice(-4)}`,
-      date: new Date().toISOString().slice(0, 10),
-      items: [],
-      subtotal: 0,
-      discount: 0,
-      total: 0,
-      payments: [],
-      balance: 0
-    }];
-  }
-
-  const budget = patient.budgets[0];
-  const subtotal = budget.items.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
-  const discount = budget.discount || 0;
-  const total = Math.max(0, subtotal - discount);
-  const paid = budget.payments.reduce((acc, p) => acc + (p.amount || 0), 0);
-  const balance = Math.max(0, total - paid);
-
-  budget.subtotal = subtotal;
-  budget.discount = discount;
-  budget.total = total;
-  budget.balance = balance;
+  const { budget, subtotal, discount, total, paid, balance } = recalculatePatientBudget(patient);
 
   // Llenar tabla en vivo
   const tbody = document.getElementById('odonto-live-tbody');
@@ -908,13 +954,8 @@ function renderLiveOdontoBudget() {
           if (budget.items[idx]) {
             budget.items[idx].price = newPrice;
           }
-          // Recalcular instantáneamente
-          const newSub = budget.items.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
-          const newTot = Math.max(0, newSub - (budget.discount || 0));
-          const newBal = Math.max(0, newTot - paid);
-          budget.subtotal = newSub;
-          budget.total = newTot;
-          budget.balance = newBal;
+          // Recalcular instantáneamente con helper unificado
+          const { subtotal: newSub, total: newTot, balance: newBal } = recalculatePatientBudget(patient);
 
           const sElem = document.getElementById('odonto-subtotal-val');
           if (sElem) sElem.textContent = `$${newSub.toFixed(2)}`;
@@ -933,6 +974,7 @@ function renderLiveOdontoBudget() {
         btn.addEventListener('click', async (e) => {
           const idx = parseInt(e.currentTarget.getAttribute('data-idx'));
           budget.items.splice(idx, 1);
+          recalculatePatientBudget(patient);
           await saveAppData();
           renderLiveOdontoBudget();
           renderBudgetsView();
@@ -1074,6 +1116,11 @@ async function saveToothModalChanges() {
 
   await saveAppData();
   renderOdontogramBoard();
+  renderHistoryOdontogram();
+  updateHistoryStats();
+  if (appState.selectedTooth === toothNum) {
+    updateQuickToothPanel(toothNum);
+  }
   document.getElementById('tooth-modal').classList.remove('active');
   showToast(`Diente #${toothNum} actualizado con éxito.`);
 }
@@ -1083,6 +1130,7 @@ async function addActiveToothToBudget() {
   const toothNum = appState.activeToothModalNum;
   if (!toothNum) return;
   const patient = getCurrentPatient();
+  if (!patient) return;
   const procedure = document.getElementById('tooth-treatment-select').value || `Tratamiento Pieza #${toothNum}`;
   const cost = parseFloat(document.getElementById('tooth-cost-input').value) || 0;
 
@@ -1091,18 +1139,7 @@ async function addActiveToothToBudget() {
     return;
   }
 
-  if (!patient.budgets || patient.budgets.length === 0) {
-    patient.budgets = [{
-      id: `B-${Date.now().toString().slice(-4)}`,
-      date: new Date().toISOString().slice(0, 10),
-      items: [],
-      total: 0,
-      payments: [],
-      balance: 0
-    }];
-  }
-
-  const activeBudget = patient.budgets[0];
+  const activeBudget = ensurePatientBudget(patient);
   activeBudget.items.push({
     treatmentId: `ITEM-${Date.now()}`,
     tooth: toothNum,
@@ -1110,12 +1147,9 @@ async function addActiveToothToBudget() {
     price: cost
   });
 
-  // Recalcular
-  activeBudget.total = activeBudget.items.reduce((sum, it) => sum + (it.price || 0), 0);
-  const totalPaid = activeBudget.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-  activeBudget.balance = Math.max(0, activeBudget.total - totalPaid);
-
+  recalculatePatientBudget(patient);
   await saveAppData();
+  renderLiveOdontoBudget();
   renderBudgetsView();
   showToast(`Procedimiento añadido al presupuesto de ${patient.name}`);
 }
@@ -1129,7 +1163,7 @@ function getOrCreateClinicalHistory(patient) {
   if (!patient.clinicalHistory) {
     patient.clinicalHistory = {
       historyNumber: patient.id ? patient.id.replace('P', 'HC-') : 'HC-001',
-      date: new Date().toISOString().slice(0, 10),
+      date: getLocalISODate(),
       sex: patient.gender || '',
       profession: patient.occupation || '',
       city: 'Caracas',
@@ -1188,8 +1222,7 @@ function renderClinicalHistoryView() {
     });
 
     select.onchange = () => {
-      appState.currentPatientId = select.value;
-      populateGlobalPatientSelect();
+      setActivePatient(select.value, { source: 'historia', silent: true });
       renderClinicalHistoryView();
     };
   }
@@ -1202,7 +1235,7 @@ function renderClinicalHistoryView() {
   };
 
   setVal('hc-input-name', patient.name || '');
-  setVal('hc-input-date', hc.date || new Date().toISOString().slice(0, 10));
+  setVal('hc-input-date', hc.date || getLocalISODate());
   setVal('hc-input-ci', patient.documentId || '');
   setVal('hc-input-age', patient.age || '');
   setVal('hc-input-gender', hc.sex || patient.gender || '');
@@ -1419,7 +1452,7 @@ function getToolLabel(tool) {
   return map[tool] || tool;
 }
 
-function saveCurrentClinicalHistoryForm(showNotification = false) {
+async function saveCurrentClinicalHistoryForm(showNotification = false) {
   const patient = getCurrentPatient();
   if (!patient) return;
   const hc = getOrCreateClinicalHistory(patient);
@@ -1493,7 +1526,14 @@ function saveCurrentClinicalHistoryForm(showNotification = false) {
   hc.bloodPressureLow = getVal('hc-input-bp-low');
   hc.habits = getVal('hc-input-habits');
 
-  saveAppData();
+  syncPatientContactInAppointments(patient);
+  await saveAppData();
+  populateGlobalPatientSelect();
+  renderPatientsList();
+  renderWeeklyScheduleView();
+  renderAppointmentsView();
+  renderBudgetsView();
+  renderGalleryView();
   if (showNotification) {
     showToast('Historia Clínica guardada exitosamente.');
   }
@@ -1521,7 +1561,7 @@ const WEEKLY_HOURS = [
 ];
 
 function getWeeklyScheduleDays(refDateStr) {
-  const safeStr = refDateStr || appState.selectedWeekDate || new Date().toISOString().slice(0, 10);
+  const safeStr = refDateStr || appState.selectedWeekDate || getLocalISODate();
   const parts = safeStr.split('-').map(Number);
   const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
   const dayOfWeek = dateObj.getDay(); // 0: Dom, 1: Lun, ..., 6: Sáb
@@ -1530,7 +1570,7 @@ function getWeeklyScheduleDays(refDateStr) {
 
   const days = [];
   const dayNames = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLocalISODate();
 
   for (let i = 0; i < 6; i++) {
     const cur = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
@@ -1550,7 +1590,7 @@ function getWeeklyScheduleDays(refDateStr) {
 }
 
 function renderWeeklyScheduleView(refDate) {
-  const targetDateStr = refDate || appState.selectedWeekDate || new Date().toISOString().slice(0, 10);
+  const targetDateStr = refDate || appState.selectedWeekDate || getLocalISODate();
   appState.selectedWeekDate = targetDateStr;
 
   const { monday, days } = getWeeklyScheduleDays(targetDateStr);
@@ -1573,26 +1613,27 @@ function renderWeeklyScheduleView(refDate) {
   // Citas de esta semana
   const weekDatesSet = new Set(days.map(d => d.dateStr));
   const weekAppointments = appState.appointments.filter(a => weekDatesSet.has(a.date));
+  const activeWeekAppointments = weekAppointments.filter(a => a.status !== 'cancelada' && a.status !== 'cupo_liberado');
 
   // Actualizar métricas del resumen
   const statTotal = document.getElementById('weekly-stat-total');
-  if (statTotal) statTotal.textContent = weekAppointments.filter(a => a.status !== 'cancelada').length;
+  if (statTotal) statTotal.textContent = activeWeekAppointments.length;
 
   const statConf = document.getElementById('weekly-stat-confirmed');
-  if (statConf) statConf.textContent = weekAppointments.filter(a => a.status === 'confirmada').length;
+  if (statConf) statConf.textContent = activeWeekAppointments.filter(a => a.status === 'confirmada').length;
 
   const statPend = document.getElementById('weekly-stat-pending');
-  if (statPend) statPend.textContent = weekAppointments.filter(a => a.status === 'programada' || a.status === 'en_espera').length;
+  if (statPend) statPend.textContent = activeWeekAppointments.filter(a => a.status === 'programada' || a.status === 'en_espera').length;
 
   const statReas = document.getElementById('weekly-stat-reassigned');
-  if (statReas) statReas.textContent = weekAppointments.filter(a => Boolean(a.reassignedFrom)).length;
+  if (statReas) statReas.textContent = activeWeekAppointments.filter(a => Boolean(a.reassignedFrom)).length;
 
   // 1. Renderizar fila de encabezados
   const headerRow = document.getElementById('weekly-table-header-row');
   if (headerRow) {
     headerRow.innerHTML = '<th class="weekly-th-time">HORA</th>';
     days.forEach(day => {
-      const dayAptsCount = weekAppointments.filter(a => a.date === day.dateStr && a.status !== 'cancelada').length;
+      const dayAptsCount = activeWeekAppointments.filter(a => a.date === day.dateStr).length;
       const th = document.createElement('th');
       th.className = `weekly-th-day ${day.isToday ? 'is-today' : ''}`;
       th.innerHTML = `
@@ -1822,20 +1863,19 @@ function setupWeeklyTableDelegation(tbody) {
         return;
       }
       const patientId = historyBtn.getAttribute('data-patient');
-      appState.currentPatientId = patientId;
-      const gs = document.getElementById('global-patient-select');
-      if (gs) gs.value = patientId;
+      setActivePatient(patientId, { source: 'inicio', silent: true });
       switchView('historia');
       return;
     }
 
     const emptySlot = e.target.closest('.weekly-slot-empty');
     if (emptySlot) {
+      const slotTime = emptySlot.getAttribute('data-time');
       openNewAppointmentModal(
         null,
         emptySlot.getAttribute('data-date'),
-        emptySlot.getAttribute('data-time'),
-        60
+        slotTime,
+        slotTime === '15:30' ? 30 : 60
       );
     }
   };
@@ -1982,7 +2022,7 @@ async function saveReassignmentConfirm() {
   const modal = document.getElementById('modal-reassign-appointment');
   if (modal) modal.classList.remove('active');
 
-  showToast(`✓ Cita reasignada con éxito a ${newPatient.name}. Tomó el horario de ${apt.reassignedFrom.originalPatientName}`);
+  showToast(`Cita reasignada con éxito a ${newPatient.name}. Tomó el horario de ${apt.reassignedFrom.originalPatientName}`);
 }
 
 // DEJAR CUPO LIBERADO DISPONIBLE PARA LLAMAR A OTROS PACIENTES
@@ -2021,17 +2061,18 @@ function renderAppointmentsView() {
     dateInput.value = appState.selectedAppointmentDate;
   }
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLocalISODate();
   const targetDate = appState.selectedAppointmentDate || todayStr;
 
-  // Estadísticas del día seleccionado
+  // Estadísticas del día seleccionado (consistentes con Horario Semanal)
   const dayApts = appState.appointments.filter(a => a.date === targetDate);
+  const activeDayApts = dayApts.filter(a => a.status !== 'cancelada' && a.status !== 'cupo_liberado');
   const statTotal = document.getElementById('stat-total-today');
-  if (statTotal) statTotal.textContent = dayApts.length;
+  if (statTotal) statTotal.textContent = activeDayApts.length;
   const statConf = document.getElementById('stat-confirmed-today');
-  if (statConf) statConf.textContent = dayApts.filter(a => a.status === 'confirmada').length;
+  if (statConf) statConf.textContent = activeDayApts.filter(a => a.status === 'confirmada').length;
   const statPend = document.getElementById('stat-pending-today');
-  if (statPend) statPend.textContent = dayApts.filter(a => a.status === 'programada').length;
+  if (statPend) statPend.textContent = activeDayApts.filter(a => a.status === 'programada' || a.status === 'en_espera').length;
 
   const blocksWrapper = document.getElementById('appointments-timeblocks-wrapper');
   const listContainer = document.getElementById('appointments-list-container');
@@ -2053,25 +2094,13 @@ function renderAppointmentsView() {
   }
 }
 
-// 16 BLOQUES DE 30 MINUTOS DE 9:00 AM A 5:00 PM
-const WORK_BLOCKS = [
-  { start: "09:00", end: "09:30", label: "09:00 AM - 09:30 AM", slotIndex: 1 },
-  { start: "09:30", end: "10:00", label: "09:30 AM - 10:00 AM", slotIndex: 2 },
-  { start: "10:00", end: "10:30", label: "10:00 AM - 10:30 AM", slotIndex: 3 },
-  { start: "10:30", end: "11:00", label: "10:30 AM - 11:00 AM", slotIndex: 4 },
-  { start: "11:00", end: "11:30", label: "11:00 AM - 11:30 AM", slotIndex: 5 },
-  { start: "11:30", end: "12:00", label: "11:30 AM - 12:00 PM", slotIndex: 6 },
-  { start: "12:00", end: "12:30", label: "12:00 PM - 12:30 PM", slotIndex: 7 },
-  { start: "12:30", end: "13:00", label: "12:30 PM - 01:00 PM", slotIndex: 8 },
-  { start: "13:00", end: "13:30", label: "01:00 PM - 01:30 PM", slotIndex: 9 },
-  { start: "13:30", end: "14:00", label: "01:30 PM - 02:00 PM", slotIndex: 10 },
-  { start: "14:00", end: "14:30", label: "02:00 PM - 02:30 PM", slotIndex: 11 },
-  { start: "14:30", end: "15:00", label: "02:30 PM - 03:00 PM", slotIndex: 12 },
-  { start: "15:00", end: "15:30", label: "03:00 PM - 03:30 PM", slotIndex: 13 },
-  { start: "15:30", end: "16:00", label: "03:30 PM - 04:00 PM", slotIndex: 14 },
-  { start: "16:00", end: "16:30", label: "04:00 PM - 04:30 PM", slotIndex: 15 },
-  { start: "16:30", end: "17:00", label: "04:30 PM - 05:00 PM", slotIndex: 16 }
-];
+// 14 BLOQUES UNIFICADOS DE 30 MINUTOS DE 9:00 AM A 4:00 PM (SINCRONIZADOS CON HORARIO SEMANAL)
+const WORK_BLOCKS = WEEKLY_HOURS.map((slot, idx) => ({
+  start: slot.start,
+  end: slot.end,
+  label: `${slot.display} - ${slot.endDisplay}`,
+  slotIndex: idx + 1
+}));
 
 function timeToMinutes(timeStr) {
   if (!timeStr) return 0;
@@ -2127,6 +2156,8 @@ function getStatusBadge(status) {
       return `<span class="badge badge-warning">En Espera</span>`;
     case 'finalizada':
       return `<span class="badge badge-info">Finalizada</span>`;
+    case 'cupo_liberado':
+      return `<span class="badge badge-danger">Cupo Liberado</span>`;
     case 'cancelada':
       return `<span class="badge badge-danger">Cancelada</span>`;
     default:
@@ -2148,11 +2179,12 @@ function renderDailyTimeBlocks(dateStr) {
     grid.addEventListener('click', (e) => {
       const bookBtn = e.target.closest('.btn-book-slot');
       if (bookBtn) {
+        const bTime = bookBtn.getAttribute('data-time');
         openNewAppointmentModal(
           null,
           bookBtn.getAttribute('data-date'),
-          bookBtn.getAttribute('data-time'),
-          60
+          bTime,
+          bTime === '15:30' ? 30 : 60
         );
       }
     });
@@ -2189,7 +2221,7 @@ function renderDailyTimeBlocks(dateStr) {
       const statusClass = startingApt.status === 'confirmada' ? 'confirmed' :
                           startingApt.status === 'en_espera' ? 'waiting' :
                           startingApt.status === 'finalizada' ? 'finished' :
-                          startingApt.status === 'cancelada' ? 'cancelled' : '';
+                          (startingApt.status === 'cancelada' || startingApt.status === 'cupo_liberado') ? 'cancelled' : '';
       slotDiv.className = `timeblock-slot slot-busy ${statusClass}`;
 
       const blockCount = Math.max(1, Math.round((parseInt(startingApt.duration) || 60) / 30));
@@ -2239,6 +2271,7 @@ function renderDailyTimeBlocks(dateStr) {
             <option value="confirmada" ${startingApt.status === 'confirmada' ? 'selected' : ''}>Confirmada</option>
             <option value="en_espera" ${startingApt.status === 'en_espera' ? 'selected' : ''}>En Espera</option>
             <option value="finalizada" ${startingApt.status === 'finalizada' ? 'selected' : ''}>Finalizada</option>
+            <option value="cupo_liberado" ${startingApt.status === 'cupo_liberado' ? 'selected' : ''}>Cupo Liberado</option>
             <option value="cancelada" ${startingApt.status === 'cancelada' ? 'selected' : ''}>Cancelada</option>
           </select>
 
@@ -2379,6 +2412,7 @@ function renderAppointmentsList(dateFilter) {
           <option value="confirmada" ${apt.status === 'confirmada' ? 'selected' : ''}>Confirmada</option>
           <option value="en_espera" ${apt.status === 'en_espera' ? 'selected' : ''}>En Espera</option>
           <option value="finalizada" ${apt.status === 'finalizada' ? 'selected' : ''}>Finalizada</option>
+          <option value="cupo_liberado" ${apt.status === 'cupo_liberado' ? 'selected' : ''}>Cupo Liberado</option>
           <option value="cancelada" ${apt.status === 'cancelada' ? 'selected' : ''}>Cancelada</option>
         </select>
 
@@ -2427,17 +2461,13 @@ function bindAppointmentItemEvents(item, apt) {
   item.querySelector('.btn-open-apt-history')?.addEventListener('click', (e) => {
     const pId = e.currentTarget.getAttribute('data-patient');
     if (pId) {
-      appState.currentPatientId = pId;
-      const gSelect = document.getElementById('global-patient-select');
-      if (gSelect) gSelect.value = pId;
+      setActivePatient(pId, { source: 'citas', silent: true });
       switchView('historia');
     }
   });
 
   item.querySelector('.btn-open-patient-odonto')?.addEventListener('click', () => {
-    appState.currentPatientId = apt.patientId;
-    const gSelect = document.getElementById('global-patient-select');
-    if (gSelect) gSelect.value = apt.patientId;
+    setActivePatient(apt.patientId, { source: 'citas', silent: true });
     switchView('odontograma');
   });
 
@@ -2466,9 +2496,11 @@ function openNewAppointmentModal(patientId = null, defaultDate = null, defaultTi
     });
   }
 
-  const targetDate = defaultDate || appState.selectedAppointmentDate || new Date().toISOString().slice(0, 10);
-  const targetTime = defaultTime || "09:00";
-  const targetDuration = defaultDuration || "60";
+  const targetDate = defaultDate || appState.selectedAppointmentDate || getLocalISODate();
+  let targetTime = defaultTime || "09:00";
+  if (timeToMinutes(targetTime) >= 16 * 60) targetTime = "15:30";
+  let targetDuration = defaultDuration || "60";
+  if (targetTime === "15:30" && Number(targetDuration) > 30) targetDuration = "30";
 
   const idInp = document.getElementById('appointment-id-input');
   if (idInp) idInp.value = '';
@@ -2505,7 +2537,7 @@ function updateAppointmentTimePreview() {
   const endTime = addMinutesToTime(startTime, durationMin);
   const blockCount = Math.max(1, Math.round(durationMin / 30));
 
-  previewText.textContent = `⏱️ Horario: ${formatTime12h(startTime)} a ${formatTime12h(endTime)} (${blockCount === 1 ? '1 bloque de 30 min' : `${blockCount} bloques de 30 min`})`;
+  previewText.innerHTML = `${UI_ICONS.clock}<span>Horario: ${formatTime12h(startTime)} a ${formatTime12h(endTime)} (${blockCount === 1 ? '1 bloque de 30 min' : `${blockCount} bloques de 30 min`})</span>`;
 
   if (collisionAlert && dateInp) {
     const dateVal = dateInp.value;
@@ -2513,10 +2545,16 @@ function updateAppointmentTimePreview() {
     const startMin = timeToMinutes(startTime);
     const endMin = timeToMinutes(endTime);
 
+    if (endMin > 16 * 60) {
+      collisionAlert.style.display = 'block';
+      collisionAlert.innerHTML = `${UI_ICONS.alert}<span>La cita excede el cierre de jornada (04:00 PM). Selecciona una hora más temprana o una duración de 30 min.</span>`;
+      return;
+    }
+
     const collision = appState.appointments.find(a => {
       if (a.id === currentAptId) return false;
       if (a.date !== dateVal) return false;
-      if (a.status === 'cancelada') return false;
+      if (a.status === 'cancelada' || a.status === 'cupo_liberado') return false;
       const aStart = timeToMinutes(a.time);
       const aEnd = aStart + (parseInt(a.duration) || 60);
       return startMin < aEnd && endMin > aStart;
@@ -2525,7 +2563,7 @@ function updateAppointmentTimePreview() {
     if (collision) {
       collisionAlert.style.display = 'block';
       const cEnd = addMinutesToTime(collision.time, collision.duration || 60);
-      collisionAlert.innerHTML = `⚠️ Conflicto de horario: <strong>${collision.patientName}</strong> ya tiene cita de <strong>${formatTime12h(collision.time)} a ${formatTime12h(cEnd)}</strong> (${collision.reason}).`;
+      collisionAlert.innerHTML = `${UI_ICONS.alert}<span>Conflicto de horario: <strong>${collision.patientName}</strong> ya tiene cita de <strong>${formatTime12h(collision.time)} a ${formatTime12h(cEnd)}</strong> (${collision.reason}).</span>`;
     } else {
       collisionAlert.style.display = 'none';
     }
@@ -2544,6 +2582,11 @@ async function saveAppointment() {
 
   if (!patient || !date || !time) {
     showToast('Por favor completa los campos requeridos', 'warning');
+    return;
+  }
+
+  if (timeToMinutes(time) + duration > 16 * 60) {
+    showToast('El horario seleccionado supera el cierre de jornada (04:00 PM). Ajusta la hora o duración.', 'warning');
     return;
   }
 
@@ -2596,14 +2639,7 @@ function renderPatientsList() {
       if (!card) return;
       const pId = card.getAttribute('data-patient-id');
       if (!pId) return;
-      appState.currentPatientId = pId;
-      const gs = document.getElementById('global-patient-select');
-      if (gs) gs.value = pId;
-      renderPatientsList();
-      renderPatientDetail();
-      renderOdontogramBoard();
-      renderBudgetsView();
-      renderGalleryView();
+      setActivePatient(pId, { source: 'pacientes', silent: true });
     };
     container.addEventListener('click', selectPatientFromList);
     container.addEventListener('keydown', (e) => {
@@ -2774,7 +2810,7 @@ function renderPatientDetail() {
     if (text && text.trim()) {
       if (!patient.clinicalNotes) patient.clinicalNotes = [];
       patient.clinicalNotes.unshift({
-        date: new Date().toISOString().slice(0, 10),
+        date: getLocalISODate(),
         author: appState.clinic.doctor || "Dra. Odontóloga",
         note: text.trim()
       });
@@ -2847,9 +2883,15 @@ async function savePatientModal() {
   };
 
   appState.currentPatientId = patient.id;
+  syncPatientContactInAppointments(patient);
   await saveAppData();
   populateGlobalPatientSelect();
   renderPatientsList();
+  renderWeeklyScheduleView();
+  renderAppointmentsView();
+  renderBudgetsView();
+  renderClinicalHistoryView();
+  renderGalleryView();
   document.getElementById('patient-modal').classList.remove('active');
   showToast('Paciente guardado exitosamente.');
 }
@@ -2893,7 +2935,7 @@ function renderMonthlyBudgetOverview() {
   if (btnMonthly) { btnMonthly.classList.add('btn-primary'); btnMonthly.classList.remove('btn-secondary'); }
   if (btnPatient) { btnPatient.classList.add('btn-secondary'); btnPatient.classList.remove('btn-primary'); }
 
-  const selMonth = appState.selectedBudgetMonth || new Date().toISOString().slice(0, 7);
+  const selMonth = appState.selectedBudgetMonth || getLocalISOMonth();
 
   let clinicSubtotal = 0;
   let clinicDiscount = 0;
@@ -2901,31 +2943,9 @@ function renderMonthlyBudgetOverview() {
   let clinicPaidInMonth = 0;
   let clinicBalance = 0;
 
-  // Recalcular finanzas de todos los pacientes
+  // Recalcular finanzas de todos los pacientes con helper unificado
   appState.patients.forEach(patient => {
-    if (!patient.budgets || patient.budgets.length === 0) {
-      patient.budgets = [{
-        id: `B-${Date.now().toString().slice(-4)}`,
-        date: new Date().toISOString().slice(0, 10),
-        items: [],
-        subtotal: 0,
-        discount: 0,
-        total: 0,
-        payments: [],
-        balance: 0
-      }];
-    }
-    const budget = patient.budgets[0];
-    const subtotal = (budget.items || []).reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
-    const discount = parseFloat(budget.discount) || 0;
-    const total = Math.max(0, subtotal - discount);
-    const allPaid = (budget.payments || []).reduce((acc, p) => acc + (parseFloat(p.amount) || 0), 0);
-    const balance = Math.max(0, total - allPaid);
-
-    budget.subtotal = subtotal;
-    budget.discount = discount;
-    budget.total = total;
-    budget.balance = balance;
+    const { budget, subtotal, discount, total, balance } = recalculatePatientBudget(patient);
 
     // Abonos cobrados específicamente en el mes seleccionado
     const paidInMonth = (budget.payments || []).reduce((acc, p) => {
@@ -2967,11 +2987,8 @@ function renderMonthlyBudgetOverview() {
       const btn = e.target.closest('.btn-open-breakdown-action');
       if (!btn) return;
       const pId = btn.getAttribute('data-id');
-      appState.currentPatientId = pId;
-      const gSelect = document.getElementById('global-patient-select');
-      if (gSelect) gSelect.value = pId;
       appState.budgetViewMode = 'patient';
-      renderBudgetsView();
+      setActivePatient(pId, { source: 'presupuestos', silent: true });
       showToast(`Desglose de presupuesto abierto para: ${getCurrentPatient()?.name || ''}`);
     });
   }
@@ -3062,7 +3079,7 @@ function populateBudgetPatientSelect(filterText = '') {
   if (patientsToRender.length === 0) {
     const opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = '❌ No se encontraron pacientes';
+    opt.textContent = 'Sin resultados para esta búsqueda';
     select.appendChild(opt);
     return;
   }
@@ -3071,18 +3088,9 @@ function populateBudgetPatientSelect(filterText = '') {
     const opt = document.createElement('option');
     opt.value = p.id;
 
-    // Calcular saldo actual de este paciente
-    let balance = 0;
-    if (p.budgets && p.budgets.length > 0) {
-      const b = p.budgets[0];
-      const subtotal = (b.items || []).reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
-      const discount = parseFloat(b.discount) || 0;
-      const total = Math.max(0, subtotal - discount);
-      const paid = (b.payments || []).reduce((acc, pay) => acc + (parseFloat(pay.amount) || 0), 0);
-      balance = Math.max(0, total - paid);
-    }
-
-    const balanceTxt = balance > 0 ? `• Debe: $${balance.toFixed(2)}` : `• ✅ Al Día ($0)`;
+    // Calcular saldo actual de este paciente con helper unificado
+    const { balance } = recalculatePatientBudget(p);
+    const balanceTxt = balance > 0 ? `• Debe: $${balance.toFixed(2)}` : '• Al Día ($0.00)';
     opt.textContent = `${p.name} (${p.documentId || 'S/C'}) ${balanceTxt}`;
 
     if (p.id === currentVal) {
@@ -3123,18 +3131,7 @@ function renderPatientBudgetBreakdown() {
   const patient = getCurrentPatient();
   if (!patient) return;
 
-  if (!patient.budgets || patient.budgets.length === 0) {
-    patient.budgets = [{
-      id: `B-${Date.now().toString().slice(-4)}`,
-      date: new Date().toISOString().slice(0, 10),
-      items: [],
-      subtotal: 0,
-      discount: 0,
-      total: 0,
-      payments: [],
-      balance: 0
-    }];
-  }
+  const { budget, subtotal, discount, total, paid, balance } = recalculatePatientBudget(patient);
 
   // Refrescar selector de pacientes en el desglose
   const searchInput = document.getElementById('budget-patient-search');
@@ -3147,18 +3144,6 @@ function renderPatientBudgetBreakdown() {
   if (metaElem) metaElem.textContent = `Cédula: ${patient.documentId || 'S/C'} • Teléfono: ${patient.phone || 'S/T'}`;
   const avatarElem = document.getElementById('breakdown-patient-avatar');
   if (avatarElem) avatarElem.textContent = (patient.name || 'P').charAt(0).toUpperCase();
-
-  const budget = patient.budgets[0];
-  const subtotal = budget.items.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
-  const discount = parseFloat(budget.discount) || 0;
-  const total = Math.max(0, subtotal - discount);
-  const paid = (budget.payments || []).reduce((acc, p) => acc + (parseFloat(p.amount) || 0), 0);
-  const balance = Math.max(0, total - paid);
-
-  budget.subtotal = subtotal;
-  budget.discount = discount;
-  budget.total = total;
-  budget.balance = balance;
 
   // Actualizar etiqueta dinámica de saldo pendiente
   const statusBadge = document.getElementById('breakdown-patient-status-badge');
@@ -3231,12 +3216,7 @@ function renderPatientBudgetBreakdown() {
           if (budget.items[idx]) {
             budget.items[idx].price = newPrice;
           }
-          const newSub = budget.items.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
-          const newTot = Math.max(0, newSub - (budget.discount || 0));
-          const newBal = Math.max(0, newTot - paid);
-          budget.subtotal = newSub;
-          budget.total = newTot;
-          budget.balance = newBal;
+          const { subtotal: newSub, total: newTot, balance: newBal } = recalculatePatientBudget(patient);
 
           const sElem = document.getElementById('budget-subtotal-amount');
           if (sElem) sElem.textContent = `$${newSub.toFixed(2)}`;
@@ -3245,6 +3225,17 @@ function renderPatientBudgetBreakdown() {
           const bElem = document.getElementById('budget-balance-amount');
           if (bElem) bElem.textContent = `$${newBal.toFixed(2)}`;
 
+          if (statusBadge) {
+            if (newBal > 0) {
+              statusBadge.className = 'badge badge-danger';
+              statusBadge.textContent = `Saldo Pendiente: $${newBal.toFixed(2)}`;
+            } else {
+              statusBadge.className = 'badge badge-success';
+              statusBadge.textContent = 'Cuenta al Día ($0.00)';
+            }
+          }
+
+          populateBudgetPatientSelect(document.getElementById('budget-patient-search')?.value || '');
           await saveAppData();
           renderLiveOdontoBudget();
         });
@@ -3254,6 +3245,7 @@ function renderPatientBudgetBreakdown() {
         b.addEventListener('click', async (e) => {
           const idx = parseInt(e.currentTarget.getAttribute('data-idx'));
           budget.items.splice(idx, 1);
+          recalculatePatientBudget(patient);
           await saveAppData();
           renderBudgetsView();
           renderLiveOdontoBudget();
@@ -3288,15 +3280,16 @@ function renderPatientBudgetBreakdown() {
 // MODAL ASIGNAR DESCUENTO EN $ AL PRESUPUESTO
 function openDiscountModal() {
   const patient = getCurrentPatient();
-  if (!patient || !patient.budgets || !patient.budgets[0]) return;
-  const currentDiscount = patient.budgets[0].discount || 0;
-  document.getElementById('budget-discount-input').value = currentDiscount;
+  if (!patient) return;
+  const budget = ensurePatientBudget(patient);
+  document.getElementById('budget-discount-input').value = budget.discount || 0;
   document.getElementById('discount-modal').classList.add('active');
 }
 
 async function confirmSaveDiscount() {
   const patient = getCurrentPatient();
-  if (!patient || !patient.budgets || !patient.budgets[0]) return;
+  if (!patient) return;
+  const budget = ensurePatientBudget(patient);
   const discountVal = parseFloat(document.getElementById('budget-discount-input').value) || 0;
 
   if (discountVal < 0) {
@@ -3304,8 +3297,10 @@ async function confirmSaveDiscount() {
     return;
   }
 
-  patient.budgets[0].discount = discountVal;
+  budget.discount = discountVal;
+  recalculatePatientBudget(patient);
   await saveAppData();
+  renderLiveOdontoBudget();
   renderBudgetsView();
   document.getElementById('discount-modal').classList.remove('active');
   showToast(`Descuento de $${discountVal.toFixed(2)} asignado correctamente al presupuesto.`);
@@ -3321,6 +3316,7 @@ function openPaymentModal() {
 
 async function confirmSavePayment() {
   const patient = getCurrentPatient();
+  if (!patient) return;
   const amount = parseFloat(document.getElementById('payment-amount-input').value);
   const method = document.getElementById('payment-method-select').value;
   const ref = document.getElementById('payment-ref-input').value.trim();
@@ -3331,17 +3327,19 @@ async function confirmSavePayment() {
     return;
   }
 
-  const budget = patient.budgets[0];
+  const budget = ensurePatientBudget(patient);
   budget.payments.push({
     id: `PAY-${Date.now()}`,
-    date: new Date().toISOString().slice(0, 10),
+    date: getLocalISODate(),
     amount,
     method,
     reference: ref,
     note
   });
 
+  recalculatePatientBudget(patient);
   await saveAppData();
+  renderLiveOdontoBudget();
   renderBudgetsView();
   document.getElementById('payment-modal').classList.remove('active');
   showToast(`Abono de $${amount.toFixed(2)} registrado exitosamente.`);
@@ -3375,6 +3373,7 @@ function openAddBudgetItemModal() {
 
 async function confirmAddBudgetItem() {
   const patient = getCurrentPatient();
+  if (!patient) return;
   const tooth = document.getElementById('budget-tooth-input').value.trim();
   const name = document.getElementById('budget-custom-name').value.trim();
   const price = parseFloat(document.getElementById('budget-custom-price').value) || 0;
@@ -3384,7 +3383,7 @@ async function confirmAddBudgetItem() {
     return;
   }
 
-  const budget = patient.budgets[0];
+  const budget = ensurePatientBudget(patient);
   budget.items.push({
     treatmentId: `ITEM-${Date.now()}`,
     tooth,
@@ -3392,7 +3391,9 @@ async function confirmAddBudgetItem() {
     price
   });
 
+  recalculatePatientBudget(patient);
   await saveAppData();
+  renderLiveOdontoBudget();
   renderBudgetsView();
   document.getElementById('budget-item-modal').classList.remove('active');
   showToast('Procedimiento agregado al presupuesto.');
@@ -3497,7 +3498,7 @@ function handleUploadPhoto() {
       if (!patient.gallery) patient.gallery = [];
       patient.gallery.push({
         id: `IMG-${Date.now()}`,
-        date: new Date().toISOString().slice(0, 10),
+        date: getLocalISODate(),
         title,
         type: "Radiografía / Fotografía",
         notes,
@@ -3605,7 +3606,7 @@ function setupEventListeners() {
   // Navegación diaria de fecha de citas
   const dateFilter = document.getElementById('appointment-date-filter');
   if (dateFilter) {
-    dateFilter.value = appState.selectedAppointmentDate || new Date().toISOString().slice(0, 10);
+    dateFilter.value = appState.selectedAppointmentDate || getLocalISODate();
     dateFilter.addEventListener('change', (e) => {
       appState.selectedAppointmentDate = e.target.value;
       renderAppointmentsView();
@@ -3620,9 +3621,9 @@ function setupEventListeners() {
   const btnDatePrev = document.getElementById('btn-date-prev');
   if (btnDatePrev) {
     btnDatePrev.addEventListener('click', () => {
-      const parts = (appState.selectedAppointmentDate || new Date().toISOString().slice(0, 10)).split('-').map(Number);
+      const parts = (appState.selectedAppointmentDate || getLocalISODate()).split('-').map(Number);
       const d = new Date(parts[0], parts[1] - 1, parts[2] - 1);
-      appState.selectedAppointmentDate = d.toISOString().slice(0, 10);
+      appState.selectedAppointmentDate = getLocalISODate(d);
       renderAppointmentsView();
     });
   }
@@ -3630,9 +3631,9 @@ function setupEventListeners() {
   const btnDateNext = document.getElementById('btn-date-next');
   if (btnDateNext) {
     btnDateNext.addEventListener('click', () => {
-      const parts = (appState.selectedAppointmentDate || new Date().toISOString().slice(0, 10)).split('-').map(Number);
+      const parts = (appState.selectedAppointmentDate || getLocalISODate()).split('-').map(Number);
       const d = new Date(parts[0], parts[1] - 1, parts[2] + 1);
-      appState.selectedAppointmentDate = d.toISOString().slice(0, 10);
+      appState.selectedAppointmentDate = getLocalISODate(d);
       renderAppointmentsView();
     });
   }
@@ -3640,7 +3641,7 @@ function setupEventListeners() {
   const btnFilterToday = document.getElementById('btn-filter-today');
   if (btnFilterToday) {
     btnFilterToday.addEventListener('click', () => {
-      appState.selectedAppointmentDate = new Date().toISOString().slice(0, 10);
+      appState.selectedAppointmentDate = getLocalISODate();
       renderAppointmentsView();
     });
   }
@@ -3677,10 +3678,10 @@ function setupEventListeners() {
   const btnWeekPrev = document.getElementById('btn-week-prev');
   if (btnWeekPrev) {
     btnWeekPrev.addEventListener('click', () => {
-      const cur = appState.selectedWeekDate || new Date().toISOString().slice(0, 10);
+      const cur = appState.selectedWeekDate || getLocalISODate();
       const parts = cur.split('-').map(Number);
       const d = new Date(parts[0], parts[1] - 1, parts[2] - 7);
-      appState.selectedWeekDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      appState.selectedWeekDate = getLocalISODate(d);
       renderWeeklyScheduleView();
     });
   }
@@ -3688,10 +3689,10 @@ function setupEventListeners() {
   const btnWeekNext = document.getElementById('btn-week-next');
   if (btnWeekNext) {
     btnWeekNext.addEventListener('click', () => {
-      const cur = appState.selectedWeekDate || new Date().toISOString().slice(0, 10);
+      const cur = appState.selectedWeekDate || getLocalISODate();
       const parts = cur.split('-').map(Number);
       const d = new Date(parts[0], parts[1] - 1, parts[2] + 7);
-      appState.selectedWeekDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      appState.selectedWeekDate = getLocalISODate(d);
       renderWeeklyScheduleView();
     });
   }
@@ -3699,7 +3700,7 @@ function setupEventListeners() {
   const btnWeekToday = document.getElementById('btn-week-today');
   if (btnWeekToday) {
     btnWeekToday.addEventListener('click', () => {
-      appState.selectedWeekDate = new Date().toISOString().slice(0, 10);
+      appState.selectedWeekDate = getLocalISODate();
       renderWeeklyScheduleView();
     });
   }
@@ -3767,7 +3768,7 @@ function setupEventListeners() {
   // ==========================================
   const monthFilter = document.getElementById('budget-month-filter');
   if (monthFilter) {
-    monthFilter.value = appState.selectedBudgetMonth || new Date().toISOString().slice(0, 7);
+    monthFilter.value = appState.selectedBudgetMonth || getLocalISOMonth();
     monthFilter.addEventListener('change', (e) => {
       appState.selectedBudgetMonth = e.target.value;
       renderBudgetsView();
@@ -3777,9 +3778,9 @@ function setupEventListeners() {
   const btnMonthPrev = document.getElementById('btn-budget-month-prev');
   if (btnMonthPrev) {
     btnMonthPrev.addEventListener('click', () => {
-      const parts = (appState.selectedBudgetMonth || new Date().toISOString().slice(0, 7)).split('-').map(Number);
+      const parts = (appState.selectedBudgetMonth || getLocalISOMonth()).split('-').map(Number);
       const d = new Date(parts[0], parts[1] - 2, 1);
-      appState.selectedBudgetMonth = d.toISOString().slice(0, 7);
+      appState.selectedBudgetMonth = getLocalISOMonth(d);
       renderBudgetsView();
     });
   }
@@ -3787,9 +3788,9 @@ function setupEventListeners() {
   const btnMonthNext = document.getElementById('btn-budget-month-next');
   if (btnMonthNext) {
     btnMonthNext.addEventListener('click', () => {
-      const parts = (appState.selectedBudgetMonth || new Date().toISOString().slice(0, 7)).split('-').map(Number);
+      const parts = (appState.selectedBudgetMonth || getLocalISOMonth()).split('-').map(Number);
       const d = new Date(parts[0], parts[1], 1);
-      appState.selectedBudgetMonth = d.toISOString().slice(0, 7);
+      appState.selectedBudgetMonth = getLocalISOMonth(d);
       renderBudgetsView();
     });
   }
@@ -3797,7 +3798,7 @@ function setupEventListeners() {
   const btnMonthCurrent = document.getElementById('btn-budget-month-current');
   if (btnMonthCurrent) {
     btnMonthCurrent.addEventListener('click', () => {
-      appState.selectedBudgetMonth = new Date().toISOString().slice(0, 7);
+      appState.selectedBudgetMonth = getLocalISOMonth();
       renderBudgetsView();
     });
   }
@@ -3806,7 +3807,7 @@ function setupEventListeners() {
   if (btnTabMonthly) {
     btnTabMonthly.addEventListener('click', () => {
       if (appState.currentUser && appState.currentUser.role === 'asistente') {
-        showToast('⚠️ Acceso Restringido: Los totales globales de la clínica son exclusivos para la Doctora y Administrador.', 'warning');
+        showToast('Acceso Restringido: Los totales globales de la clínica son exclusivos para la Doctora y Administrador.', 'warning');
         return;
       }
       appState.budgetViewMode = 'monthly';
@@ -3847,9 +3848,7 @@ function setupEventListeners() {
     budgetSelect.addEventListener('change', (e) => {
       const pId = e.target.value;
       if (pId) {
-        appState.currentPatientId = pId;
-        renderPatientBudgetBreakdown();
-        renderPatientDetail();
+        setActivePatient(pId, { source: 'presupuestos', silent: true });
         showToast(`Mostrando presupuesto de: ${getCurrentPatient()?.name || ''}`);
       }
     });
@@ -3952,16 +3951,6 @@ function setupEventListeners() {
     });
   }
 
-  // Botón abrir modal avanzado
-  const btnAdv = document.getElementById('btn-open-advanced-tooth-modal');
-  if (btnAdv) {
-    btnAdv.addEventListener('click', () => {
-      if (appState.selectedTooth) {
-        openToothModal(appState.selectedTooth);
-      }
-    });
-  }
-
   // 4. PROCEDIMIENTOS GENERALES (Toda la boca - Limpieza, Blanqueamiento, Ortodoncia, Flúor - Sin precio fijo)
   document.querySelectorAll('.btn-general-action').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -3975,9 +3964,11 @@ function setupEventListeners() {
   if (inlineDiscInput) {
     inlineDiscInput.addEventListener('input', async (e) => {
       const patient = getCurrentPatient();
-      if (!patient || !patient.budgets || !patient.budgets[0]) return;
+      if (!patient) return;
+      const budget = ensurePatientBudget(patient);
       const discountVal = Math.max(0, parseFloat(e.target.value) || 0);
-      patient.budgets[0].discount = discountVal;
+      budget.discount = discountVal;
+      recalculatePatientBudget(patient);
       await saveAppData();
       renderLiveOdontoBudget();
       renderBudgetsView();
@@ -4029,7 +4020,7 @@ function setupEventListeners() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Sonrisa_Perfecta_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `Sonrisa_Perfecta_Backup_${getLocalISODate()}.json`;
       a.click();
       showToast('Copia de seguridad descargada.');
     }
@@ -4040,7 +4031,9 @@ function setupEventListeners() {
       const res = await window.api.importBackup();
       if (res.success && res.data) {
         appState = res.data;
+        normalizeAppState();
         populateGlobalPatientSelect();
+        renderWeeklyScheduleView();
         renderAppointmentsView();
         renderOdontogramBoard();
         renderPatientsList();
@@ -4060,8 +4053,10 @@ function setupEventListeners() {
           reader.onload = async (re) => {
             try {
               appState = JSON.parse(re.target.result);
+              normalizeAppState();
               await saveAppData();
               populateGlobalPatientSelect();
+              renderWeeklyScheduleView();
               renderAppointmentsView();
               renderOdontogramBoard();
               renderPatientsList();
@@ -4374,7 +4369,7 @@ function applyUserPermissions(user) {
   // 4. En Presupuestos & Pagos: Bloquear y ocultar totales del mes de toda la clínica para asistente
   const btnMonthly = document.getElementById('btn-tab-monthly-overview');
   if (btnMonthly) {
-    btnMonthly.style.display = isAsistente ? 'none' : 'inline-block';
+    btnMonthly.style.display = isAsistente ? 'none' : 'inline-flex';
   }
   const monthlyPanel = document.getElementById('budget-monthly-overview-panel');
   if (monthlyPanel && isAsistente) {

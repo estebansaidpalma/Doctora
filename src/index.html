@@ -386,7 +386,7 @@
             </div>
           </div>
 
-          <!-- 1. VISTA: CRONOGRAMA EN BLOQUES DE 30 MINUTOS (HORARIO 9:00 AM - 5:00 PM) -->
+          <!-- 1. VISTA: CRONOGRAMA EN BLOQUES DE 30 MINUTOS (HORARIO 9:00 AM - 4:00 PM) -->
           <div id="appointments-timeblocks-wrapper">
             <div class="appointments-blocks-header">
               <div>
@@ -395,7 +395,7 @@
                 </h4>
                 <p class="timeblocks-subtitle">
                   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                  <span>Horario de Trabajo: <strong>9:00 AM a 5:00 PM</strong> (16 Bloques de 30 minutos). Haz clic en cualquier bloque libre para agendar.</span>
+                  <span>Horario de Trabajo: <strong>9:00 AM a 4:00 PM</strong> (14 Bloques de 30 minutos). Haz clic en cualquier bloque libre para agendar.</span>
                 </p>
               </div>
               <div class="legend-pill-list">
@@ -404,7 +404,7 @@
               </div>
             </div>
 
-            <!-- Grilla dinámica de los 16 bloques del día -->
+            <!-- Grilla dinámica de los 14 bloques del día -->
             <div id="appointments-timeblocks-grid" class="timeblocks-grid">
               <!-- Renderizado dinámico -->
             </div>
@@ -421,8 +421,15 @@
 
       <!-- 2. VISTA: ODONTOGRAMA INTERACTIVO -->
       <section id="view-odontograma" class="view-panel">
-        <!-- PALETA DE PINCEL CLÍNICO PARA PINTAR CUADRITOS INDIVIDUALES -->
+        <!-- BARRA DE PACIENTE EN ODONTOGRAMA + PALETA DE PINCEL CLÍNICO -->
         <div class="card tool-palette-card">
+          <div class="view-patient-strip">
+            <label for="odonto-patient-select" class="view-patient-label">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <span>Paciente Activo:</span>
+            </label>
+            <select id="odonto-patient-select" class="form-control form-control-sm view-patient-select"></select>
+          </div>
           <div class="tool-palette-header">
             <div>
               <strong class="tool-palette-title">
@@ -1484,10 +1491,19 @@
             <h3 class="section-heading">Galería Clínica & Rayos X</h3>
             <p class="section-subheading">Imágenes diagnósticas, radiografías panorámicas, periapicales y fotos clínicas</p>
           </div>
-          <button id="btn-upload-photo" class="btn btn-primary">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            <span>Agregar Imagen o Rayos X</span>
-          </button>
+          <div class="gallery-header-controls">
+            <div class="view-patient-strip view-patient-strip--inline">
+              <label for="gallery-patient-select" class="view-patient-label">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Paciente:</span>
+              </label>
+              <select id="gallery-patient-select" class="form-control form-control-sm view-patient-select"></select>
+            </div>
+            <button id="btn-upload-photo" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>Agregar Imagen o Rayos X</span>
+            </button>
+          </div>
         </div>
 
         <div id="gallery-container" class="gallery-grid">
@@ -1668,8 +1684,6 @@
               <option value="14:30">02:30 PM</option>
               <option value="15:00">03:00 PM</option>
               <option value="15:30">03:30 PM</option>
-              <option value="16:00">04:00 PM</option>
-              <option value="16:30">04:30 PM</option>
             </select>
           </div>
         </div>
@@ -1702,7 +1716,7 @@
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             Horario: 09:00 AM a 10:00 AM (2 bloques de 30 min)
           </span>
-          <span class="badge badge-success">Jornada 9am - 5pm</span>
+          <span class="badge badge-success">Jornada 9am - 4pm</span>
         </div>
 
         <div id="appointment-collision-alert" class="collision-alert-box">
