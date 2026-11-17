@@ -88,10 +88,21 @@ const UI_ICONS = {
   checkCircle: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
   eye: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
   calendar: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+  edit: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>',
   trash: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>'
 };
 
-// HELPERS DE FECHA LOCAL Y FINANZAS POR PACIENTE (SIN DESFASE UTC)
+// HELPERS DE SEGURIDAD, FECHA LOCAL Y FINANZAS POR PACIENTE (SIN DESFASE UTC)
+function escapeHtml(value) {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function getLocalISODate(dateObj = new Date()) {
   const y = dateObj.getFullYear();
   const m = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -153,12 +164,78 @@ function syncPatientContactInAppointments(patient) {
   });
 }
 
+const DEFAULT_CLINICAL_TOOLS = [
+  { id: 'caries', title: 'Caries', color: '#ef4444', scope: 'face', billable: true, isSystem: true },
+  { id: 'obturado', title: 'Resina / Obturación', color: '#2563eb', scope: 'face', billable: true, isSystem: true },
+  { id: 'endodoncia', title: 'Endodoncia', color: '#d97706', scope: 'whole', billable: true, isSystem: true },
+  { id: 'corona', title: 'Corona', color: '#8b5cf6', scope: 'whole', billable: true, isSystem: true },
+  { id: 'cirugia', title: 'Cirugía / Extracción', color: '#be123c', scope: 'whole', billable: true, isSystem: true },
+  { id: 'ausente', title: 'Ya Ausente', color: '#64748b', scope: 'whole', billable: false, isSystem: true },
+  { id: 'sano', title: 'Marcar Sano', color: '#10b981', scope: 'face', billable: false, isSystem: true }
+];
+
+function normalizeClinicalTools(rawTools) {
+  if (!Array.isArray(rawTools) || rawTools.length === 0) {
+    return DEFAULT_CLINICAL_TOOLS.map(t => ({ ...t }));
+  }
+  const normalized = rawTools
+    .filter(t => t && t.id && t.title)
+    .map(t => ({
+      id: String(t.id),
+      title: String(t.title).trim(),
+      color: /^#[0-9a-fA-F]{6}$/.test(t.color || '') ? t.color : '#0284c7',
+      scope: t.scope === 'whole' ? 'whole' : 'face',
+      billable: t.billable !== false,
+      isSystem: Boolean(t.isSystem)
+    }));
+  if (!normalized.some(t => t.id === 'sano')) {
+    normalized.push({ ...DEFAULT_CLINICAL_TOOLS.find(t => t.id === 'sano') });
+  }
+  return normalized;
+}
+
+function getClinicalTools() {
+  if (!Array.isArray(appState.clinicalTools) || appState.clinicalTools.length === 0) {
+    appState.clinicalTools = DEFAULT_CLINICAL_TOOLS.map(t => ({ ...t }));
+  }
+  return appState.clinicalTools;
+}
+
+function getClinicalTool(toolId) {
+  const list = getClinicalTools();
+  return list.find(t => t.id === toolId) || DEFAULT_CLINICAL_TOOLS.find(t => t.id === toolId) || null;
+}
+
+function hexToRgba(hex, alpha = 0.14) {
+  const clean = /^#?([0-9a-fA-F]{6})$/.exec(hex || '');
+  if (!clean) return `rgba(2, 132, 199, ${alpha})`;
+  const intVal = parseInt(clean[1], 16);
+  const r = (intVal >> 16) & 255;
+  const g = (intVal >> 8) & 255;
+  const b = intVal & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function darkenHex(hex, amount = 0.22) {
+  const clean = /^#?([0-9a-fA-F]{6})$/.exec(hex || '');
+  if (!clean) return '#1e293b';
+  const intVal = parseInt(clean[1], 16);
+  const factor = Math.max(0, Math.min(1, 1 - amount));
+  const r = Math.round(((intVal >> 16) & 255) * factor);
+  const g = Math.round(((intVal >> 8) & 255) * factor);
+  const b = Math.round((intVal & 255) * factor);
+  return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`;
+}
+
 function normalizeAppState() {
   if (!Array.isArray(appState.patients)) appState.patients = [];
   if (!Array.isArray(appState.appointments)) appState.appointments = [];
   if (!Array.isArray(appState.treatments)) appState.treatments = [];
   if (!appState.clinic || typeof appState.clinic !== 'object') appState.clinic = {};
-  if (!appState.activeTool) appState.activeTool = 'caries';
+  appState.clinicalTools = normalizeClinicalTools(appState.clinicalTools);
+  if (!appState.activeTool || !appState.clinicalTools.some(t => t.id === appState.activeTool)) {
+    appState.activeTool = appState.clinicalTools[0].id;
+  }
   if (!appState.appointmentViewMode) appState.appointmentViewMode = 'blocks';
   if (!appState.budgetViewMode) appState.budgetViewMode = 'monthly';
   if (!appState.selectedAppointmentDate) appState.selectedAppointmentDate = getLocalISODate();
@@ -175,13 +252,13 @@ function normalizeAppState() {
 let appState = {
   currentUser: null,
   clinic: {},
+  clinicalTools: DEFAULT_CLINICAL_TOOLS.map(t => ({ ...t })),
   treatments: [],
   patients: [],
   appointments: [],
   currentPatientId: null,
-  activeToothModalNum: null,
   selectedTooth: null,
-  activeTool: 'caries', // Herramienta activa de pincel por defecto (Carie Roja)
+  activeTool: 'caries',
   appointmentViewMode: 'blocks', // 'blocks' (cronograma 30 min) o 'list'
   selectedAppointmentDate: getLocalISODate(),
   selectedWeekDate: getLocalISODate(),
@@ -189,20 +266,65 @@ let appState = {
   budgetViewMode: 'monthly' // 'monthly' (totales del mes) o 'patient' (desglose)
 };
 
+// UTILIDAD DEBOUNCE Y CONTROL DE RENDERIZADO PEREZOSO (LAZY VIEWS)
+function debounce(fn, delay = 200) {
+  let timer = null;
+  return function (...args) {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  };
+}
+
+const debouncedSaveAppData = debounce(() => saveAppData(), 300);
+const debouncedSaveClinicalHistory = debounce(() => saveCurrentClinicalHistoryForm(false), 350);
+
+const ALL_APP_VIEWS = ['inicio', 'citas', 'odontograma', 'historia', 'pacientes', 'presupuestos', 'galeria', 'configuracion'];
+const dirtyViews = new Set();
+
+function getActiveViewName() {
+  const activePanel = document.querySelector('.view-panel.active');
+  if (activePanel && activePanel.id && activePanel.id.startsWith('view-')) {
+    return activePanel.id.slice(5);
+  }
+  return 'inicio';
+}
+
+function isViewActive(viewName) {
+  return getActiveViewName() === viewName;
+}
+
+function renderViewByName(viewName) {
+  dirtyViews.delete(viewName);
+  if (viewName === 'inicio') renderWeeklyScheduleView();
+  else if (viewName === 'citas') renderAppointmentsView();
+  else if (viewName === 'odontograma') renderOdontogramBoard();
+  else if (viewName === 'historia') renderClinicalHistoryView();
+  else if (viewName === 'pacientes') renderPatientsList();
+  else if (viewName === 'presupuestos') renderBudgetsView();
+  else if (viewName === 'galeria') renderGalleryView();
+  else if (viewName === 'configuracion') populateClinicConfig();
+}
+
+function refreshViewOrMarkDirty(viewName) {
+  if (isViewActive(viewName)) {
+    renderViewByName(viewName);
+  } else {
+    dirtyViews.add(viewName);
+  }
+}
+
 // INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', async () => {
   await loadAppData();
   setupNavigation();
   setupEventListeners();
+  renderClinicalToolPalettes();
   populateGlobalPatientSelect();
-  renderWeeklyScheduleView();
-  renderAppointmentsView();
-  renderOdontogramBoard();
-  renderPatientsList();
-  renderBudgetsView();
-  renderGalleryView();
-  populateClinicConfig();
-  initAuth(); // Control de acceso y privilegios (Asistente, Doctora, Admin)
+  syncClinicBrandingUI();
+  ALL_APP_VIEWS.forEach(v => dirtyViews.add(v));
+  initAuth(); // Control de acceso y privilegios; renderiza vistas tras validar sesión
 });
 
 // CARGA Y PERSISTENCIA
@@ -276,7 +398,7 @@ function setupNavigation() {
       navItems.forEach(n => n.classList.remove('active'));
       item.classList.add('active');
 
-      // Sincronizar barra móvil inferior
+      // Sincronizar barra móvil inferior (incluye resaltar "Más" en vistas del cajón lateral)
       const mobileItems = document.querySelectorAll('.mobile-nav-item[data-view]');
       mobileItems.forEach(m => {
         if (m.getAttribute('data-view') === view) {
@@ -285,6 +407,10 @@ function setupNavigation() {
           m.classList.remove('active');
         }
       });
+      const moreBtn = document.getElementById('btn-mobile-open-sidebar');
+      if (moreBtn) {
+        moreBtn.classList.toggle('active', ['presupuestos', 'galeria', 'configuracion'].includes(view));
+      }
 
       // Cerrar drawer lateral en móvil al cambiar de vista
       closeMobileSidebar();
@@ -298,14 +424,8 @@ function setupNavigation() {
         subtitleElem.textContent = titles[view].sub;
       }
 
-      // Refrescar vistas pertinentes
-      if (view === 'inicio') renderWeeklyScheduleView();
-      if (view === 'odontograma') renderOdontogramBoard();
-      if (view === 'historia') renderClinicalHistoryView();
-      if (view === 'citas') renderAppointmentsView();
-      if (view === 'pacientes') renderPatientsList();
-      if (view === 'presupuestos') renderBudgetsView();
-      if (view === 'galeria') renderGalleryView();
+      // Renderizado bajo demanda de la vista abierta (evita reconstruir vistas ocultas)
+      renderViewByName(view);
     });
   });
 
@@ -397,13 +517,13 @@ function setActivePatient(patientId, options = {}) {
   }
 
   populateGlobalPatientSelect();
-  renderOdontogramBoard();
+  refreshViewOrMarkDirty('odontograma');
   if (options.source !== 'historia') {
-    renderClinicalHistoryView();
+    refreshViewOrMarkDirty('historia');
   }
-  renderPatientsList();
-  renderBudgetsView();
-  renderGalleryView();
+  refreshViewOrMarkDirty('pacientes');
+  refreshViewOrMarkDirty('presupuestos');
+  refreshViewOrMarkDirty('galeria');
 
   if (!options.silent && changed) {
     showToast(`Paciente activo cambiado a: ${getCurrentPatient()?.name || ''}`);
@@ -505,25 +625,48 @@ function renderQuadrantTeeth(containerId, toothNumbers, patient) {
   });
 }
 
-// GENERADOR DE SVG PARA EL DIENTE (5 CARAS ODONTOLÓGICAS FDI CON DETALLE INDIVIDUAL)
+function getSurfaceColors(condId) {
+  if (!condId || condId === 'sano') {
+    return { fill: '#ffffff', stroke: '#94a3b8' };
+  }
+  const tool = getClinicalTool(condId);
+  if (tool) {
+    return { fill: tool.color, stroke: darkenHex(tool.color, 0.24) };
+  }
+  return { fill: '#0284c7', stroke: '#0369a1' };
+}
+
+// GENERADOR DE SVG PARA EL DIENTE (5 CARAS ODONTOLÓGICAS FDI CON COLORES CONFIGURABLES)
 function generateToothSVG(toothNum, surfaces = {}, globalCond = 'sano', meta = {}) {
-  const isSpecial = globalCond === 'ausente' || globalCond === 'cirugia';
-  const vestibular = surfaces.vestibular || (isSpecial ? globalCond : 'sano');
-  const lingual = surfaces.lingual || (isSpecial ? globalCond : 'sano');
-  const mesial = surfaces.mesial || (isSpecial ? globalCond : 'sano');
-  const distal = surfaces.distal || (isSpecial ? globalCond : 'sano');
-  const oclusal = surfaces.oclusal || (isSpecial ? globalCond : 'sano');
+  const globalTool = getClinicalTool(globalCond);
+  const isWhole = Boolean(globalTool && globalTool.scope === 'whole' && globalCond !== 'sano');
+
+  const vestibular = surfaces.vestibular || (isWhole ? globalCond : 'sano');
+  const lingual = surfaces.lingual || (isWhole ? globalCond : 'sano');
+  const mesial = surfaces.mesial || (isWhole ? globalCond : 'sano');
+  const distal = surfaces.distal || (isWhole ? globalCond : 'sano');
+  const oclusal = surfaces.oclusal || (isWhole ? globalCond : 'sano');
 
   let overlayIcon = '';
-  if (globalCond === 'ausente') {
-    overlayIcon = `<line x1="6" y1="6" x2="42" y2="42" stroke="#475569" stroke-width="4"/><line x1="42" y1="6" x2="6" y2="42" stroke="#475569" stroke-width="4"/>`;
-  } else if (globalCond === 'cirugia') {
-    overlayIcon = `<circle cx="24" cy="24" r="8" fill="#be123c" opacity="0.9"/><text x="24" y="27" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">✂</text>`;
-  } else if (globalCond === 'corona') {
-    overlayIcon = `<path d="M14 16 L24 20 L34 16 L31 28 L17 28 Z" fill="#8b5cf6" opacity="0.9"/>`;
-  } else if (globalCond === 'endodoncia') {
-    overlayIcon = `<line x1="24" y1="12" x2="24" y2="36" stroke="#d97706" stroke-width="3" stroke-dasharray="3,2"/>`;
+  if (isWhole) {
+    const wColor = globalTool.color;
+    if (globalCond === 'ausente') {
+      overlayIcon = `<line x1="6" y1="6" x2="42" y2="42" stroke="${wColor}" stroke-width="4"/><line x1="42" y1="6" x2="6" y2="42" stroke="${wColor}" stroke-width="4"/>`;
+    } else if (globalCond === 'cirugia') {
+      overlayIcon = `<circle cx="24" cy="24" r="8" fill="${wColor}" opacity="0.92"/><text x="24" y="27" font-size="10" font-weight="bold" fill="#fff" text-anchor="middle">✂</text>`;
+    } else if (globalCond === 'corona') {
+      overlayIcon = `<path d="M14 16 L24 20 L34 16 L31 28 L17 28 Z" fill="${wColor}" opacity="0.92"/>`;
+    } else if (globalCond === 'endodoncia') {
+      overlayIcon = `<line x1="24" y1="10" x2="24" y2="38" stroke="${wColor}" stroke-width="3.5" stroke-dasharray="3,2"/>`;
+    } else {
+      overlayIcon = `<circle cx="24" cy="24" r="4.5" fill="#ffffff" opacity="0.9" stroke="${darkenHex(wColor, 0.25)}" stroke-width="1.5"/>`;
+    }
   }
+
+  const faceStyle = (cond) => {
+    const { fill, stroke } = getSurfaceColors(cond);
+    return `style="fill:${fill};stroke:${stroke};"`;
+  };
 
   return `
     <svg class="tooth-svg" viewBox="0 0 48 48" data-tooth="${toothNum}">
@@ -531,19 +674,19 @@ function generateToothSVG(toothNum, surfaces = {}, globalCond = 'sano', meta = {
       <rect x="4" y="4" width="40" height="40" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
 
       <!-- Cara Superior (Vestibular) -->
-      <polygon points="4,4 44,4 34,14 14,14" class="tooth-surface tooth-face-vestibular ${vestibular}" data-tooth="${toothNum}" data-face="vestibular" title="Vestibular (Frente): ${getConditionLabel(vestibular)}" />
+      <polygon points="4,4 44,4 34,14 14,14" class="tooth-surface tooth-face-vestibular ${vestibular}" ${faceStyle(vestibular)} data-tooth="${toothNum}" data-face="vestibular" title="Vestibular (Frente): ${escapeHtml(getConditionLabel(vestibular))}" />
       
       <!-- Cara Inferior (Lingual / Palatina) -->
-      <polygon points="4,44 44,44 34,34 14,34" class="tooth-surface tooth-face-lingual ${lingual}" data-tooth="${toothNum}" data-face="lingual" title="Lingual/Palatina: ${getConditionLabel(lingual)}" />
+      <polygon points="4,44 44,44 34,34 14,34" class="tooth-surface tooth-face-lingual ${lingual}" ${faceStyle(lingual)} data-tooth="${toothNum}" data-face="lingual" title="Lingual/Palatina: ${escapeHtml(getConditionLabel(lingual))}" />
       
       <!-- Cara Izquierda (Mesial) -->
-      <polygon points="4,4 14,14 14,34 4,44" class="tooth-surface tooth-face-mesial ${mesial}" data-tooth="${toothNum}" data-face="mesial" title="Mesial (Lateral): ${getConditionLabel(mesial)}" />
+      <polygon points="4,4 14,14 14,34 4,44" class="tooth-surface tooth-face-mesial ${mesial}" ${faceStyle(mesial)} data-tooth="${toothNum}" data-face="mesial" title="Mesial (Lateral): ${escapeHtml(getConditionLabel(mesial))}" />
       
       <!-- Cara Derecha (Distal) -->
-      <polygon points="44,4 34,14 34,34 44,44" class="tooth-surface tooth-face-distal ${distal}" data-tooth="${toothNum}" data-face="distal" title="Distal (Lateral): ${getConditionLabel(distal)}" />
+      <polygon points="44,4 34,14 34,34 44,44" class="tooth-surface tooth-face-distal ${distal}" ${faceStyle(distal)} data-tooth="${toothNum}" data-face="distal" title="Distal (Lateral): ${escapeHtml(getConditionLabel(distal))}" />
       
       <!-- Cara Central (Oclusal / Incisal) -->
-      <rect x="14" y="14" width="20" height="20" rx="3" class="tooth-surface tooth-face-oclusal ${oclusal}" data-tooth="${toothNum}" data-face="oclusal" title="Oclusal (Centro): ${getConditionLabel(oclusal)}" />
+      <rect x="14" y="14" width="20" height="20" rx="3" class="tooth-surface tooth-face-oclusal ${oclusal}" ${faceStyle(oclusal)} data-tooth="${toothNum}" data-face="oclusal" title="Oclusal (Centro): ${escapeHtml(getConditionLabel(oclusal))}" />
 
       ${overlayIcon}
     </svg>
@@ -552,75 +695,38 @@ function generateToothSVG(toothNum, surfaces = {}, globalCond = 'sano', meta = {
 
 function getToothSummaryBadge(toothData) {
   const cond = toothData.condition || 'sano';
-  if (cond === 'cirugia') return { text: 'Cirugía', bg: '#ffe4e6', color: '#be123c' };
-  if (cond === 'ausente') return { text: 'Ausente', bg: '#e2e8f0', color: '#64748b' };
-  if (cond === 'endodoncia') return { text: 'Conducto', bg: '#fef3c7', color: '#d97706' };
-  if (cond === 'corona') return { text: 'Corona', bg: '#ede9fe', color: '#8b5cf6' };
+  if (cond && cond !== 'sano') {
+    const condTool = getClinicalTool(cond);
+    if (condTool) {
+      return {
+        text: condTool.title.split('/')[0].trim(),
+        bg: hexToRgba(condTool.color, 0.14),
+        color: condTool.color
+      };
+    }
+  }
 
   const surfaces = toothData.surfaces || {};
-  const values = Object.values(surfaces);
-  if (values.includes('caries')) return { text: 'Caries', bg: '#fee2e2', color: '#ef4444' };
-  if (values.includes('obturado')) return { text: 'Resina', bg: '#dbeafe', color: '#0284c7' };
-  if (values.includes('endodoncia')) return { text: 'Conducto', bg: '#fef3c7', color: '#d97706' };
-  if (values.includes('corona')) return { text: 'Corona', bg: '#ede9fe', color: '#8b5cf6' };
+  const values = Object.values(surfaces).filter(v => v && v !== 'sano');
+  if (values.length > 0) {
+    const faceTool = getClinicalTool(values[0]);
+    if (faceTool) {
+      return {
+        text: faceTool.title.split('/')[0].trim(),
+        bg: hexToRgba(faceTool.color, 0.14),
+        color: faceTool.color
+      };
+    }
+  }
 
   return { text: 'Sano', bg: '#f1f5f9', color: '#475569' };
 }
 
 function getConditionLabel(cond) {
-  const map = {
-    sano: 'Sano',
-    caries: 'Caries',
-    obturado: 'Resina',
-    endodoncia: 'Conducto',
-    cirugia: 'Cirugía/Extr.',
-    corona: 'Corona',
-    ausente: 'Ausente',
-    sellante: 'Sellante'
-  };
-  return map[cond] || cond;
-}
-
-function getConditionIconLabel(cond) {
-  const map = {
-    sano: 'Sano',
-    caries: 'Caries',
-    obturado: 'Resina',
-    endodoncia: 'Conducto',
-    cirugia: 'Cirugía',
-    corona: 'Corona',
-    ausente: 'Ausente',
-    sellante: 'Sellante'
-  };
-  return map[cond] || cond;
-}
-
-function getConditionBgColor(cond) {
-  const map = {
-    sano: '#f1f5f9',
-    caries: '#fee2e2',
-    obturado: '#dbeafe',
-    endodoncia: '#fef3c7',
-    cirugia: '#ffe4e6',
-    corona: '#ede9fe',
-    ausente: '#e2e8f0',
-    sellante: '#ccfbf1'
-  };
-  return map[cond] || '#f1f5f9';
-}
-
-function getConditionTextColor(cond) {
-  const map = {
-    sano: '#475569',
-    caries: '#ef4444',
-    obturado: '#0284c7',
-    endodoncia: '#d97706',
-    cirugia: '#be123c',
-    corona: '#8b5cf6',
-    ausente: '#64748b',
-    sellante: '#0d9488'
-  };
-  return map[cond] || '#475569';
+  if (!cond || cond === 'sano') return 'Sano';
+  const tool = getClinicalTool(cond);
+  if (tool) return tool.title;
+  return cond;
 }
 
 // ==========================================================================
@@ -637,6 +743,80 @@ function selectToothQuick(toothNum, toggleDetail = true) {
 
   if (toggleDetail) {
     renderOdontogramBoard();
+  }
+}
+
+// RENDERIZADO UNIFICADO DE PINCELES CLÍNICOS CONFIGURABLES (ODONTOGRAMA + HISTORIA CLÍNICA)
+function renderClinicalToolPalettes() {
+  const tools = getClinicalTools();
+  const faceTools = tools.filter(t => t.scope === 'face' || t.id === 'sano');
+  const wholeTools = tools.filter(t => t.scope === 'whole' && t.id !== 'sano');
+
+  const odontoWrap = document.getElementById('tool-palette-wrapper');
+  if (odontoWrap) {
+    odontoWrap.innerHTML = tools.map(t => `
+      <button type="button" class="btn btn-sm btn-clinical-tool ${t.id === appState.activeTool ? 'active' : ''}" data-tool="${escapeHtml(t.id)}" title="${t.scope === 'whole' ? 'Se aplica a todo el diente completo' : 'Se aplica por cara/cuadrito individual'}">
+        <span class="tool-dot" style="background-color:${escapeHtml(t.color)};" aria-hidden="true"></span>
+        <span>${escapeHtml(t.title)}</span>
+        <span class="tool-scope-pill">${t.id === 'sano' ? 'Limpiar' : (t.scope === 'whole' ? 'Entero' : 'Cuadrito')}</span>
+      </button>
+    `).join('');
+  }
+
+  const hcStrip = document.getElementById('hc-tools-strip');
+  if (hcStrip) {
+    hcStrip.innerHTML = '<strong class="hc-tools-caption">Pincel Cuadrante:</strong>' + tools.map(t => `
+      <button type="button" class="btn btn-sm btn-hc-tool ${t.id === appState.activeTool ? 'active' : ''}" data-tool="${escapeHtml(t.id)}">
+        <span class="tool-dot" style="background-color:${escapeHtml(t.color)};" aria-hidden="true"></span>
+        <span>${escapeHtml(t.title)}</span>
+      </button>
+    `).join('');
+  }
+
+  const hcSide = document.getElementById('hc-side-tools-list');
+  if (hcSide) {
+    hcSide.innerHTML = tools.map(t => `
+      <button type="button" class="btn btn-sm btn-hc-side-tool ${t.id === appState.activeTool ? 'active' : ''}" data-tool="${escapeHtml(t.id)}">
+        <span class="tool-dot" style="background-color:${escapeHtml(t.color)};" aria-hidden="true"></span>
+        <span>${escapeHtml(t.title)}</span>
+      </button>
+    `).join('');
+  }
+
+  // Barra rápida inferior de caras individuales (herramientas de cuadrito)
+  const orderedFaces = [
+    ...faceTools.filter(t => t.id === 'sano'),
+    ...faceTools.filter(t => t.id !== 'sano')
+  ];
+  document.querySelectorAll('#tooth-angles-buttons-grid .angle-face-card').forEach(card => {
+    const face = card.getAttribute('data-face');
+    const row = card.querySelector('.face-choices-row');
+    if (row && face) {
+      row.innerHTML = orderedFaces.map(t => `
+        <button type="button" class="btn btn-sm btn-face-choice" data-face="${escapeHtml(face)}" data-val="${escapeHtml(t.id)}">
+          <span class="tool-dot" style="background-color:${escapeHtml(t.color)};" aria-hidden="true"></span> ${escapeHtml(t.id === 'sano' ? 'Sano' : t.title)}
+        </button>
+      `).join('');
+    }
+  });
+
+  // Acciones para diente completo
+  const wholeWrap = document.getElementById('whole-tooth-actions');
+  if (wholeWrap) {
+    wholeWrap.innerHTML = '<span class="whole-tooth-actions-label">Acciones para la pieza completa:</span>' +
+      wholeTools.map(t => `
+        <button type="button" class="btn btn-sm btn-secondary btn-apply-whole-tooth" data-tool="${escapeHtml(t.id)}">
+          <span class="tool-dot" style="background-color:${escapeHtml(t.color)};" aria-hidden="true"></span> ${escapeHtml(t.title)}
+        </button>
+      `).join('') +
+      `<button type="button" class="btn btn-sm btn-secondary btn-apply-whole-tooth" data-tool="sano">
+        <span class="tool-dot" style="background-color:${escapeHtml(getClinicalTool('sano')?.color || '#10b981')};" aria-hidden="true"></span> Dejar Todo el Diente Sano
+      </button>`;
+  }
+
+  syncToolPaletteUI(appState.activeTool);
+  if (appState.selectedTooth) {
+    updateQuickToothPanel(appState.selectedTooth);
   }
 }
 
@@ -658,10 +838,15 @@ function updateQuickToothPanel(toothNum) {
     nameElem.textContent = meta.name;
   }
 
+  const wholeToolActive = (() => {
+    const t = getClinicalTool(toothData.condition);
+    return t && t.scope === 'whole' && t.id !== 'sano';
+  })();
+
   // Actualizar los botones de las caras
   const faceKeys = ['vestibular', 'mesial', 'oclusal', 'distal', 'lingual'];
   faceKeys.forEach(face => {
-    const cond = surfaces[face] || (toothData.condition !== 'cirugia' && toothData.condition !== 'ausente' ? 'sano' : toothData.condition);
+    const cond = surfaces[face] || (wholeToolActive ? toothData.condition : 'sano');
     const card = document.querySelector(`.angle-face-card[data-face="${face}"]`);
     if (card) {
       card.classList.toggle('is-caries', cond === 'caries');
@@ -670,20 +855,42 @@ function updateQuickToothPanel(toothNum) {
 
     document.querySelectorAll(`.btn-face-choice[data-face="${face}"]`).forEach(btnChoice => {
       const val = btnChoice.getAttribute('data-val');
-      if (val === cond) {
-        btnChoice.classList.add('active');
-      } else {
-        btnChoice.classList.remove('active');
-      }
+      btnChoice.classList.toggle('active', val === cond);
     });
   });
 }
 
-// APLICAR PINCEL CLÍNICO A UNA CARA ESPECÍFICA (SELECCIÓN MÚLTIPLE EN EL MISMO DIENTE)
-async function applyToolToToothFace(toothNum, face, tool) {
+function syncAfterOdontogramChange(toothNum = null) {
+  if (isViewActive('odontograma')) {
+    renderOdontogramBoard();
+    if (toothNum && appState.selectedTooth === toothNum) {
+      updateQuickToothPanel(toothNum);
+    }
+  } else {
+    dirtyViews.add('odontograma');
+  }
+
+  if (isViewActive('historia')) {
+    renderHistoryOdontogram();
+    updateHistoryStats();
+  } else {
+    dirtyViews.add('historia');
+  }
+
+  refreshViewOrMarkDirty('presupuestos');
+}
+
+// APLICAR PINCEL CLÍNICO A UNA CARA ESPECÍFICA (SOPORTA PINCELES POR CUADRITO O DIENTE ENTERO)
+async function applyToolToToothFace(toothNum, face, toolId) {
   const patient = getCurrentPatient();
   if (!patient) return;
   if (!patient.odontogram) patient.odontogram = {};
+
+  const toolObj = getClinicalTool(toolId);
+  if (toolObj && toolObj.scope === 'whole' && toolId !== 'sano') {
+    await applyWholeToothCondition(toothNum, toolId);
+    return;
+  }
 
   const meta = TEETH_MAP[toothNum];
   if (!patient.odontogram[toothNum]) {
@@ -691,53 +898,34 @@ async function applyToolToToothFace(toothNum, face, tool) {
       toothNumber: toothNum,
       name: meta.name,
       condition: 'sano',
-      surfaces: {
-        vestibular: 'sano',
-        lingual: 'sano',
-        mesial: 'sano',
-        distal: 'sano',
-        oclusal: 'sano'
-      },
+      surfaces: { vestibular: 'sano', lingual: 'sano', mesial: 'sano', distal: 'sano', oclusal: 'sano' },
       notes: ''
     };
   }
 
   const toothObj = patient.odontogram[toothNum];
   if (!toothObj.surfaces) {
-    toothObj.surfaces = {
-      vestibular: 'sano',
-      lingual: 'sano',
-      mesial: 'sano',
-      distal: 'sano',
-      oclusal: 'sano'
-    };
+    toothObj.surfaces = { vestibular: 'sano', lingual: 'sano', mesial: 'sano', distal: 'sano', oclusal: 'sano' };
   }
 
-  // Si la herramienta es para el diente completo (cirugía o ausente)
-  if (tool === 'cirugia' || tool === 'ausente') {
-    await applyWholeToothCondition(toothNum, tool);
-    return;
-  }
+  const prevWhole = getClinicalTool(toothObj.condition);
+  const wasWhole = Boolean(prevWhole && prevWhole.scope === 'whole' && prevWhole.id !== 'sano');
 
-  // Si tool es sano, limpiar esa cara
-  if (tool === 'sano') {
+  if (toolId === 'sano') {
     toothObj.surfaces[face] = 'sano';
-    if (toothObj.condition === 'cirugia' || toothObj.condition === 'ausente') {
-      toothObj.condition = 'sano';
-    }
+    if (wasWhole) toothObj.condition = 'sano';
   } else {
-    // Si la cara ya tiene esta herramienta, la alternamos a sano (toggle intuitivo)
-    if (toothObj.surfaces[face] === tool) {
-      toothObj.surfaces[face] = 'sano';
-    } else {
-      toothObj.surfaces[face] = tool;
-    }
-    if (toothObj.condition === 'cirugia' || toothObj.condition === 'ausente') {
+    if (wasWhole) {
+      // Al pintar una cara sobre un diente previamente entero (ej. Ausente/Cirugía), limpia las demás caras
+      ['vestibular', 'lingual', 'mesial', 'distal', 'oclusal'].forEach(f => {
+        toothObj.surfaces[f] = 'sano';
+      });
       toothObj.condition = 'sano';
     }
+    toothObj.surfaces[face] = toothObj.surfaces[face] === toolId ? 'sano' : toolId;
   }
 
-  // Calcular resumen detallado de caras
+  // Agrupar dinámicamente las caras marcadas por condición (soporta pinceles personalizados)
   const faceDefs = [
     { key: 'vestibular', name: 'Vestibular' },
     { key: 'mesial', name: 'Mesial' },
@@ -746,57 +934,51 @@ async function applyToolToToothFace(toothNum, face, tool) {
     { key: 'lingual', name: 'Palatina/Lingual' }
   ];
 
-  const cariesFaces = [];
-  const resinaFaces = [];
-  const endoFaces = [];
-  const coronaFaces = [];
-
+  const grouped = new Map();
   faceDefs.forEach(f => {
     const st = toothObj.surfaces[f.key];
-    if (st === 'caries') cariesFaces.push(f.name);
-    else if (st === 'obturado') resinaFaces.push(f.name);
-    else if (st === 'endodoncia') endoFaces.push(f.name);
-    else if (st === 'corona') coronaFaces.push(f.name);
+    if (st && st !== 'sano') {
+      if (!grouped.has(st)) grouped.set(st, []);
+      grouped.get(st).push(f.name);
+    }
   });
 
   const parts = [];
-  if (cariesFaces.length > 0) parts.push(`Caries (${cariesFaces.join(', ')})`);
-  if (resinaFaces.length > 0) parts.push(`Resina (${resinaFaces.join(', ')})`);
-  if (endoFaces.length > 0) parts.push(`Conducto (${endoFaces.join(', ')})`);
-  if (coronaFaces.length > 0) parts.push(`Corona (${coronaFaces.join(', ')})`);
-
+  const billableParts = [];
   let overallCond = 'sano';
-  let desc = '';
 
-  if (parts.length > 0) {
-    desc = parts.join(' • ');
-    if (cariesFaces.length > 0) overallCond = 'caries';
-    else if (resinaFaces.length > 0) overallCond = 'obturado';
-    else if (endoFaces.length > 0) overallCond = 'endodoncia';
-    else if (coronaFaces.length > 0) overallCond = 'corona';
+  for (const [condKey, faceNames] of grouped.entries()) {
+    if (overallCond === 'sano' || condKey === 'caries') {
+      overallCond = condKey;
+    }
+    const label = getConditionLabel(condKey);
+    const segment = `${label} (${faceNames.join(', ')})`;
+    parts.push(segment);
+    const cTool = getClinicalTool(condKey);
+    if (!cTool || cTool.billable !== false) {
+      billableParts.push(segment);
+    }
   }
 
   toothObj.condition = overallCond;
-  toothObj.notes = desc;
+  toothObj.notes = parts.join(' • ');
 
-  // Sincronizar partida de presupuesto (SIN PRECIOS FIJOS - PRESERVAR LO QUE ESCRIBA LA DOCTORA)
+  // Sincronizar partida de presupuesto (preservando precios fijados por la Doctora)
   const budget = ensurePatientBudget(patient);
   const existingIdx = budget.items.findIndex(it => it.tooth === toothNum);
 
-  if (overallCond === 'sano') {
+  if (billableParts.length === 0) {
     if (existingIdx !== -1) {
       budget.items.splice(existingIdx, 1);
     }
   } else {
     const isCordal = meta.isCordal;
-    const itemName = `Pieza #${toothNum}${isCordal ? ' (Cordal)' : ''}: ${desc}`;
+    const itemName = `Pieza #${toothNum}${isCordal ? ' (Cordal)' : ''}: ${billableParts.join(' • ')}`;
     if (existingIdx !== -1) {
-      // Preservar el precio que la doctora haya colocado
       const savedPrice = budget.items[existingIdx].price !== undefined ? budget.items[existingIdx].price : 0;
       budget.items[existingIdx].name = itemName;
       budget.items[existingIdx].price = savedPrice;
     } else {
-      // Inicia en $0 para fijar precio al sentarse con el paciente
       budget.items.push({
         treatmentId: `ITEM-${Date.now()}-${toothNum}`,
         tooth: toothNum,
@@ -808,17 +990,10 @@ async function applyToolToToothFace(toothNum, face, tool) {
 
   recalculatePatientBudget(patient);
   await saveAppData();
-  renderOdontogramBoard();
-  renderHistoryOdontogram();
-  updateHistoryStats();
-  if (appState.selectedTooth === toothNum) {
-    updateQuickToothPanel(toothNum);
-  }
-  renderLiveOdontoBudget();
-  renderBudgetsView();
+  syncAfterOdontogramChange(toothNum);
 }
 
-// APLICAR CONDICIÓN A LA PIEZA DENTAL COMPLETA (CIRUGÍA, CONDUCTO, CORONA, AUSENTE O SANO)
+// APLICAR CONDICIÓN A LA PIEZA DENTAL COMPLETA (DIENTE ENTERO CONFIGURABLE)
 async function applyWholeToothCondition(toothNum, condition) {
   const patient = getCurrentPatient();
   if (!patient) return;
@@ -835,27 +1010,35 @@ async function applyWholeToothCondition(toothNum, condition) {
     };
   }
   const toothObj = patient.odontogram[toothNum];
+  const toolObj = getClinicalTool(condition);
   toothObj.condition = condition;
 
   if (condition === 'sano') {
     toothObj.surfaces = { vestibular: 'sano', lingual: 'sano', mesial: 'sano', distal: 'sano', oclusal: 'sano' };
     toothObj.notes = '';
-  } else if (condition === 'ausente') {
-    toothObj.surfaces = { vestibular: 'ausente', lingual: 'ausente', mesial: 'ausente', distal: 'ausente', oclusal: 'ausente' };
-    toothObj.notes = 'Pieza ausente / ya extraída';
-  } else if (condition === 'cirugia') {
-    toothObj.notes = meta.isCordal ? 'Cirugía de Extracción de Cordal' : 'Cirugía / Extracción Dental';
-  } else if (condition === 'endodoncia') {
-    toothObj.notes = 'Tratamiento de Conducto (Endodoncia)';
-  } else if (condition === 'corona') {
-    toothObj.notes = 'Corona Completa';
+  } else {
+    toothObj.surfaces = {
+      vestibular: condition,
+      lingual: condition,
+      mesial: condition,
+      distal: condition,
+      oclusal: condition
+    };
+    if (condition === 'ausente') {
+      toothObj.notes = 'Pieza ausente / ya extraída';
+    } else if (condition === 'cirugia') {
+      toothObj.notes = meta.isCordal ? 'Cirugía de Extracción de Cordal' : (toolObj ? toolObj.title : 'Cirugía / Extracción Dental');
+    } else {
+      toothObj.notes = toolObj ? toolObj.title : condition;
+    }
   }
 
   // Sincronizar presupuesto
   const budget = ensurePatientBudget(patient);
   const existingIdx = budget.items.findIndex(it => it.tooth === toothNum);
+  const isBillable = condition !== 'sano' && (!toolObj || toolObj.billable !== false);
 
-  if (condition === 'sano' || condition === 'ausente') {
+  if (!isBillable) {
     if (existingIdx !== -1) budget.items.splice(existingIdx, 1);
   } else {
     const itemName = `Pieza #${toothNum}${meta.isCordal ? ' (Cordal)' : ''}: ${toothObj.notes}`;
@@ -875,12 +1058,7 @@ async function applyWholeToothCondition(toothNum, condition) {
 
   recalculatePatientBudget(patient);
   await saveAppData();
-  renderOdontogramBoard();
-  renderHistoryOdontogram();
-  updateHistoryStats();
-  if (appState.selectedTooth === toothNum) updateQuickToothPanel(toothNum);
-  renderLiveOdontoBudget();
-  renderBudgetsView();
+  syncAfterOdontogramChange(toothNum);
   showToast(`Pieza #${toothNum}: ${getConditionLabel(condition)} asignado.`);
 }
 
@@ -899,8 +1077,12 @@ async function applyGeneralTreatment(treatmentName) {
 
   recalculatePatientBudget(patient);
   await saveAppData();
-  renderLiveOdontoBudget();
-  renderBudgetsView();
+  if (isViewActive('odontograma')) {
+    renderLiveOdontoBudget();
+  } else {
+    dirtyViews.add('odontograma');
+  }
+  refreshViewOrMarkDirty('presupuestos');
   showToast(`${treatmentName} agregado. Escribe el precio en la casilla al acordar con el paciente.`);
 }
 
@@ -929,7 +1111,7 @@ function renderLiveOdontoBudget() {
             </span>
           </td>
           <td>
-            <strong>${it.name}</strong>
+            <strong>${escapeHtml(it.name)}</strong>
           </td>
           <td>
             <div class="live-price-cell">
@@ -953,7 +1135,7 @@ function renderLiveOdontoBudget() {
 
       // Evento input para modificar precios directamente al sentarse con el paciente
       tbody.querySelectorAll('.live-item-price-input').forEach(input => {
-        input.addEventListener('input', async (e) => {
+        input.addEventListener('input', (e) => {
           const idx = parseInt(e.target.getAttribute('data-idx'));
           const newPrice = Math.max(0, parseFloat(e.target.value) || 0);
           if (budget.items[idx]) {
@@ -969,8 +1151,8 @@ function renderLiveOdontoBudget() {
           const bElem = document.getElementById('odonto-balance-val');
           if (bElem) bElem.textContent = `$${newBal.toFixed(2)}`;
 
-          await saveAppData();
-          renderBudgetsView();
+          debouncedSaveAppData();
+          refreshViewOrMarkDirty('presupuestos');
         });
       });
 
@@ -1006,157 +1188,6 @@ function renderLiveOdontoBudget() {
 
   const balElem = document.getElementById('odonto-balance-val');
   if (balElem) balElem.textContent = `$${balance.toFixed(2)}`;
-}
-
-// MODAL DEL DIENTE / CORDAL
-function openToothModal(toothNum) {
-  appState.activeToothModalNum = toothNum;
-  const patient = getCurrentPatient();
-  const meta = TEETH_MAP[toothNum];
-  const toothData = (patient.odontogram && patient.odontogram[toothNum]) ? patient.odontogram[toothNum] : {
-    condition: 'sano',
-    surfaces: { oclusal: 'sano', vestibular: 'sano', lingual: 'sano', mesial: 'sano', distal: 'sano' },
-    notes: '',
-    procedurePlan: '',
-    estimatedCost: 0
-  };
-
-  document.getElementById('tooth-modal-title').textContent = `Diente #${toothNum} - ${meta.name}`;
-  document.getElementById('tooth-modal-name').textContent = meta.name;
-  document.getElementById('tooth-modal-desc').textContent = `${meta.arch === 'superior' ? 'Arcada Superior' : 'Arcada Inferior'} • Cuadrante ${meta.quadrant} • ${meta.type.toUpperCase()}`;
-  
-  const cordalBadge = document.getElementById('tooth-modal-badge');
-  if (meta.isCordal) {
-    cordalBadge.style.display = 'inline-block';
-    cordalBadge.textContent = 'CORDAL / TERCER MOLAR';
-  } else {
-    cordalBadge.style.display = 'none';
-  }
-
-  // Previsualización de SVG ampliado
-  document.getElementById('tooth-modal-svg-preview').innerHTML = generateToothSVG(toothNum, toothData.surfaces, toothData.condition, meta);
-
-  // Botones de condición general
-  document.querySelectorAll('.condition-btn').forEach(btn => {
-    const c = btn.getAttribute('data-cond');
-    if (c === toothData.condition) {
-      btn.classList.add('btn-primary');
-      btn.classList.remove('btn-secondary');
-    } else {
-      btn.classList.remove('btn-primary');
-      btn.classList.add('btn-secondary');
-    }
-  });
-
-  // Botones de caras individuales
-  document.querySelectorAll('.surface-btn').forEach(btn => {
-    const s = btn.getAttribute('data-surface');
-    const sCond = (toothData.surfaces && toothData.surfaces[s]) || toothData.condition || 'sano';
-    btn.textContent = `${s.toUpperCase()} (${sCond})`;
-    if (sCond !== 'sano') {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
-  });
-
-  // Catálogo de tratamientos
-  const treatSelect = document.getElementById('tooth-treatment-select');
-  treatSelect.innerHTML = '<option value="">-- Seleccionar Procedimiento --</option>';
-  appState.treatments.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t.name;
-    opt.textContent = `${t.name} ($${t.defaultPrice})`;
-    opt.setAttribute('data-price', t.defaultPrice);
-    if (t.name === toothData.procedurePlan) opt.selected = true;
-    treatSelect.appendChild(opt);
-  });
-
-  treatSelect.onchange = () => {
-    const selectedOpt = treatSelect.options[treatSelect.selectedIndex];
-    const price = selectedOpt.getAttribute('data-price');
-    if (price) {
-      document.getElementById('tooth-cost-input').value = price;
-    }
-  };
-
-  document.getElementById('tooth-cost-input').value = toothData.estimatedCost || 0;
-  document.getElementById('tooth-notes-input').value = toothData.notes || '';
-
-  // Abrir modal
-  document.getElementById('tooth-modal').classList.add('active');
-}
-
-// GUARDAR DETALLE DEL DIENTE
-async function saveToothModalChanges() {
-  const toothNum = appState.activeToothModalNum;
-  if (!toothNum) return;
-  const patient = getCurrentPatient();
-  if (!patient.odontogram) patient.odontogram = {};
-
-  let currentCond = 'sano';
-  document.querySelectorAll('.condition-btn').forEach(b => {
-    if (b.classList.contains('btn-primary')) currentCond = b.getAttribute('data-cond');
-  });
-
-  const surfaces = {};
-  document.querySelectorAll('.surface-btn').forEach(b => {
-    const s = b.getAttribute('data-surface');
-    surfaces[s] = b.classList.contains('active') ? currentCond : 'sano';
-  });
-
-  const notes = document.getElementById('tooth-notes-input').value;
-  const procedurePlan = document.getElementById('tooth-treatment-select').value;
-  const cost = parseFloat(document.getElementById('tooth-cost-input').value) || 0;
-
-  patient.odontogram[toothNum] = {
-    toothNumber: toothNum,
-    name: TEETH_MAP[toothNum].name,
-    condition: currentCond,
-    surfaces,
-    notes,
-    procedurePlan,
-    estimatedCost: cost
-  };
-
-  await saveAppData();
-  renderOdontogramBoard();
-  renderHistoryOdontogram();
-  updateHistoryStats();
-  if (appState.selectedTooth === toothNum) {
-    updateQuickToothPanel(toothNum);
-  }
-  document.getElementById('tooth-modal').classList.remove('active');
-  showToast(`Diente #${toothNum} actualizado con éxito.`);
-}
-
-// AGREGAR TRATAMIENTO DEL DIENTE AL PRESUPUESTO DEL PACIENTE
-async function addActiveToothToBudget() {
-  const toothNum = appState.activeToothModalNum;
-  if (!toothNum) return;
-  const patient = getCurrentPatient();
-  if (!patient) return;
-  const procedure = document.getElementById('tooth-treatment-select').value || `Tratamiento Pieza #${toothNum}`;
-  const cost = parseFloat(document.getElementById('tooth-cost-input').value) || 0;
-
-  if (cost <= 0) {
-    showToast('Por favor introduce un costo válido para este procedimiento.', 'warning');
-    return;
-  }
-
-  const activeBudget = ensurePatientBudget(patient);
-  activeBudget.items.push({
-    treatmentId: `ITEM-${Date.now()}`,
-    tooth: toothNum,
-    name: `${procedure} (Pieza #${toothNum})`,
-    price: cost
-  });
-
-  recalculatePatientBudget(patient);
-  await saveAppData();
-  renderLiveOdontoBudget();
-  renderBudgetsView();
-  showToast(`Procedimiento añadido al presupuesto de ${patient.name}`);
 }
 
 // ==========================================================================
@@ -1397,6 +1428,10 @@ function updateHistoryStats() {
   const patient = getCurrentPatient();
   if (!patient) return;
 
+  const cariesTool = getClinicalTool('caries') || { title: 'Por Reparar', color: '#ef4444' };
+  const obtTool = getClinicalTool('obturado') || { title: 'Reparadas', color: '#2563eb' };
+  const sanoTool = getClinicalTool('sano') || { color: '#10b981' };
+
   let cariesFacesCount = 0;
   let obturadoFacesCount = 0;
 
@@ -1415,46 +1450,51 @@ function updateHistoryStats() {
   const summaryElem = document.getElementById('hc-stats-summary');
   if (summaryElem) {
     summaryElem.innerHTML = `
-      <span class="hc-stat-item hc-stat-item--danger"><span class="tool-dot tool-dot--caries" aria-hidden="true"></span> <strong>${cariesFacesCount}</strong> Caras por Reparar</span>
-      <span class="hc-stat-item hc-stat-item--info"><span class="tool-dot tool-dot--obturado" aria-hidden="true"></span> <strong>${obturadoFacesCount}</strong> Caras Reparadas</span>
-      <span class="hc-stat-item hc-stat-item--success"><span class="tool-dot tool-dot--sano" aria-hidden="true"></span> Sincronizado</span>
+      <span class="hc-stat-item" style="color:${escapeHtml(cariesTool.color)};"><span class="tool-dot" style="background-color:${escapeHtml(cariesTool.color)};" aria-hidden="true"></span> <strong>${cariesFacesCount}</strong> ${escapeHtml(cariesTool.title)}</span>
+      <span class="hc-stat-item" style="color:${escapeHtml(obtTool.color)};"><span class="tool-dot" style="background-color:${escapeHtml(obtTool.color)};" aria-hidden="true"></span> <strong>${obturadoFacesCount}</strong> ${escapeHtml(obtTool.title)}</span>
+      <span class="hc-stat-item" style="color:${escapeHtml(sanoTool.color)};"><span class="tool-dot" style="background-color:${escapeHtml(sanoTool.color)};" aria-hidden="true"></span> Sincronizado</span>
     `;
   }
 
   const sideCaries = document.getElementById('hc-side-caries-stat');
-  if (sideCaries) sideCaries.innerHTML = `<span class="tool-dot tool-dot--caries" aria-hidden="true"></span> ${cariesFacesCount} Caras por Reparar`;
+  if (sideCaries) {
+    sideCaries.style.color = cariesTool.color;
+    sideCaries.innerHTML = `<span class="tool-dot" style="background-color:${escapeHtml(cariesTool.color)};" aria-hidden="true"></span> ${cariesFacesCount} ${escapeHtml(cariesTool.title)}`;
+  }
   const sideObturado = document.getElementById('hc-side-obturado-stat');
-  if (sideObturado) sideObturado.innerHTML = `<span class="tool-dot tool-dot--obturado" aria-hidden="true"></span> ${obturadoFacesCount} Caras Reparadas`;
+  if (sideObturado) {
+    sideObturado.style.color = obtTool.color;
+    sideObturado.innerHTML = `<span class="tool-dot" style="background-color:${escapeHtml(obtTool.color)};" aria-hidden="true"></span> ${obturadoFacesCount} ${escapeHtml(obtTool.title)}`;
+  }
 }
 
 function syncToolPaletteUI(tool) {
-  appState.activeTool = tool;
+  const toolObj = getClinicalTool(tool) || getClinicalTools()[0];
+  const resolvedId = toolObj ? toolObj.id : tool;
+  appState.activeTool = resolvedId;
 
   document.querySelectorAll('.btn-hc-tool, .btn-hc-side-tool, .btn-clinical-tool').forEach(b => {
-    const isThis = b.getAttribute('data-tool') === tool;
+    const isThis = b.getAttribute('data-tool') === resolvedId;
     b.classList.toggle('active', isThis);
   });
 
-  // Actualizar badge del panel lateral vía CSS [data-tool]
+  // Actualizar badge del panel lateral dinámicamente con título y color del pincel
   const sideBadge = document.getElementById('hc-side-tool-badge');
   const sideToolName = document.getElementById('hc-side-tool-name');
   if (sideBadge && sideToolName) {
-    sideToolName.textContent = getToolLabel(tool);
-    sideBadge.setAttribute('data-tool', tool);
+    sideToolName.textContent = toolObj ? toolObj.title : getToolLabel(resolvedId);
+    sideBadge.setAttribute('data-tool', resolvedId);
+    if (toolObj) {
+      sideBadge.style.backgroundColor = hexToRgba(toolObj.color, 0.13);
+      sideBadge.style.borderColor = hexToRgba(toolObj.color, 0.35);
+      sideBadge.style.color = darkenHex(toolObj.color, 0.12);
+    }
   }
 }
 
 function getToolLabel(tool) {
-  const map = {
-    caries: "Por Reparar (Caries)",
-    obturado: "Ya Reparado (Resina)",
-    sano: "Marcar Sano",
-    endodoncia: "Endodoncia",
-    corona: "Corona",
-    cirugia: "Cirugía / Extracción",
-    ausente: "Ya Ausente"
-  };
-  return map[tool] || tool;
+  const found = getClinicalTool(tool);
+  return found ? found.title : tool;
 }
 
 async function saveCurrentClinicalHistoryForm(showNotification = false) {
@@ -1534,11 +1574,11 @@ async function saveCurrentClinicalHistoryForm(showNotification = false) {
   syncPatientContactInAppointments(patient);
   await saveAppData();
   populateGlobalPatientSelect();
-  renderPatientsList();
-  renderWeeklyScheduleView();
-  renderAppointmentsView();
-  renderBudgetsView();
-  renderGalleryView();
+  refreshViewOrMarkDirty('pacientes');
+  refreshViewOrMarkDirty('inicio');
+  refreshViewOrMarkDirty('citas');
+  refreshViewOrMarkDirty('presupuestos');
+  refreshViewOrMarkDirty('galeria');
   if (showNotification) {
     showToast('Historia Clínica guardada exitosamente.');
   }
@@ -1812,7 +1852,7 @@ function renderWeeklyScheduleView(refDate) {
               <div class="weekly-watermark watermark-liberada">CUPO LIBERADO</div>
               <div class="weekly-freed-box">
                 <div class="weekly-freed-title">${UI_ICONS.alert}<span>Cupo Disponible (${slot.start})</span></div>
-                <div class="weekly-freed-desc">Liberado por: <strong>${apt.patientName}</strong> (${apt.duration || 60} min)</div>
+                <div class="weekly-freed-desc">Liberado por: <strong>${escapeHtml(apt.patientName)}</strong> (${apt.duration || 60} min)</div>
                 <button type="button" class="btn-assign-freed" data-id="${apt.id}">
                   ${UI_ICONS.phone}<span>Llamar & Reasignar Cupo</span>
                 </button>
@@ -1841,16 +1881,16 @@ function renderWeeklyScheduleView(refDate) {
               <div class="weekly-card-content">
                 ${isReassigned ? `
                   <div class="weekly-reassigned-badge">${UI_ICONS.refresh}<span>Cita Reasignada</span></div>
-                  <div class="weekly-original-patient-info" title="Cita cancelada por paciente original: ${apt.reassignedFrom?.reason || ''}">
-                    <span>Tomada de: <strong>${apt.reassignedFrom?.originalPatientName || 'Paciente previo'}</strong> (Canceló)</span>
+                  <div class="weekly-original-patient-info" title="Cita cancelada por paciente original: ${escapeHtml(apt.reassignedFrom?.reason || '')}">
+                    <span>Tomada de: <strong>${escapeHtml(apt.reassignedFrom?.originalPatientName || 'Paciente previo')}</strong> (Canceló)</span>
                   </div>
                 ` : ''}
 
-                <div class="weekly-patient-title" title="${apt.patientName}">
-                  ${UI_ICONS.user}<span>${apt.patientName}</span>
+                <div class="weekly-patient-title" title="${escapeHtml(apt.patientName)}">
+                  ${UI_ICONS.user}<span>${escapeHtml(apt.patientName)}</span>
                 </div>
-                <div class="weekly-procedure-text" title="${apt.reason || 'Consulta'}">
-                  ${UI_ICONS.tooth}<span>${apt.reason || 'Consulta Odontológica'}</span>
+                <div class="weekly-procedure-text" title="${escapeHtml(apt.reason || 'Consulta')}">
+                  ${UI_ICONS.tooth}<span>${escapeHtml(apt.reason || 'Consulta Odontológica')}</span>
                 </div>
               </div>
 
@@ -1863,6 +1903,10 @@ function renderWeeklyScheduleView(refDate) {
                 <span class="weekly-duration-pill">
                   ${UI_ICONS.clock}<span>${apt.duration == 30 ? '30m' : apt.duration == 60 ? '1h' : `${apt.duration}m`}</span>
                 </span>
+
+                <button type="button" class="weekly-btn-edit" data-id="${apt.id}" title="Editar cita" aria-label="Editar cita">
+                  ${UI_ICONS.edit}
+                </button>
 
                 <button type="button" class="weekly-btn-reassign" data-id="${apt.id}" title="Reasignar cita a otro paciente si cancela">
                   ${UI_ICONS.refresh}<span>Reasignar</span>
@@ -1920,6 +1964,13 @@ function setupWeeklyTableDelegation(tbody) {
       return;
     }
 
+    const editBtn = e.target.closest('.weekly-btn-edit');
+    if (editBtn) {
+      e.stopPropagation();
+      openEditAppointmentModal(editBtn.getAttribute('data-id'));
+      return;
+    }
+
     const historyBtn = e.target.closest('.weekly-btn-history');
     if (historyBtn) {
       e.stopPropagation();
@@ -1971,8 +2022,8 @@ async function toggleAppointmentConfirmation(aptId) {
   }
 
   await saveAppData();
-  renderWeeklyScheduleView();
-  renderAppointmentsView();
+  refreshViewOrMarkDirty('inicio');
+  refreshViewOrMarkDirty('citas');
 }
 
 // MODAL DE REASIGNACIÓN DE CITA (EN CASO DE CANCELACIÓN)
@@ -2113,8 +2164,8 @@ async function saveReassignmentConfirm() {
   if (newNotes) apt.notes = newNotes;
 
   await saveAppData();
-  renderWeeklyScheduleView();
-  renderAppointmentsView();
+  refreshViewOrMarkDirty('inicio');
+  refreshViewOrMarkDirty('citas');
 
   const modal = document.getElementById('modal-reassign-appointment');
   if (modal) modal.classList.remove('active');
@@ -2139,8 +2190,8 @@ async function saveReassignLeaveFree() {
   apt.status = 'cupo_liberado';
 
   await saveAppData();
-  renderWeeklyScheduleView();
-  renderAppointmentsView();
+  refreshViewOrMarkDirty('inicio');
+  refreshViewOrMarkDirty('citas');
 
   const modal = document.getElementById('modal-reassign-appointment');
   if (modal) modal.classList.remove('active');
@@ -2342,7 +2393,7 @@ function renderDailyTimeBlocks(dateStr) {
         <div class="timeblock-busy-info">
           <div>
             <div class="slot-busy-header">
-              <strong class="slot-patient-name">${startingApt.patientName}</strong>
+              <strong class="slot-patient-name">${escapeHtml(startingApt.patientName)}</strong>
               ${getStatusBadge(startingApt.status)}
               <span class="slot-block-pill">
                 <span class="badge-icon-wrap">${UI_ICONS.clock}</span>
@@ -2351,8 +2402,8 @@ function renderDailyTimeBlocks(dateStr) {
             </div>
             <div class="slot-reason-line">
               <span class="badge-icon-wrap">${UI_ICONS.tooth}</span>
-              <span><strong>${startingApt.reason || 'Consulta'}</strong></span>
-              ${startingApt.notes ? `<span>• <em>${startingApt.notes}</em></span>` : ''}
+              <span><strong>${escapeHtml(startingApt.reason || 'Consulta')}</strong></span>
+              ${startingApt.notes ? `<span>• <em>${escapeHtml(startingApt.notes)}</em></span>` : ''}
             </div>
           </div>
         </div>
@@ -2382,6 +2433,10 @@ function renderDailyTimeBlocks(dateStr) {
           </button>
           `}
 
+          <button type="button" class="btn btn-secondary btn-sm btn-edit-apt" title="Editar Cita" data-id="${startingApt.id}" aria-label="Editar cita">
+            ${UI_ICONS.edit}
+          </button>
+
           <button type="button" class="btn btn-secondary btn-sm btn-delete-apt btn-action-danger" title="Eliminar / Cancelar Cita" data-id="${startingApt.id}" aria-label="Eliminar o cancelar cita">
             ${UI_ICONS.trash}
           </button>
@@ -2403,7 +2458,7 @@ function renderDailyTimeBlocks(dateStr) {
         <div class="timeblock-busy-info">
           <div class="slot-continuacion-row">
             <span class="slot-block-pill slot-continuacion-pill">↳ Bloque Continuación</span>
-            <span class="slot-continuacion-text">Consulta en curso: <strong>${coveringApt.patientName}</strong> (${coveringApt.reason})</span>
+            <span class="slot-continuacion-text">Consulta en curso: <strong>${escapeHtml(coveringApt.patientName)}</strong> (${escapeHtml(coveringApt.reason)})</span>
           </div>
         </div>
         <div class="slot-continuacion-hint">
@@ -2486,13 +2541,13 @@ function renderAppointmentsList(dateFilter) {
 
       <div class="appointment-details">
         <div class="apt-list-header-row">
-          <h4>${apt.patientName}</h4>
+          <h4>${escapeHtml(apt.patientName)}</h4>
           ${getStatusBadge(apt.status)}
         </div>
         <p>
-          <span><strong>Procedimiento:</strong> ${apt.reason}</span>
+          <span><strong>Procedimiento:</strong> ${escapeHtml(apt.reason)}</span>
           <span class="apt-list-meta-row">${UI_ICONS.calendar} ${formatDisplayDate(apt.date)}</span>
-          ${apt.notes ? `<span>• <em>${apt.notes}</em></span>` : ''}
+          ${apt.notes ? `<span>• <em>${escapeHtml(apt.notes)}</em></span>` : ''}
         </p>
       </div>
 
@@ -2523,6 +2578,10 @@ function renderAppointmentsList(dateFilter) {
         </button>
         `}
 
+        <button type="button" class="btn btn-secondary btn-sm btn-edit-apt" title="Editar cita" data-id="${apt.id}" aria-label="Editar cita">
+          ${UI_ICONS.edit}
+        </button>
+
         <button type="button" class="btn btn-secondary btn-sm btn-delete-apt btn-action-danger" title="Eliminar cita" data-id="${apt.id}" aria-label="Eliminar cita">
           ${UI_ICONS.trash}
         </button>
@@ -2533,6 +2592,22 @@ function renderAppointmentsList(dateFilter) {
     fragment.appendChild(item);
   });
   container.appendChild(fragment);
+}
+
+let pendingConfirmCallback = null;
+
+function openConfirmModal({ title = 'Confirmar Acción', message = '', confirmLabel = 'Confirmar', onConfirm = null }) {
+  const modal = document.getElementById('modal-confirm-action');
+  const titleEl = document.getElementById('confirm-modal-title');
+  const msgEl = document.getElementById('confirm-modal-message');
+  const acceptBtn = document.getElementById('btn-confirm-modal-accept');
+  if (!modal || !acceptBtn) return;
+
+  if (titleEl) titleEl.textContent = title;
+  if (msgEl) msgEl.textContent = message;
+  acceptBtn.textContent = confirmLabel;
+  pendingConfirmCallback = onConfirm;
+  modal.classList.add('active');
 }
 
 function bindAppointmentItemEvents(item, apt) {
@@ -2551,7 +2626,7 @@ function bindAppointmentItemEvents(item, apt) {
     apt.status = newStatus;
     await saveAppData();
     renderAppointmentsView();
-    renderWeeklyScheduleView();
+    refreshViewOrMarkDirty('inicio');
     showToast(`Estado de cita actualizado a: ${newStatus}`);
   });
 
@@ -2568,30 +2643,47 @@ function bindAppointmentItemEvents(item, apt) {
     switchView('odontograma');
   });
 
-  item.querySelector('.btn-delete-apt')?.addEventListener('click', async () => {
-    if (confirm(`¿Deseas eliminar la cita de ${apt.patientName}?`)) {
-      appState.appointments = appState.appointments.filter(a => a.id !== apt.id);
-      await saveAppData();
-      renderAppointmentsView();
-      renderWeeklyScheduleView();
-      showToast('Cita eliminada correctamente.');
-    }
+  item.querySelector('.btn-edit-apt')?.addEventListener('click', () => {
+    openEditAppointmentModal(apt.id);
+  });
+
+  item.querySelector('.btn-delete-apt')?.addEventListener('click', () => {
+    openConfirmModal({
+      title: 'Eliminar Cita',
+      message: `¿Deseas eliminar la cita de ${apt.patientName} (${formatTime12h(apt.time)})? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Sí, Eliminar Cita',
+      onConfirm: async () => {
+        appState.appointments = appState.appointments.filter(a => a.id !== apt.id);
+        await saveAppData();
+        refreshViewOrMarkDirty('citas');
+        refreshViewOrMarkDirty('inicio');
+        showToast('Cita eliminada correctamente.');
+      }
+    });
   });
 }
 
-// MODAL NUEVA CITA CON SELECTOR DE BLOQUES Y PREVIEWS
-function openNewAppointmentModal(patientId = null, defaultDate = null, defaultTime = null, defaultDuration = null) {
+function populateAppointmentPatientOptions(selectedPatientId = null) {
   const pSelect = document.getElementById('appointment-patient-select');
-  if (pSelect) {
-    pSelect.innerHTML = '';
-    appState.patients.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = `${p.name} (${p.documentId || 'S/C'})`;
-      if (patientId && p.id === patientId) opt.selected = true;
-      pSelect.appendChild(opt);
-    });
-  }
+  if (!pSelect) return;
+  pSelect.innerHTML = '';
+  appState.patients.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `${p.name} (${p.documentId || 'S/C'})`;
+    if (selectedPatientId && p.id === selectedPatientId) opt.selected = true;
+    pSelect.appendChild(opt);
+  });
+}
+
+// MODAL NUEVA / EDITAR CITA CON SELECTOR DE BLOQUES Y PREVIEWS
+function openNewAppointmentModal(patientId = null, defaultDate = null, defaultTime = null, defaultDuration = null) {
+  populateAppointmentPatientOptions(patientId);
+
+  const modalTitle = document.getElementById('appointment-modal-title');
+  if (modalTitle) modalTitle.textContent = 'Agendar Nueva Cita Odontológica';
+  const btnSave = document.getElementById('btn-save-appointment');
+  if (btnSave) btnSave.textContent = 'Guardar Cita';
 
   const targetDate = defaultDate || appState.selectedAppointmentDate || getLocalISODate();
   const targetTime = getSafeStartTime(defaultTime || "09:00", "09:00");
@@ -2621,6 +2713,60 @@ function openNewAppointmentModal(patientId = null, defaultDate = null, defaultTi
   if (modal) modal.classList.add('active');
 }
 
+function openEditAppointmentModal(aptId) {
+  const apt = appState.appointments.find(a => a.id === aptId);
+  if (!apt) return;
+
+  populateAppointmentPatientOptions(apt.patientId);
+
+  const modalTitle = document.getElementById('appointment-modal-title');
+  if (modalTitle) modalTitle.textContent = 'Editar Cita Odontológica';
+  const btnSave = document.getElementById('btn-save-appointment');
+  if (btnSave) btnSave.textContent = 'Guardar Cambios';
+
+  const safeTime = getSafeStartTime(apt.time || '09:00', '09:00');
+  let safeDur = String(apt.duration || 60);
+  if (getScheduleRestrictionError(safeTime, safeDur)) safeDur = '30';
+
+  const idInp = document.getElementById('appointment-id-input');
+  if (idInp) idInp.value = apt.id;
+  const dateInp = document.getElementById('appointment-date-input');
+  if (dateInp) dateInp.value = apt.date || getLocalISODate();
+  const timeInp = document.getElementById('appointment-time-input');
+  if (timeInp) timeInp.value = safeTime;
+  const durInp = document.getElementById('appointment-duration-input');
+  if (durInp) {
+    durInp.value = safeDur;
+    syncDurationSelectForTime(safeTime, durInp);
+  }
+  const statusInp = document.getElementById('appointment-status-input');
+  if (statusInp) statusInp.value = apt.status || 'programada';
+  const reasonInp = document.getElementById('appointment-reason-input');
+  if (reasonInp) reasonInp.value = apt.reason || '';
+  const notesInp = document.getElementById('appointment-notes-input');
+  if (notesInp) notesInp.value = apt.notes || '';
+
+  updateAppointmentTimePreview();
+  const modal = document.getElementById('appointment-modal');
+  if (modal) modal.classList.add('active');
+}
+
+function findAppointmentCollision(dateVal, startTime, durationMin, excludeAptId = '') {
+  if (!dateVal || !startTime) return null;
+  const endTime = addMinutesToTime(startTime, durationMin);
+  const startMin = timeToMinutes(startTime);
+  const endMin = timeToMinutes(endTime);
+
+  return appState.appointments.find(a => {
+    if (excludeAptId && a.id === excludeAptId) return false;
+    if (a.date !== dateVal) return false;
+    if (a.status === 'cancelada' || a.status === 'cupo_liberado') return false;
+    const aStart = timeToMinutes(a.time);
+    const aEnd = aStart + (parseInt(a.duration) || 60);
+    return startMin < aEnd && endMin > aStart;
+  }) || null;
+}
+
 function updateAppointmentTimePreview() {
   const timeInp = document.getElementById('appointment-time-input');
   const durInp = document.getElementById('appointment-duration-input');
@@ -2641,29 +2787,19 @@ function updateAppointmentTimePreview() {
   if (collisionAlert && dateInp) {
     const dateVal = dateInp.value;
     const currentAptId = aptIdInput ? aptIdInput.value : '';
-    const startMin = timeToMinutes(startTime);
-    const endMin = timeToMinutes(endTime);
 
     const scheduleErr = getScheduleRestrictionError(startTime, durationMin);
     if (scheduleErr) {
       collisionAlert.style.display = 'block';
-      collisionAlert.innerHTML = `${UI_ICONS.alert}<span>${scheduleErr}</span>`;
+      collisionAlert.innerHTML = `${UI_ICONS.alert}<span>${escapeHtml(scheduleErr)}</span>`;
       return;
     }
 
-    const collision = appState.appointments.find(a => {
-      if (a.id === currentAptId) return false;
-      if (a.date !== dateVal) return false;
-      if (a.status === 'cancelada' || a.status === 'cupo_liberado') return false;
-      const aStart = timeToMinutes(a.time);
-      const aEnd = aStart + (parseInt(a.duration) || 60);
-      return startMin < aEnd && endMin > aStart;
-    });
-
+    const collision = findAppointmentCollision(dateVal, startTime, durationMin, currentAptId);
     if (collision) {
       collisionAlert.style.display = 'block';
       const cEnd = addMinutesToTime(collision.time, collision.duration || 60);
-      collisionAlert.innerHTML = `${UI_ICONS.alert}<span>Conflicto de horario: <strong>${collision.patientName}</strong> ya tiene cita de <strong>${formatTime12h(collision.time)} a ${formatTime12h(cEnd)}</strong> (${collision.reason}).</span>`;
+      collisionAlert.innerHTML = `${UI_ICONS.alert}<span>Conflicto de horario: <strong>${escapeHtml(collision.patientName)}</strong> ya tiene cita de <strong>${formatTime12h(collision.time)} a ${formatTime12h(cEnd)}</strong> (${escapeHtml(collision.reason)}).</span>`;
     } else {
       collisionAlert.style.display = 'none';
     }
@@ -2671,14 +2807,15 @@ function updateAppointmentTimePreview() {
 }
 
 async function saveAppointment() {
+  const editId = document.getElementById('appointment-id-input')?.value?.trim() || '';
   const patientId = document.getElementById('appointment-patient-select').value;
   const patient = appState.patients.find(p => p.id === patientId);
   const date = document.getElementById('appointment-date-input').value;
   const time = document.getElementById('appointment-time-input').value;
   const duration = parseInt(document.getElementById('appointment-duration-input').value) || 60;
   const status = document.getElementById('appointment-status-input').value;
-  const reason = document.getElementById('appointment-reason-input').value || 'Consulta General';
-  const notes = document.getElementById('appointment-notes-input').value;
+  const reason = document.getElementById('appointment-reason-input').value.trim() || 'Consulta General';
+  const notes = document.getElementById('appointment-notes-input').value.trim();
 
   if (!patient || !date || !time) {
     showToast('Por favor completa los campos requeridos', 'warning');
@@ -2691,27 +2828,56 @@ async function saveAppointment() {
     return;
   }
 
-  const newApt = {
-    id: `APT-${Date.now()}`,
-    patientId,
-    patientName: patient.name,
-    phone: patient.phone,
-    date,
-    time,
-    duration,
-    status,
-    reason,
-    notes
-  };
+  if (status !== 'cancelada' && status !== 'cupo_liberado') {
+    const collision = findAppointmentCollision(date, time, duration, editId);
+    if (collision) {
+      const cEnd = addMinutesToTime(collision.time, collision.duration || 60);
+      showToast(`Horario ocupado por ${collision.patientName} (${formatTime12h(collision.time)} - ${formatTime12h(cEnd)}). Selecciona otro bloque.`, 'warning');
+      updateAppointmentTimePreview();
+      document.getElementById('appointment-time-input')?.focus();
+      return;
+    }
+  }
 
-  appState.appointments.push(newApt);
+  if (editId) {
+    const existingApt = appState.appointments.find(a => a.id === editId);
+    if (existingApt) {
+      existingApt.patientId = patientId;
+      existingApt.patientName = patient.name;
+      existingApt.phone = patient.phone;
+      existingApt.date = date;
+      existingApt.time = time;
+      existingApt.duration = duration;
+      existingApt.status = status;
+      existingApt.reason = reason;
+      existingApt.notes = notes;
+    }
+  } else {
+    appState.appointments.push({
+      id: `APT-${Date.now()}`,
+      patientId,
+      patientName: patient.name,
+      phone: patient.phone,
+      date,
+      time,
+      duration,
+      status,
+      reason,
+      notes
+    });
+  }
+
   appState.selectedAppointmentDate = date;
   appState.selectedWeekDate = date;
   await saveAppData();
-  renderAppointmentsView();
-  renderWeeklyScheduleView();
+  refreshViewOrMarkDirty('citas');
+  refreshViewOrMarkDirty('inicio');
   document.getElementById('appointment-modal').classList.remove('active');
-  showToast(`Cita agendada para ${patient.name} (${formatTime12h(time)} - ${duration} min)`);
+  showToast(
+    editId
+      ? `Cita de ${patient.name} actualizada (${formatTime12h(time)} - ${duration} min)`
+      : `Cita agendada para ${patient.name} (${formatTime12h(time)} - ${duration} min)`
+  );
 }
 
 // ==========================================================================
@@ -2741,6 +2907,10 @@ function renderPatientsList() {
       const pId = card.getAttribute('data-patient-id');
       if (!pId) return;
       setActivePatient(pId, { source: 'pacientes', silent: true });
+      if (window.innerWidth <= 900) {
+        const detailCard = document.getElementById('patient-detail-card');
+        if (detailCard) detailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     };
     container.addEventListener('click', selectPatientFromList);
     container.addEventListener('keydown', (e) => {
@@ -2765,13 +2935,13 @@ function renderPatientsList() {
 
     item.innerHTML = `
       <div class="patient-list-row">
-        <strong class="patient-list-name">${p.name}</strong>
-        <span class="patient-list-doc">${p.documentId || ''}</span>
+        <strong class="patient-list-name">${escapeHtml(p.name)}</strong>
+        <span class="patient-list-doc">${escapeHtml(p.documentId || '')}</span>
       </div>
-      <div class="patient-list-phone">${UI_ICONS.phone}<span>${p.phone}</span></div>
+      <div class="patient-list-phone">${UI_ICONS.phone}<span>${escapeHtml(p.phone)}</span></div>
       ${p.medicalAlerts && p.medicalAlerts.allergies && p.medicalAlerts.allergies.toLowerCase() !== 'ninguna' ? `
         <div class="patient-list-allergy">
-          ${UI_ICONS.alert}<span>${p.medicalAlerts.allergies}</span>
+          ${UI_ICONS.alert}<span>${escapeHtml(p.medicalAlerts.allergies)}</span>
         </div>
       ` : ''}
     `;
@@ -2798,14 +2968,14 @@ function renderPatientDetail() {
     <!-- Header del Perfil -->
     <div class="patient-profile-header">
       <div class="patient-avatar-info">
-        <div class="patient-avatar">${patient.name.charAt(0)}</div>
+        <div class="patient-avatar">${escapeHtml((patient.name || 'P').charAt(0).toUpperCase())}</div>
         <div class="patient-profile-identity">
-          <h2>${patient.name}</h2>
+          <h2>${escapeHtml(patient.name)}</h2>
           <p class="patient-profile-sub">
-            Cédula: <strong>${patient.documentId}</strong> • ${patient.age || 0} años • ${patient.occupation || 'Sin ocupación'}
+            Cédula: <strong>${escapeHtml(patient.documentId)}</strong> • ${escapeHtml(patient.age || 0)} años • ${escapeHtml(patient.occupation || 'Sin ocupación')}
           </p>
           <p class="patient-profile-occupation">
-            ${patient.phone} • ${patient.email || 'Sin correo'}
+            ${escapeHtml(patient.phone)} • ${escapeHtml(patient.email || 'Sin correo')}
           </p>
         </div>
       </div>
@@ -2814,13 +2984,13 @@ function renderPatientDetail() {
         ${alerts.allergies && alerts.allergies.toLowerCase() !== 'ninguna' ? `
           <div class="alert-banner">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            <span>${alerts.allergies}</span>
+            <span>${escapeHtml(alerts.allergies)}</span>
           </div>
         ` : '<span class="badge badge-success">Sin Alergias Reportadas</span>'}
 
         ${alerts.systemicDiseases && alerts.systemicDiseases.toLowerCase() !== 'ninguna' ? `
           <div class="patient-alert-pill">
-            ${UI_ICONS.alert}<span>Condición: ${alerts.systemicDiseases}</span>
+            ${UI_ICONS.alert}<span>Condición: ${escapeHtml(alerts.systemicDiseases)}</span>
           </div>
         ` : ''}
       </div>
@@ -2851,9 +3021,9 @@ function renderPatientDetail() {
     <div class="card patient-medical-card">
       <h4 class="patient-medical-title">${UI_ICONS.clipboard}<span>Antecedentes Médicos & Odontológicos</span></h4>
       <div class="patient-medical-grid">
-        <div><strong>Medicamentos Actuales:</strong> ${alerts.medications || 'Ninguno'}</div>
-        <div><strong>Contacto Emergencia:</strong> ${patient.emergencyContact || 'No registrado'}</div>
-        <div><strong>Dirección:</strong> ${patient.address || 'No registrada'}</div>
+        <div><strong>Medicamentos Actuales:</strong> ${escapeHtml(alerts.medications || 'Ninguno')}</div>
+        <div><strong>Contacto Emergencia:</strong> ${escapeHtml(patient.emergencyContact || 'No registrado')}</div>
+        <div><strong>Dirección:</strong> ${escapeHtml(patient.address || 'No registrada')}</div>
       </div>
     </div>
 
@@ -2871,9 +3041,9 @@ function renderPatientDetail() {
           <div class="clinical-note-card">
             <div class="clinical-note-meta">
               <strong class="clinical-note-date">${UI_ICONS.calendar}<span>${formatDisplayDate(n.date)}</span></strong>
-              <span>${n.author || 'Dra. Tratante'}</span>
+              <span>${escapeHtml(n.author || 'Dra. Tratante')}</span>
             </div>
-            <p class="clinical-note-body">${n.note}</p>
+            <p class="clinical-note-body">${escapeHtml(n.note)}</p>
           </div>
         `).join('')}
       </div>
@@ -2907,19 +3077,42 @@ function renderPatientDetail() {
   });
 
   document.getElementById('btn-add-clinical-note')?.addEventListener('click', () => {
-    const text = prompt('Escriba la nota de evolución clínica de hoy:');
-    if (text && text.trim()) {
-      if (!patient.clinicalNotes) patient.clinicalNotes = [];
-      patient.clinicalNotes.unshift({
-        date: getLocalISODate(),
-        author: appState.clinic.doctor || "Dra. Odontóloga",
-        note: text.trim()
-      });
-      saveAppData();
-      renderPatientDetail();
-      showToast('Nota de evolución agregada al historial.');
-    }
+    openClinicalNoteModal();
   });
+}
+
+function openClinicalNoteModal() {
+  const modal = document.getElementById('modal-clinical-note');
+  const txt = document.getElementById('clinical-note-textarea');
+  if (!modal || !txt) return;
+  txt.value = '';
+  modal.classList.add('active');
+  setTimeout(() => txt.focus(), 60);
+}
+
+async function saveClinicalNoteFromModal() {
+  const patient = getCurrentPatient();
+  const modal = document.getElementById('modal-clinical-note');
+  const txt = document.getElementById('clinical-note-textarea');
+  if (!patient || !txt) return;
+
+  const text = txt.value.trim();
+  if (!text) {
+    showToast('Escribe el detalle de la nota clínica.', 'warning');
+    txt.focus();
+    return;
+  }
+
+  if (!patient.clinicalNotes) patient.clinicalNotes = [];
+  patient.clinicalNotes.unshift({
+    date: getLocalISODate(),
+    author: appState.clinic?.doctor || 'Dra. Odontóloga',
+    note: text
+  });
+  await saveAppData();
+  if (modal) modal.classList.remove('active');
+  renderPatientDetail();
+  showToast('Nota de evolución agregada al historial.');
 }
 
 function openEditPatientModal(patient = null) {
@@ -2987,12 +3180,13 @@ async function savePatientModal() {
   syncPatientContactInAppointments(patient);
   await saveAppData();
   populateGlobalPatientSelect();
-  renderPatientsList();
-  renderWeeklyScheduleView();
-  renderAppointmentsView();
-  renderBudgetsView();
-  renderClinicalHistoryView();
-  renderGalleryView();
+  refreshViewOrMarkDirty('pacientes');
+  refreshViewOrMarkDirty('inicio');
+  refreshViewOrMarkDirty('citas');
+  refreshViewOrMarkDirty('presupuestos');
+  refreshViewOrMarkDirty('historia');
+  refreshViewOrMarkDirty('odontograma');
+  refreshViewOrMarkDirty('galeria');
   document.getElementById('patient-modal').classList.remove('active');
   showToast('Paciente guardado exitosamente.');
 }
@@ -3115,13 +3309,13 @@ function renderMonthlyBudgetOverview() {
 
     tr.innerHTML = `
       <td>
-        <div class="monthly-patient-name">${patient.name}</div>
-        <div class="monthly-patient-ci">C.I: ${patient.documentId || 'S/C'}</div>
+        <div class="monthly-patient-name">${escapeHtml(patient.name)}</div>
+        <div class="monthly-patient-ci">C.I: ${escapeHtml(patient.documentId || 'S/C')}</div>
       </td>
       <td>
         <div class="monthly-contact-row">
           ${UI_ICONS.phone}
-          <span>${patient.phone || 'S/N'}</span>
+          <span>${escapeHtml(patient.phone || 'S/N')}</span>
           ${cleanPhone ? `
             <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-sm btn-wa-mini" title="Contactar por WhatsApp">
               WA
@@ -3288,8 +3482,8 @@ function renderPatientBudgetBreakdown() {
         const tr = document.createElement('tr');
         const currentPriceVal = it.price !== undefined ? it.price : 0;
         tr.innerHTML = `
-          <td><strong class="monthly-balance-primary">${it.tooth ? `Pieza #${it.tooth}` : 'General'}</strong></td>
-          <td>${it.name}</td>
+          <td><strong class="monthly-balance-primary">${it.tooth ? `Pieza #${escapeHtml(it.tooth)}` : 'General'}</strong></td>
+          <td>${escapeHtml(it.name)}</td>
           <td>
             <div class="live-price-cell">
               <span class="live-price-currency">$</span>
@@ -3311,7 +3505,7 @@ function renderPatientBudgetBreakdown() {
       });
 
       itemsTbody.querySelectorAll('.budget-item-price-input').forEach(inp => {
-        inp.addEventListener('input', async (e) => {
+        inp.addEventListener('input', (e) => {
           const idx = parseInt(e.target.getAttribute('data-idx'));
           const newPrice = Math.max(0, parseFloat(e.target.value) || 0);
           if (budget.items[idx]) {
@@ -3337,8 +3531,8 @@ function renderPatientBudgetBreakdown() {
           }
 
           populateBudgetPatientSelect(document.getElementById('budget-patient-search')?.value || '');
-          await saveAppData();
-          renderLiveOdontoBudget();
+          debouncedSaveAppData();
+          refreshViewOrMarkDirty('odontograma');
         });
       });
 
@@ -3367,9 +3561,9 @@ function renderPatientBudgetBreakdown() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${formatDisplayDate(p.date)}</td>
-          <td>${p.method}</td>
-          <td><code>${p.reference || 'S/R'}</code></td>
-          <td>${p.note || ''}</td>
+          <td>${escapeHtml(p.method)}</td>
+          <td><code>${escapeHtml(p.reference || 'S/R')}</code></td>
+          <td>${escapeHtml(p.note || '')}</td>
           <td><strong class="monthly-balance-success">+$${(p.amount || 0).toFixed(2)}</strong></td>
         `;
         payTbody.appendChild(tr);
@@ -3504,6 +3698,8 @@ async function confirmAddBudgetItem() {
 // 5. GALERÍA CLÍNICA & RAYOS X
 // ==========================================================================
 
+let activeLightboxImageId = null;
+
 function renderGalleryView() {
   const container = document.getElementById('gallery-container');
   const patient = getCurrentPatient();
@@ -3525,15 +3721,102 @@ function renderGalleryView() {
   gallery.forEach(img => {
     const card = document.createElement('div');
     card.className = 'gallery-card';
+    card.setAttribute('data-img-id', img.id);
+    const safeTitle = escapeHtml(img.title || 'Estudio Clínico');
+    const safeType = escapeHtml(img.type || 'Estudio');
+    const safeNotes = img.notes ? `<p class="gallery-notes-text">${escapeHtml(img.notes)}</p>` : '';
+    const safeSrc = escapeHtml(img.src || '');
+
     card.innerHTML = `
-      <img src="${img.src}" alt="${img.title}" class="gallery-thumb" loading="lazy" />
+      <div class="gallery-thumb-wrap" data-action="zoom" data-id="${escapeHtml(img.id)}" role="button" tabindex="0" title="Clic para ampliar imagen">
+        <img src="${safeSrc}" alt="${safeTitle}" class="gallery-thumb" loading="lazy" />
+      </div>
       <div class="gallery-info">
-        <h5>${img.title}</h5>
-        <p class="gallery-meta-row">${UI_ICONS.calendar}<span>${formatDisplayDate(img.date)} • <strong>${img.type || 'Estudio'}</strong></span></p>
-        ${img.notes ? `<p class="gallery-notes-text">${img.notes}</p>` : ''}
+        <h5>${safeTitle}</h5>
+        <p class="gallery-meta-row">${UI_ICONS.calendar}<span>${formatDisplayDate(img.date)} • <strong>${safeType}</strong></span></p>
+        ${safeNotes}
+        <div class="gallery-card-actions">
+          <button type="button" class="btn btn-secondary btn-sm btn-gallery-zoom" data-id="${escapeHtml(img.id)}">
+            ${UI_ICONS.eye}<span>Ampliar</span>
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm btn-action-danger btn-gallery-delete" data-id="${escapeHtml(img.id)}" aria-label="Eliminar imagen">
+            ${UI_ICONS.trash}<span>Eliminar</span>
+          </button>
+        </div>
       </div>
     `;
     container.appendChild(card);
+  });
+
+  if (container.dataset.delegated !== '1') {
+    container.dataset.delegated = '1';
+    container.addEventListener('click', (e) => {
+      const zoomTrigger = e.target.closest('.btn-gallery-zoom, .gallery-thumb-wrap[data-action="zoom"]');
+      if (zoomTrigger) {
+        openGalleryLightbox(zoomTrigger.getAttribute('data-id'));
+        return;
+      }
+      const delTrigger = e.target.closest('.btn-gallery-delete');
+      if (delTrigger) {
+        confirmDeleteGalleryImage(delTrigger.getAttribute('data-id'));
+      }
+    });
+    container.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const thumbWrap = e.target.closest('.gallery-thumb-wrap[data-action="zoom"]');
+        if (thumbWrap) {
+          e.preventDefault();
+          openGalleryLightbox(thumbWrap.getAttribute('data-id'));
+        }
+      }
+    });
+  }
+}
+
+function openGalleryLightbox(imgId) {
+  const patient = getCurrentPatient();
+  if (!patient || !patient.gallery) return;
+  const img = patient.gallery.find(g => g.id === imgId);
+  if (!img) return;
+
+  activeLightboxImageId = imgId;
+  const modal = document.getElementById('modal-gallery-lightbox');
+  const titleEl = document.getElementById('lightbox-title');
+  const metaEl = document.getElementById('lightbox-meta');
+  const imgEl = document.getElementById('lightbox-img');
+  const notesEl = document.getElementById('lightbox-notes');
+
+  if (titleEl) titleEl.textContent = img.title || 'Estudio Clínico';
+  if (metaEl) metaEl.textContent = `${formatDisplayDate(img.date)} • ${img.type || 'Estudio'}`;
+  if (imgEl) {
+    imgEl.src = img.src || '';
+    imgEl.alt = img.title || 'Imagen clínica';
+  }
+  if (notesEl) {
+    notesEl.textContent = img.notes || '';
+    notesEl.classList.toggle('u-hidden', !img.notes);
+  }
+  if (modal) modal.classList.add('active');
+}
+
+function confirmDeleteGalleryImage(imgId) {
+  const patient = getCurrentPatient();
+  if (!patient || !patient.gallery) return;
+  const img = patient.gallery.find(g => g.id === imgId);
+  if (!img) return;
+
+  openConfirmModal({
+    title: 'Eliminar Imagen de Galería',
+    message: `¿Deseas eliminar "${img.title || 'este estudio'}" del expediente de ${patient.name}?`,
+    confirmLabel: 'Sí, Eliminar Imagen',
+    onConfirm: async () => {
+      patient.gallery = (patient.gallery || []).filter(g => g.id !== imgId);
+      await saveAppData();
+      document.getElementById('modal-gallery-lightbox')?.classList.remove('active');
+      activeLightboxImageId = null;
+      renderGalleryView();
+      showToast('Imagen eliminada del expediente.');
+    }
   });
 }
 
@@ -3582,75 +3865,392 @@ function handleUploadPhoto() {
     return;
   }
 
-  const title = prompt('Título o descripción de la imagen (Ej: Radiografía de Cordales, Foto Inicial):');
-  if (!title) return;
+  const modal = document.getElementById('modal-gallery-upload');
+  const titleInp = document.getElementById('gallery-upload-title');
+  const typeSel = document.getElementById('gallery-upload-type');
+  const notesInp = document.getElementById('gallery-upload-notes');
+  const fileInp = document.getElementById('gallery-upload-file');
+  const prevWrap = document.getElementById('gallery-upload-preview-wrap');
+  const prevImg = document.getElementById('gallery-upload-preview-img');
 
-  const notes = prompt('Observación clínica:') || '';
+  if (titleInp) titleInp.value = '';
+  if (typeSel) typeSel.value = 'Radiografía Periapical';
+  if (notesInp) notesInp.value = '';
+  if (fileInp) fileInp.value = '';
+  if (prevImg) prevImg.src = '';
+  if (prevWrap) prevWrap.classList.add('u-hidden');
 
-  // Input de archivo para cargar imagen local con compresión automática
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*';
-  fileInput.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    try {
-      const compressedSrc = await compressClinicalImage(file, 1024, 0.82);
-      if (!patient.gallery) patient.gallery = [];
-      patient.gallery.push({
-        id: `IMG-${Date.now()}`,
-        date: getLocalISODate(),
-        title,
-        type: "Radiografía / Fotografía",
-        notes,
-        src: compressedSrc
-      });
-      await saveAppData();
-      renderGalleryView();
-      showToast('Imagen optimizada y guardada en el expediente del paciente.');
-    } catch (err) {
-      console.error('Error procesando imagen:', err);
-      showToast('No se pudo procesar la imagen seleccionada.', 'danger');
-    }
-  };
-  fileInput.click();
+  if (modal) {
+    modal.classList.add('active');
+    setTimeout(() => titleInp?.focus(), 60);
+  }
+}
+
+async function saveGalleryUploadFromModal() {
+  const patient = getCurrentPatient();
+  if (!patient) return;
+
+  const title = (document.getElementById('gallery-upload-title')?.value || '').trim();
+  const type = document.getElementById('gallery-upload-type')?.value || 'Radiografía / Fotografía';
+  const notes = (document.getElementById('gallery-upload-notes')?.value || '').trim();
+  const fileInp = document.getElementById('gallery-upload-file');
+  const saveBtn = document.getElementById('btn-save-gallery-upload');
+  const file = fileInp?.files?.[0];
+
+  if (!title) {
+    showToast('Ingresa un título para identificar la imagen o radiografía.', 'warning');
+    document.getElementById('gallery-upload-title')?.focus();
+    return;
+  }
+
+  if (!file) {
+    showToast('Selecciona un archivo de imagen para guardar.', 'warning');
+    fileInp?.focus();
+    return;
+  }
+
+  try {
+    if (saveBtn) saveBtn.disabled = true;
+    const compressedSrc = await compressClinicalImage(file, 1024, 0.82);
+    if (!patient.gallery) patient.gallery = [];
+    patient.gallery.push({
+      id: `IMG-${Date.now()}`,
+      date: getLocalISODate(),
+      title,
+      type,
+      notes,
+      src: compressedSrc
+    });
+    await saveAppData();
+    document.getElementById('modal-gallery-upload')?.classList.remove('active');
+    renderGalleryView();
+    showToast('Imagen optimizada y guardada en el expediente del paciente.');
+  } catch (err) {
+    console.error('Error procesando imagen:', err);
+    showToast('No se pudo procesar la imagen seleccionada.', 'danger');
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
+  }
 }
 
 // ==========================================================================
-// 6. CONFIGURACIÓN & CLÍNICA
+// 6. CONFIGURACIÓN & CLÍNICA + PINCEL CLÍNICO + CATÁLOGO DE TRATAMIENTOS
 // ==========================================================================
+
+function syncClinicBrandingUI() {
+  const c = appState.clinic || {};
+  const clinicName = c.name || 'Sonrisa Perfecta, C.A.';
+  const doctorName = c.doctor || 'OD. Celenia Tovar';
+  const rif = c.rif || 'J407632507';
+
+  const weeklySub = document.getElementById('weekly-clinic-subtitle');
+  if (weeklySub) weeklySub.textContent = `${clinicName} • ${doctorName}`;
+
+  const hcClinic = document.getElementById('hc-clinic-name-display');
+  if (hcClinic) hcClinic.textContent = clinicName;
+  const hcDoc = document.getElementById('hc-doctor-name-display');
+  if (hcDoc) hcDoc.textContent = doctorName;
+  const hcRif = document.getElementById('hc-doctor-rif-display');
+  if (hcRif) hcRif.textContent = `RIF.: ${rif}`;
+}
 
 function populateClinicConfig() {
   const c = appState.clinic || {};
-  document.getElementById('config-clinic-name').value = c.name || 'Sonrisa Perfecta, C.A.';
-  document.getElementById('config-doctor-name').value = c.doctor || 'OD. Celenia Tovar';
-  document.getElementById('config-phone').value = c.phone || '+58 414 1234567';
-  document.getElementById('config-email').value = c.email || 'sonrisaperfecta.dental@gmail.com';
-  document.getElementById('config-address').value = c.address || 'Centro Médico Dental';
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  setVal('config-clinic-name', c.name || 'Sonrisa Perfecta, C.A.');
+  setVal('config-doctor-name', c.doctor || 'OD. Celenia Tovar');
+  setVal('config-rif', c.rif || 'J407632507');
+  setVal('config-phone', c.phone || '+58 414 1234567');
+  setVal('config-email', c.email || 'sonrisaperfecta.dental@gmail.com');
+  setVal('config-address', c.address || 'Centro Médico Dental');
+
+  renderClinicalToolsConfigList();
+  renderTreatmentsConfigList();
+  syncBrushColorSwatchesUI();
 }
 
 async function saveClinicConfig() {
   appState.clinic = {
-    name: document.getElementById('config-clinic-name').value,
-    doctor: document.getElementById('config-doctor-name').value,
-    phone: document.getElementById('config-phone').value,
-    email: document.getElementById('config-email').value,
-    address: document.getElementById('config-address').value,
-    currencySymbol: "$"
+    name: (document.getElementById('config-clinic-name')?.value || '').trim() || 'Sonrisa Perfecta, C.A.',
+    doctor: (document.getElementById('config-doctor-name')?.value || '').trim() || 'OD. Celenia Tovar',
+    rif: (document.getElementById('config-rif')?.value || '').trim() || 'J407632507',
+    phone: (document.getElementById('config-phone')?.value || '').trim(),
+    email: (document.getElementById('config-email')?.value || '').trim(),
+    address: (document.getElementById('config-address')?.value || '').trim(),
+    currencySymbol: '$'
   };
   await saveAppData();
-  showToast('Datos del consultorio guardados.');
+  syncClinicBrandingUI();
+  showToast('Datos del consultorio guardados y sincronizados.');
 }
 
-// UTILIDAD DEBOUNCE PARA BÚSQUEDAS FLUIDAS SIN BLOQUEO DE HILO
-function debounce(fn, delay = 200) {
-  let timer = null;
-  return function (...args) {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => {
-      fn.apply(this, args);
-    }, delay);
-  };
+function syncBrushColorSwatchesUI() {
+  const colorInp = document.getElementById('brush-tool-color-input');
+  const activeColor = (colorInp ? colorInp.value : '#ef4444').toLowerCase();
+  document.querySelectorAll('#brush-color-swatches .brush-swatch').forEach(btn => {
+    const swColor = (btn.getAttribute('data-color') || '').toLowerCase();
+    btn.style.backgroundColor = swColor;
+    btn.classList.toggle('active', swColor === activeColor);
+  });
+}
+
+function resetBrushForm() {
+  const editInp = document.getElementById('brush-tool-edit-id');
+  const titleInp = document.getElementById('brush-tool-title-input');
+  const colorInp = document.getElementById('brush-tool-color-input');
+  const scopeSel = document.getElementById('brush-tool-scope-select');
+  const billChk = document.getElementById('brush-tool-billable-input');
+  const btnSave = document.getElementById('btn-save-brush-tool');
+  const btnCancel = document.getElementById('btn-cancel-edit-brush');
+
+  if (editInp) editInp.value = '';
+  if (titleInp) titleInp.value = '';
+  if (colorInp) colorInp.value = '#0d9488';
+  if (scopeSel) { scopeSel.value = 'face'; scopeSel.disabled = false; }
+  if (billChk) { billChk.checked = true; billChk.disabled = false; }
+  if (btnSave) btnSave.textContent = '+ Agregar al Pincel';
+  if (btnCancel) btnCancel.classList.add('u-hidden');
+  syncBrushColorSwatchesUI();
+}
+
+function renderClinicalToolsConfigList() {
+  const container = document.getElementById('clinical-tools-config-list');
+  if (!container) return;
+  const tools = getClinicalTools();
+
+  if (container.dataset.delegated !== '1') {
+    container.dataset.delegated = '1';
+    container.addEventListener('click', async (e) => {
+      const editBtn = e.target.closest('.btn-edit-brush-tool');
+      if (editBtn) {
+        const id = editBtn.getAttribute('data-id');
+        const tool = getClinicalTool(id);
+        if (!tool) return;
+        document.getElementById('brush-tool-edit-id').value = tool.id;
+        document.getElementById('brush-tool-title-input').value = tool.title;
+        document.getElementById('brush-tool-color-input').value = tool.color;
+        const scopeSel = document.getElementById('brush-tool-scope-select');
+        const billChk = document.getElementById('brush-tool-billable-input');
+        scopeSel.value = tool.scope;
+        scopeSel.disabled = tool.id === 'sano';
+        billChk.checked = tool.billable !== false;
+        billChk.disabled = tool.id === 'sano';
+        document.getElementById('btn-save-brush-tool').textContent = 'Guardar Cambios';
+        document.getElementById('btn-cancel-edit-brush').classList.remove('u-hidden');
+        syncBrushColorSwatchesUI();
+        document.getElementById('brush-tool-title-input').focus();
+        return;
+      }
+
+      const delBtn = e.target.closest('.btn-delete-brush-tool');
+      if (delBtn) {
+        const id = delBtn.getAttribute('data-id');
+        if (id === 'sano') return;
+        appState.clinicalTools = getClinicalTools().filter(t => t.id !== id);
+        if (appState.activeTool === id) {
+          appState.activeTool = appState.clinicalTools[0]?.id || 'sano';
+        }
+        await saveAppData();
+        renderClinicalToolsConfigList();
+        renderClinicalToolPalettes();
+        renderOdontogramBoard();
+        renderHistoryOdontogram();
+        updateHistoryStats();
+        showToast('Herramienta removida del Pincel Clínico.');
+      }
+    });
+  }
+
+  container.innerHTML = tools.map(t => `
+    <div class="config-item-row">
+      <div class="config-item-main">
+        <span class="config-brush-dot" style="background-color:${escapeHtml(t.color)};"></span>
+        <strong>${escapeHtml(t.title)}</strong>
+        <span class="badge ${t.scope === 'whole' ? 'badge-purple' : 'badge-info'}">
+          ${t.scope === 'whole' ? 'Diente Entero' : 'Por Cuadrito / Cara'}
+        </span>
+        <span class="badge ${t.billable ? 'badge-success' : 'badge-warning'}">
+          ${t.billable ? 'Suma al Presupuesto ($)' : 'Solo Estado Visual'}
+        </span>
+      </div>
+      <div class="config-item-actions">
+        <button type="button" class="btn btn-secondary btn-sm btn-edit-brush-tool" data-id="${escapeHtml(t.id)}">Editar</button>
+        ${t.id !== 'sano' ? `<button type="button" class="btn btn-secondary btn-sm btn-action-danger btn-delete-brush-tool" data-id="${escapeHtml(t.id)}">Eliminar</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveBrushToolFromConfig() {
+  const editId = (document.getElementById('brush-tool-edit-id')?.value || '').trim();
+  const title = (document.getElementById('brush-tool-title-input')?.value || '').trim();
+  const color = (document.getElementById('brush-tool-color-input')?.value || '#0d9488').trim();
+  const scope = document.getElementById('brush-tool-scope-select')?.value === 'whole' ? 'whole' : 'face';
+  const billable = Boolean(document.getElementById('brush-tool-billable-input')?.checked);
+
+  if (!title) {
+    showToast('Escribe el título que tendrá el pincel clínico.', 'warning');
+    document.getElementById('brush-tool-title-input')?.focus();
+    return;
+  }
+
+  const tools = getClinicalTools();
+  if (editId) {
+    const existing = tools.find(t => t.id === editId);
+    if (existing) {
+      existing.title = title;
+      existing.color = /^#[0-9a-fA-F]{6}$/.test(color) ? color : existing.color;
+      if (existing.id !== 'sano') {
+        existing.scope = scope;
+        existing.billable = billable;
+      }
+    }
+  } else {
+    const slugBase = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'custom';
+    let newId = slugBase;
+    if (tools.some(t => t.id === newId)) {
+      newId = `${slugBase}_${Date.now().toString().slice(-4)}`;
+    }
+    const sanoIdx = tools.findIndex(t => t.id === 'sano');
+    const newTool = {
+      id: newId,
+      title,
+      color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#0d9488',
+      scope,
+      billable,
+      isSystem: false
+    };
+    if (sanoIdx >= 0) {
+      tools.splice(sanoIdx, 0, newTool);
+    } else {
+      tools.push(newTool);
+    }
+    appState.activeTool = newId;
+  }
+
+  await saveAppData();
+  resetBrushForm();
+  renderClinicalToolsConfigList();
+  renderClinicalToolPalettes();
+  refreshViewOrMarkDirty('odontograma');
+  refreshViewOrMarkDirty('historia');
+  showToast(editId ? 'Pincel clínico actualizado.' : `Pincel "${title}" agregado correctamente.`);
+}
+
+async function resetBrushToolsToDefault() {
+  appState.clinicalTools = DEFAULT_CLINICAL_TOOLS.map(t => ({ ...t }));
+  appState.activeTool = 'caries';
+  await saveAppData();
+  resetBrushForm();
+  renderClinicalToolsConfigList();
+  renderClinicalToolPalettes();
+  refreshViewOrMarkDirty('odontograma');
+  refreshViewOrMarkDirty('historia');
+  showToast('Pincel clínico restaurado a los valores predeterminados.');
+}
+
+function resetTreatmentForm() {
+  const eId = document.getElementById('treatment-edit-id');
+  const nInp = document.getElementById('treatment-name-input');
+  const cInp = document.getElementById('treatment-category-input');
+  const pInp = document.getElementById('treatment-price-input');
+  const bSave = document.getElementById('btn-save-treatment-catalog');
+  const bCancel = document.getElementById('btn-cancel-edit-treatment');
+  if (eId) eId.value = '';
+  if (nInp) nInp.value = '';
+  if (cInp) cInp.value = '';
+  if (pInp) pInp.value = 0;
+  if (bSave) bSave.textContent = '+ Agregar Procedimiento';
+  if (bCancel) bCancel.classList.add('u-hidden');
+}
+
+function renderTreatmentsConfigList() {
+  const container = document.getElementById('treatments-config-list');
+  if (!container) return;
+
+  if (container.dataset.delegated !== '1') {
+    container.dataset.delegated = '1';
+    container.addEventListener('click', async (e) => {
+      const editBtn = e.target.closest('.btn-edit-treatment-cfg');
+      if (editBtn) {
+        const id = editBtn.getAttribute('data-id');
+        const tr = (appState.treatments || []).find(x => x.id === id);
+        if (!tr) return;
+        document.getElementById('treatment-edit-id').value = tr.id;
+        document.getElementById('treatment-name-input').value = tr.name;
+        document.getElementById('treatment-category-input').value = tr.category || '';
+        document.getElementById('treatment-price-input').value = tr.defaultPrice || 0;
+        document.getElementById('btn-save-treatment-catalog').textContent = 'Guardar Procedimiento';
+        document.getElementById('btn-cancel-edit-treatment').classList.remove('u-hidden');
+        document.getElementById('treatment-name-input').focus();
+        return;
+      }
+
+      const delBtn = e.target.closest('.btn-delete-treatment-cfg');
+      if (delBtn) {
+        const id = delBtn.getAttribute('data-id');
+        appState.treatments = (appState.treatments || []).filter(x => x.id !== id);
+        await saveAppData();
+        renderTreatmentsConfigList();
+        showToast('Procedimiento eliminado del catálogo.');
+      }
+    });
+  }
+
+  const list = appState.treatments || [];
+  if (list.length === 0) {
+    container.innerHTML = '<p class="u-text-muted-sm">No hay procedimientos predeterminados registrados.</p>';
+    return;
+  }
+
+  container.innerHTML = list.map(t => `
+    <div class="config-item-row">
+      <div class="config-item-main">
+        <strong>${escapeHtml(t.name)}</strong>
+        ${t.category ? `<span class="badge badge-info">${escapeHtml(t.category)}</span>` : ''}
+        <span class="badge badge-success tabular-nums">$${(parseFloat(t.defaultPrice) || 0).toFixed(2)}</span>
+      </div>
+      <div class="config-item-actions">
+        <button type="button" class="btn btn-secondary btn-sm btn-edit-treatment-cfg" data-id="${escapeHtml(t.id)}">Editar</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-action-danger btn-delete-treatment-cfg" data-id="${escapeHtml(t.id)}">Eliminar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveTreatmentFromConfig() {
+  const editId = (document.getElementById('treatment-edit-id')?.value || '').trim();
+  const name = (document.getElementById('treatment-name-input')?.value || '').trim();
+  const category = (document.getElementById('treatment-category-input')?.value || '').trim() || 'General';
+  const defaultPrice = Math.max(0, parseFloat(document.getElementById('treatment-price-input')?.value) || 0);
+
+  if (!name) {
+    showToast('Ingresa el nombre del procedimiento.', 'warning');
+    document.getElementById('treatment-name-input')?.focus();
+    return;
+  }
+
+  if (!Array.isArray(appState.treatments)) appState.treatments = [];
+  if (editId) {
+    const existing = appState.treatments.find(t => t.id === editId);
+    if (existing) {
+      existing.name = name;
+      existing.category = category;
+      existing.defaultPrice = defaultPrice;
+    }
+  } else {
+    appState.treatments.push({
+      id: `T-${Date.now().toString().slice(-5)}`,
+      name,
+      category,
+      defaultPrice
+    });
+  }
+
+  await saveAppData();
+  resetTreatmentForm();
+  renderTreatmentsConfigList();
+  showToast(editId ? 'Procedimiento actualizado.' : 'Procedimiento agregado al catálogo.');
 }
 
 // ==========================================================================
@@ -3975,27 +4575,6 @@ function setupEventListeners() {
     });
   }
 
-  // Modal Diente
-  document.querySelectorAll('.condition-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.condition-btn').forEach(b => {
-        b.classList.remove('btn-primary');
-        b.classList.add('btn-secondary');
-      });
-      btn.classList.add('btn-primary');
-      btn.classList.remove('btn-secondary');
-    });
-  });
-
-  document.querySelectorAll('.surface-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.classList.toggle('active');
-    });
-  });
-
-  document.getElementById('btn-save-tooth-modal').addEventListener('click', saveToothModalChanges);
-  document.getElementById('btn-add-tooth-to-budget').addEventListener('click', addActiveToothToBudget);
-
   // Pacientes
   document.getElementById('btn-new-patient').addEventListener('click', () => {
     openEditPatientModal(null);
@@ -4013,18 +4592,25 @@ function setupEventListeners() {
   document.getElementById('btn-add-budget-item').addEventListener('click', openAddBudgetItemModal);
   document.getElementById('btn-confirm-add-budget-item').addEventListener('click', confirmAddBudgetItem);
 
-  // 1. PALETA DE PINCEL CLÍNICO (Caries, Resina, Endodoncia, Corona, Cirugía, Ausente, Sano)
-  document.querySelectorAll('.btn-clinical-tool').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tool = btn.getAttribute('data-tool');
-      syncToolPaletteUI(tool);
-      showToast(`Pincel activo: ${btn.textContent.trim()}. Haz clic en cualquier cuadrito del diente.`);
+  // 1. PALETA DE PINCEL CLÍNICO (DELEGADA PARA SOPORTAR PINCELES DINÁMICOS)
+  const odontoWrap = document.getElementById('tool-palette-wrapper');
+  if (odontoWrap) {
+    odontoWrap.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-clinical-tool');
+      if (!btn) return;
+      const toolId = btn.getAttribute('data-tool');
+      const toolObj = getClinicalTool(toolId);
+      syncToolPaletteUI(toolId);
+      showToast(`Pincel activo: ${toolObj ? toolObj.title : toolId}. ${toolObj?.scope === 'whole' ? 'Haz clic en cualquier diente completo.' : 'Haz clic en cualquier cuadrito del diente.'}`);
     });
-  });
+  }
 
-  // 2. BOTONES DE CARAS EN EL PANEL DE DETALLE INFERIOR (🟢 Sano, 🔴 Caries, 🔵 Resina)
-  document.querySelectorAll('.btn-face-choice').forEach(btn => {
-    btn.addEventListener('click', async () => {
+  // 2. BOTONES DE CARAS EN EL PANEL DE DETALLE INFERIOR (DINÁMICOS)
+  const anglesGrid = document.getElementById('tooth-angles-buttons-grid');
+  if (anglesGrid) {
+    anglesGrid.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.btn-face-choice');
+      if (!btn) return;
       if (!appState.selectedTooth) {
         showToast('Selecciona primero un diente para detallar sus caras.', 'warning');
         return;
@@ -4033,11 +4619,14 @@ function setupEventListeners() {
       const val = btn.getAttribute('data-val');
       await applyToolToToothFace(appState.selectedTooth, face, val);
     });
-  });
+  }
 
-  // 3. ACCIONES PARA PIEZA COMPLETA (Cirugía, Endodoncia, Corona, Ausente, Todo Sano)
-  document.querySelectorAll('.btn-apply-whole-tooth').forEach(btn => {
-    btn.addEventListener('click', async () => {
+  // 3. ACCIONES PARA PIEZA COMPLETA (DINÁMICAS)
+  const wholeActions = document.getElementById('whole-tooth-actions');
+  if (wholeActions) {
+    wholeActions.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.btn-apply-whole-tooth');
+      if (!btn) return;
       if (!appState.selectedTooth) {
         showToast('Selecciona primero un diente.', 'warning');
         return;
@@ -4045,7 +4634,7 @@ function setupEventListeners() {
       const tool = btn.getAttribute('data-tool');
       await applyWholeToothCondition(appState.selectedTooth, tool);
     });
-  });
+  }
 
   // Botón cerrar barra rápida
   const btnCloseQuick = document.getElementById('btn-close-quick-tooth');
@@ -4066,19 +4655,40 @@ function setupEventListeners() {
     });
   });
 
+  // Filtro rápido de dentición en Odontograma (Todas / Permanentes / Temporales)
+  const archSwitcher = document.getElementById('odonto-arch-switcher');
+  if (archSwitcher) {
+    archSwitcher.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-arch]');
+      if (!btn) return;
+      const mode = btn.getAttribute('data-arch') || 'all';
+      archSwitcher.querySelectorAll('[data-arch]').forEach(b => {
+        const isCurrent = b === btn;
+        b.classList.toggle('active', isCurrent);
+        b.classList.toggle('btn-primary', isCurrent);
+        b.classList.toggle('btn-secondary', !isCurrent);
+      });
+      document.querySelectorAll('#odontogram-board .arch-container[data-arch-group]').forEach(groupEl => {
+        const grp = groupEl.getAttribute('data-arch-group');
+        const show = mode === 'all' || grp === mode;
+        groupEl.classList.toggle('u-hidden', !show);
+      });
+    });
+  }
+
   // Descuento inline en el odontograma
   const inlineDiscInput = document.getElementById('odonto-inline-discount-input');
   if (inlineDiscInput) {
-    inlineDiscInput.addEventListener('input', async (e) => {
+    inlineDiscInput.addEventListener('input', (e) => {
       const patient = getCurrentPatient();
       if (!patient) return;
       const budget = ensurePatientBudget(patient);
       const discountVal = Math.max(0, parseFloat(e.target.value) || 0);
       budget.discount = discountVal;
       recalculatePatientBudget(patient);
-      await saveAppData();
+      debouncedSaveAppData();
       renderLiveOdontoBudget();
-      renderBudgetsView();
+      refreshViewOrMarkDirty('presupuestos');
     });
   }
 
@@ -4112,8 +4722,35 @@ function setupEventListeners() {
     }
   });
 
-  // Galería
+  // Galería & Modales Clínicos / Confirmaciones
   document.getElementById('btn-upload-photo').addEventListener('click', handleUploadPhoto);
+  document.getElementById('btn-save-gallery-upload')?.addEventListener('click', saveGalleryUploadFromModal);
+  document.getElementById('gallery-upload-file')?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    const prevWrap = document.getElementById('gallery-upload-preview-wrap');
+    const prevImg = document.getElementById('gallery-upload-preview-img');
+    if (!file || !prevWrap || !prevImg) {
+      if (prevWrap) prevWrap.classList.add('u-hidden');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      prevImg.src = ev.target.result;
+      prevWrap.classList.remove('u-hidden');
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('btn-lightbox-delete')?.addEventListener('click', () => {
+    if (activeLightboxImageId) confirmDeleteGalleryImage(activeLightboxImageId);
+  });
+  document.getElementById('btn-save-clinical-note')?.addEventListener('click', saveClinicalNoteFromModal);
+  document.getElementById('btn-confirm-modal-accept')?.addEventListener('click', async () => {
+    const modal = document.getElementById('modal-confirm-action');
+    const cb = pendingConfirmCallback;
+    pendingConfirmCallback = null;
+    if (modal) modal.classList.remove('active');
+    if (typeof cb === 'function') await cb();
+  });
 
   // Configuración
   document.getElementById('btn-save-clinic-config').addEventListener('click', saveClinicConfig);
@@ -4134,20 +4771,25 @@ function setupEventListeners() {
   });
 
   document.getElementById('btn-import-backup').addEventListener('click', async () => {
+    const applyImportedBackupState = async (importedData, persist = true) => {
+      appState = importedData;
+      normalizeAppState();
+      if (persist) await saveAppData();
+      renderClinicalToolPalettes();
+      populateGlobalPatientSelect();
+      syncClinicBrandingUI();
+      populateClinicConfig();
+      ALL_APP_VIEWS.forEach(v => {
+        if (isViewActive(v)) renderViewByName(v);
+        else dirtyViews.add(v);
+      });
+      showToast('Datos restaurados correctamente.');
+    };
+
     if (window.api && window.api.importBackup) {
       const res = await window.api.importBackup();
       if (res.success && res.data) {
-        appState = res.data;
-        normalizeAppState();
-        populateGlobalPatientSelect();
-        renderWeeklyScheduleView();
-        renderAppointmentsView();
-        renderOdontogramBoard();
-        renderPatientsList();
-        renderBudgetsView();
-        renderGalleryView();
-        populateClinicConfig();
-        showToast('Datos restaurados correctamente.');
+        await applyImportedBackupState(res.data, false);
       }
     } else {
       const input = document.createElement('input');
@@ -4159,18 +4801,8 @@ function setupEventListeners() {
           const reader = new FileReader();
           reader.onload = async (re) => {
             try {
-              appState = JSON.parse(re.target.result);
-              normalizeAppState();
-              await saveAppData();
-              populateGlobalPatientSelect();
-              renderWeeklyScheduleView();
-              renderAppointmentsView();
-              renderOdontogramBoard();
-              renderPatientsList();
-              renderBudgetsView();
-              renderGalleryView();
-              populateClinicConfig();
-              showToast('Datos restaurados correctamente.');
+              const parsed = JSON.parse(re.target.result);
+              await applyImportedBackupState(parsed, true);
             } catch (err) {
               showToast('Archivo JSON inválido.', 'danger');
             }
@@ -4237,13 +4869,37 @@ function setupEventListeners() {
     });
   }
 
-  // Herramientas de pincel en Historia Clínica (Barra superior y Panel lateral derecho)
-  document.querySelectorAll('.btn-hc-tool, .btn-hc-side-tool').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tool = btn.getAttribute('data-tool');
-      syncToolPaletteUI(tool);
-    });
+  // Herramientas de pincel en Historia Clínica (Barra superior y Panel lateral derecho - Delegado)
+  ['hc-tools-strip', 'hc-side-tools-list'].forEach(containerId => {
+    const el = document.getElementById(containerId);
+    if (el) {
+      el.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-hc-tool, .btn-hc-side-tool');
+        if (!btn) return;
+        syncToolPaletteUI(btn.getAttribute('data-tool'));
+      });
+    }
   });
+
+  // Configuración del Pincel Clínico y Catálogo de Tratamientos
+  const brushColorInp = document.getElementById('brush-tool-color-input');
+  if (brushColorInp) {
+    brushColorInp.addEventListener('input', syncBrushColorSwatchesUI);
+  }
+  const brushSwatches = document.getElementById('brush-color-swatches');
+  if (brushSwatches) {
+    brushSwatches.addEventListener('click', (e) => {
+      const sw = e.target.closest('.brush-swatch');
+      if (!sw || !brushColorInp) return;
+      brushColorInp.value = sw.getAttribute('data-color') || '#0d9488';
+      syncBrushColorSwatchesUI();
+    });
+  }
+  document.getElementById('btn-save-brush-tool')?.addEventListener('click', saveBrushToolFromConfig);
+  document.getElementById('btn-cancel-edit-brush')?.addEventListener('click', resetBrushForm);
+  document.getElementById('btn-reset-brush-tools')?.addEventListener('click', resetBrushToolsToDefault);
+  document.getElementById('btn-save-treatment-catalog')?.addEventListener('click', saveTreatmentFromConfig);
+  document.getElementById('btn-cancel-edit-treatment')?.addEventListener('click', resetTreatmentForm);
 
   // Botón Guardar del panel lateral
   const btnHcSideSave = document.getElementById('btn-hc-side-save');
@@ -4262,14 +4918,17 @@ function setupEventListeners() {
     });
   }
 
-  // Auto-guardar al modificar campos de la Historia Clínica
+  // Auto-guardar al modificar campos de la Historia Clínica (con debounce al escribir)
   const paperElement = document.getElementById('history-paper-element');
   if (paperElement) {
     paperElement.querySelectorAll('input, textarea').forEach(input => {
       input.addEventListener('change', () => {
         saveCurrentClinicalHistoryForm(false);
       });
-      if (input.type === 'text' || input.tagName === 'TEXTAREA') {
+      if (input.type !== 'checkbox') {
+        input.addEventListener('input', () => {
+          debouncedSaveClinicalHistory();
+        });
         input.addEventListener('blur', () => {
           saveCurrentClinicalHistoryForm(false);
         });
@@ -4503,9 +5162,9 @@ function applyUserPermissions(user) {
     switchView('inicio');
   }
 
-  // Refrescar vistas pertinentes con los nuevos permisos
-  renderWeeklyScheduleView();
-  renderBudgetsView();
+  // Refrescar vista activa con los nuevos permisos y marcar secundarias pendientes
+  ALL_APP_VIEWS.forEach(v => dirtyViews.add(v));
+  renderViewByName(getActiveViewName());
 }
 
 // TOAST NOTIFICATIONS
@@ -4520,7 +5179,7 @@ function showToast(msg, type = 'info') {
   const iconHtml = (type === 'danger' || type === 'warning') ? UI_ICONS.alert : UI_ICONS.checkCircle;
   toast.innerHTML = `
     <span class="badge-icon-wrap">${iconHtml}</span>
-    <span>${msg}</span>
+    <span>${escapeHtml(msg)}</span>
   `;
 
   container.appendChild(toast);
