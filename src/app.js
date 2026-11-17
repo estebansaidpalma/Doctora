@@ -1545,7 +1545,7 @@ async function saveCurrentClinicalHistoryForm(showNotification = false) {
 }
 
 // ==========================================================================
-// 0. VISTA INICIO: HORARIO SEMANAL DE CITAS (09:00 A 16:00 - 30 MIN Y 1 HORA)
+// 0. VISTA INICIO: HORARIO SEMANAL DE CITAS (11 BLOQUES: 09:00-12:00 Y 13:30-16:00)
 // ==========================================================================
 
 const WEEKLY_HOURS = [
@@ -1555,9 +1555,6 @@ const WEEKLY_HOURS = [
   { start: "10:30", end: "11:00", display: "10:30 AM", endDisplay: "11:00 AM" },
   { start: "11:00", end: "11:30", display: "11:00 AM", endDisplay: "11:30 AM" },
   { start: "11:30", end: "12:00", display: "11:30 AM", endDisplay: "12:00 PM" },
-  { start: "12:00", end: "12:30", display: "12:00 PM", endDisplay: "12:30 PM" },
-  { start: "12:30", end: "13:00", display: "12:30 PM", endDisplay: "01:00 PM" },
-  { start: "13:00", end: "13:30", display: "01:00 PM", endDisplay: "01:30 PM" },
   { start: "13:30", end: "14:00", display: "01:30 PM", endDisplay: "02:00 PM" },
   { start: "14:00", end: "14:30", display: "02:00 PM", endDisplay: "02:30 PM" },
   { start: "14:30", end: "15:00", display: "02:30 PM", endDisplay: "03:00 PM" },
@@ -1761,29 +1758,12 @@ function renderWeeklyScheduleView(refDate) {
 
   WEEKLY_HOURS.forEach((slot, slotIdx) => {
     const tr = document.createElement('tr');
-    const isLunch = isLunchBlockStart(slot.start);
 
     // Columna de hora
     const timeTd = document.createElement('td');
-    timeTd.className = `weekly-time-cell${isLunch ? ' weekly-time-cell--lunch' : ''}`;
+    timeTd.className = 'weekly-time-cell';
     timeTd.innerHTML = `<strong>${slot.display}</strong><br><span class="weekly-time-range">a ${slot.endDisplay}</span>`;
     tr.appendChild(timeTd);
-
-    if (isLunch) {
-      days.forEach(() => {
-        const lunchTd = document.createElement('td');
-        lunchTd.className = 'weekly-slot-cell weekly-slot-cell--lunch';
-        lunchTd.setAttribute('aria-disabled', 'true');
-        lunchTd.innerHTML = `
-          <div class="weekly-slot-lunch" title="Hora de Almuerzo (12:00 PM - 01:30 PM) — Bloque no disponible">
-            ${UI_ICONS.clock}<span>Hora de Almuerzo</span>
-          </div>
-        `;
-        tr.appendChild(lunchTd);
-      });
-      fragment.appendChild(tr);
-      return;
-    }
 
     // Columnas de días
     days.forEach(day => {
@@ -1804,12 +1784,14 @@ function renderWeeklyScheduleView(refDate) {
       });
 
       if (apt) {
-        // Calcular duración en bloques de 30 minutos (sin invadir la franja de almuerzo)
+        // Calcular duración en bloques continuos (nunca unir filas separadas por almuerzo)
         const durationMin = parseInt(apt.duration) || 60;
         const rawSpan = Math.max(1, Math.min(4, Math.round(durationMin / 30)));
         let blockSpan = 1;
         for (let s = 1; s < rawSpan && (slotIdx + s) < WEEKLY_HOURS.length; s++) {
-          if (isLunchBlockStart(WEEKLY_HOURS[slotIdx + s].start)) break;
+          const prevEndMin = timeToMinutes(WEEKLY_HOURS[slotIdx + s - 1].end);
+          const nextStartMin = timeToMinutes(WEEKLY_HOURS[slotIdx + s].start);
+          if (prevEndMin !== nextStartMin) break;
           coveredSlots[`${day.dateStr}_${slotIdx + s}`] = true;
           blockSpan++;
         }
@@ -2209,7 +2191,7 @@ function renderAppointmentsView() {
   }
 }
 
-// 14 BLOQUES UNIFICADOS DE 30 MINUTOS DE 9:00 AM A 4:00 PM (SINCRONIZADOS CON HORARIO SEMANAL)
+// 11 BLOQUES UNIFICADOS DE 30 MINUTOS (09:00 AM - 12:00 PM Y 01:30 PM - 04:00 PM)
 const WORK_BLOCKS = WEEKLY_HOURS.map((slot, idx) => ({
   start: slot.start,
   end: slot.end,
@@ -2315,26 +2297,6 @@ function renderDailyTimeBlocks(dateStr) {
   }
 
   WORK_BLOCKS.forEach(block => {
-    if (isLunchBlockStart(block.start)) {
-      const lunchDiv = document.createElement('div');
-      lunchDiv.className = 'timeblock-slot slot-lunch';
-      lunchDiv.setAttribute('aria-disabled', 'true');
-      lunchDiv.innerHTML = `
-        <div class="timeblock-time-label">
-          <span class="badge-icon-wrap">${UI_ICONS.clock}</span>
-          <div>${block.label}</div>
-        </div>
-        <div class="timeblock-lunch-desc">
-          <span>Hora de Almuerzo (12:00 PM - 01:30 PM)</span>
-        </div>
-        <div>
-          <span class="timeblock-lunch-pill">Bloqueado • Almuerzo</span>
-        </div>
-      `;
-      fragment.appendChild(lunchDiv);
-      return;
-    }
-
     const slotStartMin = timeToMinutes(block.start);
     const slotEndMin = slotStartMin + 30;
 
