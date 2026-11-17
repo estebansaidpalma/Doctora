@@ -229,6 +229,11 @@ async function loadAppData() {
     }
   }
 
+  // Al abrir o refrescar la aplicación, iniciar siempre en la semana/fecha/mes actual (new Date())
+  appState.selectedAppointmentDate = getLocalISODate();
+  appState.selectedWeekDate = getLocalISODate();
+  appState.selectedBudgetMonth = getLocalISOMonth();
+
   normalizeAppState();
 }
 
@@ -1560,6 +1565,66 @@ const WEEKLY_HOURS = [
   { start: "15:30", end: "16:00", display: "03:30 PM", endDisplay: "04:00 PM" }
 ];
 
+const LUNCH_START_MIN = 12 * 60;     // 12:00 PM (720 min)
+const LUNCH_END_MIN = 13 * 60 + 30;  // 01:30 PM (810 min)
+const CLINIC_CLOSE_MIN = 16 * 60;    // 04:00 PM (960 min)
+
+function isLunchBlockStart(timeStr) {
+  const startMin = timeToMinutes(timeStr);
+  return startMin >= LUNCH_START_MIN && startMin < LUNCH_END_MIN;
+}
+
+function getSafeStartTime(timeStr, fallback = '09:00') {
+  if (!timeStr) return fallback;
+  const startMin = timeToMinutes(timeStr);
+  if (isLunchBlockStart(timeStr) || startMin < 9 * 60 || startMin >= CLINIC_CLOSE_MIN) {
+    return fallback;
+  }
+  return timeStr;
+}
+
+function getScheduleRestrictionError(timeStr, durationMin) {
+  const startMin = timeToMinutes(timeStr);
+  const dur = parseInt(durationMin, 10) || 60;
+  const endMin = startMin + dur;
+
+  if (startMin < 9 * 60 || startMin >= CLINIC_CLOSE_MIN) {
+    return 'La hora de inicio está fuera de la jornada laboral (09:00 AM - 04:00 PM).';
+  }
+  if (startMin < LUNCH_END_MIN && endMin > LUNCH_START_MIN) {
+    return 'El horario seleccionado cruza la hora de almuerzo (12:00 PM - 01:30 PM). Elige otro bloque o reduce la duración a 30 min.';
+  }
+  if (endMin > CLINIC_CLOSE_MIN) {
+    return 'La cita excede el cierre de jornada (04:00 PM). Selecciona una hora más temprana o una duración menor.';
+  }
+  return null;
+}
+
+function syncDurationSelectForTime(timeStr, durSelect) {
+  if (!durSelect || !timeStr) return;
+  const startMin = timeToMinutes(timeStr);
+  Array.from(durSelect.options).forEach(opt => {
+    if (!opt.dataset.baseLabel) opt.dataset.baseLabel = opt.textContent;
+    const durVal = parseInt(opt.value, 10) || 30;
+    const err = getScheduleRestrictionError(timeStr, durVal);
+    opt.disabled = Boolean(err);
+    if (err) {
+      const reasonTag = (startMin < LUNCH_END_MIN && startMin + durVal > LUNCH_START_MIN)
+        ? ' (Cruza Almuerzo)'
+        : ' (Excede 04:00 PM)';
+      opt.textContent = `${opt.dataset.baseLabel}${reasonTag}`;
+    } else {
+      opt.textContent = opt.dataset.baseLabel;
+    }
+  });
+
+  const selectedOpt = durSelect.options[durSelect.selectedIndex];
+  if (selectedOpt && selectedOpt.disabled) {
+    const firstValid = Array.from(durSelect.options).find(o => !o.disabled);
+    if (firstValid) durSelect.value = firstValid.value;
+  }
+}
+
 function getWeeklyScheduleDays(refDateStr) {
   const safeStr = refDateStr || appState.selectedWeekDate || getLocalISODate();
   const parts = safeStr.split('-').map(Number);
@@ -1696,12 +1761,29 @@ function renderWeeklyScheduleView(refDate) {
 
   WEEKLY_HOURS.forEach((slot, slotIdx) => {
     const tr = document.createElement('tr');
+    const isLunch = isLunchBlockStart(slot.start);
 
     // Columna de hora
     const timeTd = document.createElement('td');
-    timeTd.className = 'weekly-time-cell';
+    timeTd.className = `weekly-time-cell${isLunch ? ' weekly-time-cell--lunch' : ''}`;
     timeTd.innerHTML = `<strong>${slot.display}</strong><br><span class="weekly-time-range">a ${slot.endDisplay}</span>`;
     tr.appendChild(timeTd);
+
+    if (isLunch) {
+      days.forEach(() => {
+        const lunchTd = document.createElement('td');
+        lunchTd.className = 'weekly-slot-cell weekly-slot-cell--lunch';
+        lunchTd.setAttribute('aria-disabled', 'true');
+        lunchTd.innerHTML = `
+          <div class="weekly-slot-lunch" title="Hora de Almuerzo (12:00 PM - 01:30 PM) — Bloque no disponible">
+            ${UI_ICONS.clock}<span>Hora de Almuerzo</span>
+          </div>
+        `;
+        tr.appendChild(lunchTd);
+      });
+      fragment.appendChild(tr);
+      return;
+    }
 
     // Columnas de días
     days.forEach(day => {
@@ -1722,13 +1804,14 @@ function renderWeeklyScheduleView(refDate) {
       });
 
       if (apt) {
-        // Calcular duración en bloques de 30 minutos (30 min = 1 bloque, 60 min = 2 bloques)
+        // Calcular duración en bloques de 30 minutos (sin invadir la franja de almuerzo)
         const durationMin = parseInt(apt.duration) || 60;
-        const blockSpan = Math.max(1, Math.min(4, Math.round(durationMin / 30)));
-
-        // Marcar los siguientes bloques como cubiertos para no generar celdas duplicadas
-        for (let s = 1; s < blockSpan && (slotIdx + s) < WEEKLY_HOURS.length; s++) {
+        const rawSpan = Math.max(1, Math.min(4, Math.round(durationMin / 30)));
+        let blockSpan = 1;
+        for (let s = 1; s < rawSpan && (slotIdx + s) < WEEKLY_HOURS.length; s++) {
+          if (isLunchBlockStart(WEEKLY_HOURS[slotIdx + s].start)) break;
           coveredSlots[`${day.dateStr}_${slotIdx + s}`] = true;
+          blockSpan++;
         }
 
         const td = document.createElement('td');
@@ -1875,7 +1958,7 @@ function setupWeeklyTableDelegation(tbody) {
         null,
         emptySlot.getAttribute('data-date'),
         slotTime,
-        slotTime === '15:30' ? 30 : 60
+        (slotTime === '11:30' || slotTime === '15:30') ? 30 : 60
       );
     }
   };
@@ -1946,9 +2029,18 @@ function openReassignModal(aptId) {
     });
   }
 
+  const timeSelect = document.getElementById('reassign-time-select');
   const durSelect = document.getElementById('reassign-duration-select');
+  const safeReassignTime = getSafeStartTime(apt.time, '09:00');
+  if (timeSelect) {
+    timeSelect.value = safeReassignTime;
+    timeSelect.onchange = () => {
+      syncDurationSelectForTime(timeSelect.value, durSelect);
+    };
+  }
   if (durSelect) {
     durSelect.value = String(apt.duration || 60);
+    syncDurationSelectForTime(safeReassignTime, durSelect);
   }
 
   const statSelect = document.getElementById('reassign-status-select');
@@ -1993,7 +2085,29 @@ async function saveReassignmentConfirm() {
   const newPatient = appState.patients.find(p => p.id === newPatientId);
   if (!newPatient) return;
 
+  const timeSelect = document.getElementById('reassign-time-select');
+  const newTime = (timeSelect && timeSelect.value) ? timeSelect.value : apt.time;
   const newDuration = parseInt(document.getElementById('reassign-duration-select').value) || 60;
+  const scheduleErr = getScheduleRestrictionError(newTime, newDuration);
+  if (scheduleErr) {
+    showToast(scheduleErr, 'warning');
+    return;
+  }
+
+  const startMin = timeToMinutes(newTime);
+  const endMin = startMin + newDuration;
+  const conflict = appState.appointments.find(a => {
+    if (a.id === apt.id || a.date !== apt.date) return false;
+    if (a.status === 'cancelada' || a.status === 'cupo_liberado') return false;
+    const aStart = timeToMinutes(a.time);
+    const aEnd = aStart + (parseInt(a.duration, 10) || 60);
+    return startMin < aEnd && endMin > aStart;
+  });
+  if (conflict) {
+    showToast(`Conflicto de horario con ${conflict.patientName} (${formatTime12h(conflict.time)}).`, 'warning');
+    return;
+  }
+
   const newStatus = document.getElementById('reassign-status-select').value || 'confirmada';
   const newReason = document.getElementById('reassign-new-reason-input').value.trim() || 'Consulta Odontológica';
   const newNotes = document.getElementById('reassign-notes-input').value.trim();
@@ -2010,6 +2124,7 @@ async function saveReassignmentConfirm() {
   apt.patientId = newPatient.id;
   apt.patientName = newPatient.name;
   apt.phone = newPatient.phone;
+  apt.time = newTime;
   apt.duration = newDuration;
   apt.status = newStatus;
   apt.reason = newReason;
@@ -2184,7 +2299,7 @@ function renderDailyTimeBlocks(dateStr) {
           null,
           bookBtn.getAttribute('data-date'),
           bTime,
-          bTime === '15:30' ? 30 : 60
+          (bTime === '11:30' || bTime === '15:30') ? 30 : 60
         );
       }
     });
@@ -2200,6 +2315,26 @@ function renderDailyTimeBlocks(dateStr) {
   }
 
   WORK_BLOCKS.forEach(block => {
+    if (isLunchBlockStart(block.start)) {
+      const lunchDiv = document.createElement('div');
+      lunchDiv.className = 'timeblock-slot slot-lunch';
+      lunchDiv.setAttribute('aria-disabled', 'true');
+      lunchDiv.innerHTML = `
+        <div class="timeblock-time-label">
+          <span class="badge-icon-wrap">${UI_ICONS.clock}</span>
+          <div>${block.label}</div>
+        </div>
+        <div class="timeblock-lunch-desc">
+          <span>Hora de Almuerzo (12:00 PM - 01:30 PM)</span>
+        </div>
+        <div>
+          <span class="timeblock-lunch-pill">Bloqueado • Almuerzo</span>
+        </div>
+      `;
+      fragment.appendChild(lunchDiv);
+      return;
+    }
+
     const slotStartMin = timeToMinutes(block.start);
     const slotEndMin = slotStartMin + 30;
 
@@ -2497,10 +2632,9 @@ function openNewAppointmentModal(patientId = null, defaultDate = null, defaultTi
   }
 
   const targetDate = defaultDate || appState.selectedAppointmentDate || getLocalISODate();
-  let targetTime = defaultTime || "09:00";
-  if (timeToMinutes(targetTime) >= 16 * 60) targetTime = "15:30";
+  const targetTime = getSafeStartTime(defaultTime || "09:00", "09:00");
   let targetDuration = defaultDuration || "60";
-  if (targetTime === "15:30" && Number(targetDuration) > 30) targetDuration = "30";
+  if (getScheduleRestrictionError(targetTime, targetDuration)) targetDuration = "30";
 
   const idInp = document.getElementById('appointment-id-input');
   if (idInp) idInp.value = '';
@@ -2509,7 +2643,10 @@ function openNewAppointmentModal(patientId = null, defaultDate = null, defaultTi
   const timeInp = document.getElementById('appointment-time-input');
   if (timeInp) timeInp.value = targetTime;
   const durInp = document.getElementById('appointment-duration-input');
-  if (durInp) durInp.value = String(targetDuration);
+  if (durInp) {
+    durInp.value = String(targetDuration);
+    syncDurationSelectForTime(targetTime, durInp);
+  }
   const statusInp = document.getElementById('appointment-status-input');
   if (statusInp) statusInp.value = 'programada';
   const reasonInp = document.getElementById('appointment-reason-input');
@@ -2545,9 +2682,10 @@ function updateAppointmentTimePreview() {
     const startMin = timeToMinutes(startTime);
     const endMin = timeToMinutes(endTime);
 
-    if (endMin > 16 * 60) {
+    const scheduleErr = getScheduleRestrictionError(startTime, durationMin);
+    if (scheduleErr) {
       collisionAlert.style.display = 'block';
-      collisionAlert.innerHTML = `${UI_ICONS.alert}<span>La cita excede el cierre de jornada (04:00 PM). Selecciona una hora más temprana o una duración de 30 min.</span>`;
+      collisionAlert.innerHTML = `${UI_ICONS.alert}<span>${scheduleErr}</span>`;
       return;
     }
 
@@ -2585,8 +2723,9 @@ async function saveAppointment() {
     return;
   }
 
-  if (timeToMinutes(time) + duration > 16 * 60) {
-    showToast('El horario seleccionado supera el cierre de jornada (04:00 PM). Ajusta la hora o duración.', 'warning');
+  const scheduleErr = getScheduleRestrictionError(time, duration);
+  if (scheduleErr) {
+    showToast(scheduleErr, 'warning');
     return;
   }
 
@@ -3663,12 +3802,18 @@ function setupEventListeners() {
     });
   }
 
-  // Escuchadores en vivo en modal de cita (hora, duración, colisiones)
+  // Escuchadores en vivo en modal de cita (hora, duración, almuerzo y colisiones)
   ['appointment-date-input', 'appointment-time-input', 'appointment-duration-input'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      el.addEventListener('change', updateAppointmentTimePreview);
-      el.addEventListener('input', updateAppointmentTimePreview);
+      const handleScheduleChange = () => {
+        if (id === 'appointment-time-input') {
+          syncDurationSelectForTime(el.value, document.getElementById('appointment-duration-input'));
+        }
+        updateAppointmentTimePreview();
+      };
+      el.addEventListener('change', handleScheduleChange);
+      el.addEventListener('input', handleScheduleChange);
     }
   });
 

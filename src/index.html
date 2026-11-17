@@ -278,7 +278,7 @@
             </div>
             <div class="weekly-metric-item metric-shift">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              <span>Jornada: <strong>9:00 AM - 4:00 PM</strong> • Bloques de <strong>30m</strong> y <strong>1h</strong></span>
+              <span>Jornada: <strong>9:00 AM - 4:00 PM</strong> • Almuerzo: <strong>12:00 PM - 1:30 PM</strong> • Bloques de <strong>30m</strong> y <strong>1h</strong></span>
             </div>
           </div>
         </div>
@@ -395,7 +395,7 @@
                 </h4>
                 <p class="timeblocks-subtitle">
                   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                  <span>Horario de Trabajo: <strong>9:00 AM a 4:00 PM</strong> (14 Bloques de 30 minutos). Haz clic en cualquier bloque libre para agendar.</span>
+                  <span>Horario de Trabajo: <strong>9:00 AM a 4:00 PM</strong> (Almuerzo bloqueado: 12:00 PM - 1:30 PM). Haz clic en cualquier bloque libre para agendar.</span>
                 </p>
               </div>
               <div class="legend-pill-list">
@@ -1675,10 +1675,10 @@
               <option value="10:00">10:00 AM</option>
               <option value="10:30">10:30 AM</option>
               <option value="11:00">11:00 AM</option>
-              <option value="11:30">11:30 AM</option>
-              <option value="12:00">12:00 PM (Mediodía)</option>
-              <option value="12:30">12:30 PM</option>
-              <option value="13:00">01:00 PM</option>
+              <option value="11:30">11:30 AM (Solo 30 min)</option>
+              <option value="12:00" disabled>12:00 PM — Hora de Almuerzo (Bloqueado)</option>
+              <option value="12:30" disabled>12:30 PM — Hora de Almuerzo (Bloqueado)</option>
+              <option value="13:00" disabled>01:00 PM — Hora de Almuerzo (Bloqueado)</option>
               <option value="13:30">01:30 PM</option>
               <option value="14:00">02:00 PM</option>
               <option value="14:30">02:30 PM</option>
@@ -1964,19 +1964,39 @@
 
         <div class="form-row">
           <div class="form-group">
+            <label class="form-label" for="reassign-time-select">Hora del Cupo (Bloques de 30 min):</label>
+            <select id="reassign-time-select" class="form-control apt-datetime-input">
+              <option value="09:00">09:00 AM</option>
+              <option value="09:30">09:30 AM</option>
+              <option value="10:00">10:00 AM</option>
+              <option value="10:30">10:30 AM</option>
+              <option value="11:00">11:00 AM</option>
+              <option value="11:30">11:30 AM (Solo 30 min)</option>
+              <option value="12:00" disabled>12:00 PM — Hora de Almuerzo (Bloqueado)</option>
+              <option value="12:30" disabled>12:30 PM — Hora de Almuerzo (Bloqueado)</option>
+              <option value="13:00" disabled>01:00 PM — Hora de Almuerzo (Bloqueado)</option>
+              <option value="13:30">01:30 PM</option>
+              <option value="14:00">02:00 PM</option>
+              <option value="14:30">02:30 PM</option>
+              <option value="15:00">03:00 PM</option>
+              <option value="15:30">03:30 PM (Solo 30 min)</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label class="form-label" for="reassign-duration-select">Bloque a Ocupar por el Nuevo Paciente:</label>
             <select id="reassign-duration-select" class="form-control apt-datetime-input">
               <option value="30">Media Hora (30 minutos)</option>
               <option value="60" selected>1 Hora Completa (60 minutos)</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="reassign-status-select">Estado de Confirmación:</label>
-            <select id="reassign-status-select" class="form-control apt-datetime-input">
-              <option value="confirmada" selected>Confirmada de Inmediato (Por Teléfono)</option>
-              <option value="programada">Por Confirmar / Pendiente</option>
-            </select>
-          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reassign-status-select">Estado de Confirmación:</label>
+          <select id="reassign-status-select" class="form-control apt-datetime-input">
+            <option value="confirmada" selected>Confirmada de Inmediato (Por Teléfono)</option>
+            <option value="programada">Por Confirmar / Pendiente</option>
+          </select>
         </div>
 
         <div class="form-group">
